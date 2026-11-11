@@ -1,0 +1,376 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/expedition/expedition.gd" id="1_expedition"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_expedition.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/ui/expedition_hud.gd" id="3_hud"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/tree_cone.tscn" id="4_tree_cone"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/tree_mushroom.tscn" id="5_tree_mushroom"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/rock.tscn" id="6_rock"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_meadow"]
+sky_top_color = Color(0.25, 0.32, 0.68, 1)
+sky_horizon_color = Color(1, 0.68, 0.5, 1)
+ground_bottom_color = Color(0.2, 0.14, 0.25, 1)
+ground_horizon_color = Color(1, 0.68, 0.5, 1)
+
+[sub_resource type="Sky" id="Sky_meadow"]
+sky_material = SubResource("SkyMaterial_meadow")
+
+[sub_resource type="Environment" id="Environment_meadow"]
+background_mode = 2
+sky = SubResource("Sky_meadow")
+ambient_light_source = 3
+tonemap_mode = 2
+glow_enabled = true
+fog_enabled = true
+fog_light_color = Color(0.95, 0.72, 0.65, 1)
+fog_density = 0.004
+
+[sub_resource type="PlaneMesh" id="Mesh_ground"]
+size = Vector2(120, 120)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.36, 0.62, 0.5, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(120, 1, 120)
+
+[sub_resource type="CylinderMesh" id="Mesh_pad"]
+top_radius = 3.2
+bottom_radius = 3.4
+height = 0.2
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Material_pad"]
+albedo_color = Color(0.55, 0.55, 0.65, 1)
+
+[sub_resource type="CylinderShape3D" id="Shape_pad"]
+height = 0.2
+radius = 3.3
+
+[sub_resource type="BoxMesh" id="Mesh_beacon"]
+size = Vector3(0.4, 3, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Material_beacon"]
+albedo_color = Color(0.3, 0.95, 1, 1)
+emission_enabled = true
+emission = Color(0.3, 0.95, 1, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="BoxShape3D" id="Shape_beacon"]
+size = Vector3(0.4, 3, 0.4)
+
+[sub_resource type="SphereMesh" id="Mesh_den"]
+radius = 3.5
+height = 2.6
+radial_segments = 10
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Material_den"]
+albedo_color = Color(0.4, 0.3, 0.28, 1)
+
+[sub_resource type="SphereMesh" id="Mesh_den_hole"]
+radius = 1.0
+height = 1.4
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="Material_dark"]
+albedo_color = Color(0.08, 0.05, 0.08, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_bone"]
+top_radius = 0.06
+bottom_radius = 0.06
+height = 0.8
+radial_segments = 5
+
+[sub_resource type="StandardMaterial3D" id="Material_bone"]
+albedo_color = Color(0.95, 0.92, 0.82, 1)
+
+[sub_resource type="SphereShape3D" id="Shape_den"]
+radius = 2.6
+
+[sub_resource type="CylinderMesh" id="Mesh_mountain"]
+top_radius = 0.0
+bottom_radius = 1.0
+height = 1.0
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="Material_mountain"]
+albedo_color = Color(0.55, 0.38, 0.5, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_x"]
+size = Vector3(90, 10, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_z"]
+size = Vector3(1, 10, 90)
+
+[node name="Expedition" type="Node3D"]
+script = ExtResource("1_expedition")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_meadow")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8192, -0.4699, 0.329, 0, 0.5736, 0.8192, -0.5736, -0.6711, 0.4699, 0, 10, 0)
+light_color = Color(1, 0.92, 0.82, 1)
+shadow_enabled = true
+
+[node name="Level" type="Node3D" parent="."]
+
+[node name="Ground" type="StaticBody3D" parent="Level"]
+
+[node name="Mesh" type="MeshInstance3D" parent="Level/Ground"]
+mesh = SubResource("Mesh_ground")
+surface_material_override/0 = SubResource("Material_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Level/Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Shape_ground")
+
+[node name="EvacBeacon" type="StaticBody3D" parent="Level" groups=["evac"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34)
+
+[node name="Pad" type="MeshInstance3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("Mesh_pad")
+surface_material_override/0 = SubResource("Material_pad")
+
+[node name="PadCollision" type="CollisionShape3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("Shape_pad")
+
+[node name="Beacon" type="MeshInstance3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 1.7, -1.4)
+mesh = SubResource("Mesh_beacon")
+surface_material_override/0 = SubResource("Material_beacon")
+
+[node name="BeaconCollision" type="CollisionShape3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 1.7, -1.4)
+shape = SubResource("Shape_beacon")
+
+[node name="BeaconLight" type="OmniLight3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 3.4, -1.4)
+light_color = Color(0.3, 0.95, 1, 1)
+light_energy = 2.0
+omni_range = 8.0
+
+[node name="PlayerSpawn" type="Marker3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 33)
+
+[node name="Den" type="StaticBody3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -31)
+
+[node name="Mound" type="MeshInstance3D" parent="Level/Den"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+mesh = SubResource("Mesh_den")
+surface_material_override/0 = SubResource("Material_den")
+
+[node name="Hole" type="MeshInstance3D" parent="Level/Den"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 2.6)
+mesh = SubResource("Mesh_den_hole")
+surface_material_override/0 = SubResource("Material_dark")
+
+[node name="Bone1" type="MeshInstance3D" parent="Level/Den"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 1.2, 0.08, 4.2)
+mesh = SubResource("Mesh_bone")
+surface_material_override/0 = SubResource("Material_bone")
+
+[node name="Bone2" type="MeshInstance3D" parent="Level/Den"]
+transform = Transform3D(0, 0, 1, 1, 0, 0, 0, 1, 0, -1.4, 0.08, 4.6)
+mesh = SubResource("Mesh_bone")
+surface_material_override/0 = SubResource("Material_bone")
+
+[node name="Collision" type="CollisionShape3D" parent="Level/Den"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("Shape_den")
+
+[node name="DenSpot" type="Marker3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -26.5)
+
+[node name="PickupSpots" type="Node3D" parent="Level"]
+
+[node name="S1" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 22)
+
+[node name="S2" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 20)
+
+[node name="S3" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 8)
+
+[node name="S4" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 10)
+
+[node name="S5" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 12)
+
+[node name="S6" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
+
+[node name="S7" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -6)
+
+[node name="S8" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -8)
+
+[node name="S9" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -18)
+
+[node name="S10" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -20)
+
+[node name="S11" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -18)
+
+[node name="S12" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -24)
+
+[node name="S13" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, 12)
+
+[node name="S14" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, 14)
+
+[node name="S15" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 30)
+
+[node name="S16" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 28)
+
+[node name="BushSpots" type="Node3D" parent="Level"]
+
+[node name="B1" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 16)
+
+[node name="B2" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
+
+[node name="B3" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -12)
+
+[node name="B4" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -4)
+
+[node name="ArtifactSpots" type="Node3D" parent="Level"]
+
+[node name="A1" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -30)
+
+[node name="A2" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+
+[node name="A3" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+
+[node name="Rocks" type="Node3D" parent="Level"]
+
+[node name="Rock1" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 26)
+
+[node name="Rock2" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 13)
+
+[node name="Rock3" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 2)
+
+[node name="Rock4" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -12)
+
+[node name="Rock5" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -26)
+
+[node name="Rock6" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0, 0)
+
+[node name="Rock7" parent="Level/Rocks" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0, 24)
+
+[node name="Trees" type="Node3D" parent="Level"]
+
+[node name="Mushroom1" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 18)
+
+[node name="Mushroom2" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 16)
+
+[node name="Mushroom3" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, -2)
+
+[node name="Mushroom4" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -15)
+
+[node name="Mushroom5" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, -32)
+
+[node name="Mushroom6" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -34)
+
+[node name="Mushroom7" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34, 0, -14)
+
+[node name="Cone1" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, -6)
+
+[node name="Cone2" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, 26)
+
+[node name="Cone3" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 0, 34)
+
+[node name="Cone4" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0, 36)
+
+[node name="Cone5" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -38)
+
+[node name="Mountains" type="Node3D" parent="Level"]
+
+[node name="Mountain1" type="MeshInstance3D" parent="Level/Mountains"]
+transform = Transform3D(30, 0, 0, 0, 38, 0, 0, 0, 30, 0, 19, -80)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain2" type="MeshInstance3D" parent="Level/Mountains"]
+transform = Transform3D(24, 0, 0, 0, 28, 0, 0, 0, 24, -62, 14, -48)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain3" type="MeshInstance3D" parent="Level/Mountains"]
+transform = Transform3D(26, 0, 0, 0, 32, 0, 0, 0, 26, 64, 16, -44)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain4" type="MeshInstance3D" parent="Level/Mountains"]
+transform = Transform3D(22, 0, 0, 0, 22, 0, 0, 0, 22, -74, 11, 24)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain5" type="MeshInstance3D" parent="Level/Mountains"]
+transform = Transform3D(22, 0, 0, 0, 26, 0, 0, 0, 22, 72, 13, 40)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Bounds" type="StaticBody3D" parent="Level"]
+
+[node name="North" type="CollisionShape3D" parent="Level/Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -45)
+shape = SubResource("Shape_wall_x")
+
+[node name="South" type="CollisionShape3D" parent="Level/Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 45)
+shape = SubResource("Shape_wall_x")
+
+[node name="West" type="CollisionShape3D" parent="Level/Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 5, 0)
+shape = SubResource("Shape_wall_z")
+
+[node name="East" type="CollisionShape3D" parent="Level/Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 5, 0)
+shape = SubResource("Shape_wall_z")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 33)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")

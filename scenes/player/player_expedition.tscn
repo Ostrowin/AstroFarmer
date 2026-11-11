@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/expedition/expedition_interaction.gd" id="2_interaction"]
+
+[node name="Player" instance=ExtResource("1_player")]
+
+[node name="Interaction" parent="." index="4"]
+script = ExtResource("2_interaction")

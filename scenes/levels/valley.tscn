@@ -1,0 +1,300 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/props/tree_cone.tscn" id="1_tree_cone"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/tree_mushroom.tscn" id="2_tree_mushroom"]
+[ext_resource type="PackedScene" path="res://scenes/levels/props/rock.tscn" id="3_rock"]
+
+[sub_resource type="PlaneMesh" id="Mesh_ground"]
+size = Vector2(120, 120)
+
+[sub_resource type="StandardMaterial3D" id="Material_ground"]
+albedo_color = Color(0.42, 0.72, 0.4, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_ground"]
+size = Vector3(120, 1, 120)
+
+[sub_resource type="PlaneMesh" id="Mesh_tilled"]
+size = Vector2(9, 6)
+
+[sub_resource type="StandardMaterial3D" id="Material_tilled"]
+albedo_color = Color(0.48, 0.34, 0.26, 1)
+
+[sub_resource type="CylinderMesh" id="Mesh_pond"]
+top_radius = 2.8
+bottom_radius = 2.8
+height = 0.12
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="Material_pond"]
+transparency = 1
+albedo_color = Color(0.25, 0.6, 0.95, 0.85)
+metallic_specular = 0.9
+roughness = 0.1
+
+[sub_resource type="CylinderShape3D" id="Shape_pond"]
+height = 0.12
+radius = 2.8
+
+[sub_resource type="BoxMesh" id="Mesh_hut_walls"]
+size = Vector3(4, 2.6, 3.5)
+
+[sub_resource type="StandardMaterial3D" id="Material_hut_walls"]
+albedo_color = Color(0.93, 0.86, 0.72, 1)
+
+[sub_resource type="PrismMesh" id="Mesh_hut_roof"]
+size = Vector3(4.6, 1.4, 3.9)
+
+[sub_resource type="StandardMaterial3D" id="Material_hut_roof"]
+albedo_color = Color(0.78, 0.36, 0.3, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_hut_door"]
+size = Vector3(1, 1.8, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="Material_dark"]
+albedo_color = Color(0.25, 0.2, 0.25, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_hut"]
+size = Vector3(4, 2.6, 3.5)
+
+[sub_resource type="BoxMesh" id="Mesh_pillar"]
+size = Vector3(0.6, 4, 0.6)
+
+[sub_resource type="BoxMesh" id="Mesh_beam"]
+size = Vector3(4, 0.6, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="Material_stone"]
+albedo_color = Color(0.6, 0.58, 0.7, 1)
+
+[sub_resource type="BoxMesh" id="Mesh_portal"]
+size = Vector3(2.8, 3.6, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="Material_portal"]
+transparency = 1
+albedo_color = Color(0.3, 0.95, 1, 0.6)
+emission_enabled = true
+emission = Color(0.3, 0.95, 1, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="BoxShape3D" id="Shape_pillar"]
+size = Vector3(0.6, 4, 0.6)
+
+[sub_resource type="BoxShape3D" id="Shape_portal"]
+size = Vector3(2.8, 3.6, 0.3)
+
+[sub_resource type="CylinderMesh" id="Mesh_mountain"]
+top_radius = 0.0
+bottom_radius = 1.0
+height = 1.0
+radial_segments = 7
+
+[sub_resource type="StandardMaterial3D" id="Material_mountain"]
+albedo_color = Color(0.5, 0.44, 0.62, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_x"]
+size = Vector3(80, 10, 1)
+
+[sub_resource type="BoxShape3D" id="Shape_wall_z"]
+size = Vector3(1, 10, 80)
+
+[node name="Valley" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="." groups=["soil"]]
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("Mesh_ground")
+surface_material_override/0 = SubResource("Material_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Shape_ground")
+
+[node name="TilledPatch" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -1)
+mesh = SubResource("Mesh_tilled")
+surface_material_override/0 = SubResource("Material_tilled")
+
+[node name="Pond" type="StaticBody3D" parent="." groups=["water"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 5)
+
+[node name="Mesh" type="MeshInstance3D" parent="Pond"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("Mesh_pond")
+surface_material_override/0 = SubResource("Material_pond")
+
+[node name="Collision" type="CollisionShape3D" parent="Pond"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+shape = SubResource("Shape_pond")
+
+[node name="Hut" type="StaticBody3D" parent="." groups=["building"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -3)
+
+[node name="Walls" type="MeshInstance3D" parent="Hut"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+mesh = SubResource("Mesh_hut_walls")
+surface_material_override/0 = SubResource("Material_hut_walls")
+
+[node name="Roof" type="MeshInstance3D" parent="Hut"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3, 0)
+mesh = SubResource("Mesh_hut_roof")
+surface_material_override/0 = SubResource("Material_hut_roof")
+
+[node name="Door" type="MeshInstance3D" parent="Hut"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 1.76)
+mesh = SubResource("Mesh_hut_door")
+surface_material_override/0 = SubResource("Material_dark")
+
+[node name="Collision" type="CollisionShape3D" parent="Hut"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("Shape_hut")
+
+[node name="ExpeditionGate" type="StaticBody3D" parent="." groups=["gate"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
+
+[node name="PillarLeft" type="MeshInstance3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 2, 0)
+mesh = SubResource("Mesh_pillar")
+surface_material_override/0 = SubResource("Material_stone")
+
+[node name="PillarRight" type="MeshInstance3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7, 2, 0)
+mesh = SubResource("Mesh_pillar")
+surface_material_override/0 = SubResource("Material_stone")
+
+[node name="Beam" type="MeshInstance3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+mesh = SubResource("Mesh_beam")
+surface_material_override/0 = SubResource("Material_stone")
+
+[node name="Portal" type="MeshInstance3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
+mesh = SubResource("Mesh_portal")
+surface_material_override/0 = SubResource("Material_portal")
+
+[node name="Glow" type="OmniLight3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1)
+light_color = Color(0.3, 0.95, 1, 1)
+light_energy = 1.5
+omni_range = 6.0
+
+[node name="CollisionLeft" type="CollisionShape3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 2, 0)
+shape = SubResource("Shape_pillar")
+
+[node name="CollisionRight" type="CollisionShape3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7, 2, 0)
+shape = SubResource("Shape_pillar")
+
+[node name="CollisionPortal" type="CollisionShape3D" parent="ExpeditionGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
+shape = SubResource("Shape_portal")
+
+[node name="Rocks" type="Node3D" parent="."]
+
+[node name="Rock1" parent="Rocks" instance=ExtResource("3_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -7)
+
+[node name="Rock2" parent="Rocks" instance=ExtResource("3_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0, 7)
+
+[node name="Rock3" parent="Rocks" instance=ExtResource("3_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 12)
+
+[node name="Rock4" parent="Rocks" instance=ExtResource("3_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -10)
+
+[node name="Rock5" parent="Rocks" instance=ExtResource("3_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 10)
+
+[node name="Trees" type="Node3D" parent="."]
+
+[node name="Cone1" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -12)
+
+[node name="Cone2" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, 4)
+
+[node name="Cone3" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -14)
+
+[node name="Cone4" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 6)
+
+[node name="Cone5" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 22)
+
+[node name="Cone6" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 20)
+
+[node name="Cone7" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0, -24)
+
+[node name="Cone8" parent="Trees" instance=ExtResource("1_tree_cone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -26)
+
+[node name="Mushroom1" parent="Trees" instance=ExtResource("2_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -3)
+
+[node name="Mushroom2" parent="Trees" instance=ExtResource("2_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 14)
+
+[node name="Mushroom3" parent="Trees" instance=ExtResource("2_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -25)
+
+[node name="Mushroom4" parent="Trees" instance=ExtResource("2_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0, 18)
+
+[node name="Mushroom5" parent="Trees" instance=ExtResource("2_tree_mushroom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 26, 0, 22)
+
+[node name="Mountains" type="Node3D" parent="."]
+
+[node name="Mountain1" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(28, 0, 0, 0, 34, 0, 0, 0, 28, 0, 17, -75)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain2" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(22, 0, 0, 0, 26, 0, 0, 0, 22, -58, 13, -52)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain3" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(24, 0, 0, 0, 30, 0, 0, 0, 24, 62, 15, -45)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain4" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, -72, 10, 20)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain5" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(22, 0, 0, 0, 24, 0, 0, 0, 22, 68, 12, 38)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Mountain6" type="MeshInstance3D" parent="Mountains"]
+transform = Transform3D(26, 0, 0, 0, 18, 0, 0, 0, 26, 10, 9, 78)
+mesh = SubResource("Mesh_mountain")
+surface_material_override/0 = SubResource("Material_mountain")
+
+[node name="Bounds" type="StaticBody3D" parent="."]
+
+[node name="North" type="CollisionShape3D" parent="Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -40)
+shape = SubResource("Shape_wall_x")
+
+[node name="South" type="CollisionShape3D" parent="Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 40)
+shape = SubResource("Shape_wall_x")
+
+[node name="West" type="CollisionShape3D" parent="Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 5, 0)
+shape = SubResource("Shape_wall_z")
+
+[node name="East" type="CollisionShape3D" parent="Bounds"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 5, 0)
+shape = SubResource("Shape_wall_z")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)

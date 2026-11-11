@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"crystal_bloom"
+display_name = "Crystal Bloom"
+description = "Kwiat, który wyciąga minerały z gleby i wypuszcza kryształy. Nie potrzebuje wody, ale rośnie wolno i nie lubi ciasnoty."
+shape = 1
+stages = 3
+cycles_per_stage = 2
+needs_water = false
+min_spacing = 1.6
+harvest_item = &"crystal"
+harvest_item_name = "Kryształ"
+harvest_amount = Vector2i(1, 2)
+seeds_per_harvest = Vector2i(1, 1)
+leaf_color = Color(0.25, 0.6, 0.6, 1)
+accent_color = Color(0.45, 0.95, 1, 1)

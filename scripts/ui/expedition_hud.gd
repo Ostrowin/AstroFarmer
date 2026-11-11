@@ -1,0 +1,102 @@
+class_name ExpeditionHud
+extends Hud
+## HUD wyprawy: paski Kondycji i Przebudzenia, plecak, odliczanie burzy i ewakuacji.
+
+var _health_bar: ProgressBar
+var _health_label: Label
+var _awake_bar: ProgressBar
+var _awake_label: Label
+var _alert: Label
+
+
+func _ready() -> void:
+	super()
+	var bars := VBoxContainer.new()
+	bars.anchor_left = 0.5
+	bars.anchor_right = 0.5
+	bars.offset_left = -220
+	bars.offset_right = 220
+	bars.offset_top = 10
+	bars.add_theme_constant_override("separation", 2)
+	bars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(bars)
+
+	_health_label = _make_label(16)
+	bars.add_child(_health_label)
+	_health_bar = _make_bar(Color(0.95, 0.35, 0.35))
+	bars.add_child(_health_bar)
+	_awake_label = _make_label(16)
+	bars.add_child(_awake_label)
+	_awake_bar = _make_bar(Color(0.7, 0.4, 1.0))
+	bars.add_child(_awake_bar)
+
+	_alert = _make_label(26)
+	_alert.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_alert.modulate = Color(1, 0.45, 0.4)
+	_alert.anchor_left = 0.5
+	_alert.anchor_right = 0.5
+	_alert.offset_left = -500
+	_alert.offset_right = 500
+	_alert.offset_top = 128
+	_root.add_child(_alert)
+	set_awakening(0.0)
+
+
+func set_player(player: Player) -> void:
+	player.health_changed.connect(_on_health_changed)
+	_on_health_changed(player.health, player.max_health)
+
+
+func set_awakening(value: float) -> void:
+	_awake_bar.value = value
+	var phase := "spokój"
+	if value >= 100.0:
+		phase = "PLANETA SIĘ BRONI"
+	elif value >= 75.0:
+		phase = "drapieżnik poluje"
+	elif value >= 50.0:
+		phase = "planeta się budzi"
+	elif value >= 25.0:
+		phase = "niepokój"
+	_awake_label.text = "Przebudzenie %d/100 · %s" % [int(value), phase]
+
+
+func set_alert(text: String) -> void:
+	_alert.text = text
+
+
+func _on_health_changed(health: float, max_health: float) -> void:
+	_health_bar.max_value = max_health
+	_health_bar.value = health
+	_health_label.text = "Kondycja %d/%d" % [ceili(health), int(max_health)]
+
+
+func _status_text() -> String:
+	var run := GameState.run
+	var found := run.discoveries.size() if run else 0
+	var buffs := (", ".join(run.buffs) if run and not run.buffs.is_empty() else "brak")
+	return "Wyprawa · Dzika łąka\nNowe odkrycia: %d\nUlepszenia: %s" % [found, buffs]
+
+
+func _inventory_text() -> String:
+	var run := GameState.run
+	if run == null:
+		return "Plecak\n(brak wyprawy)"
+	return "Plecak %d/%d\n%s" % [run.used_space(), RunState.BACKPACK_CAPACITY, Hud.item_lines(run.backpack)]
+
+
+func _make_bar(fill: Color) -> ProgressBar:
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(440, 16)
+	bar.show_percentage = false
+	bar.max_value = 100.0
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.05, 0.03, 0.1, 0.65)
+	bg.set_corner_radius_all(6)
+	var fg := StyleBoxFlat.new()
+	fg.bg_color = fill
+	fg.set_corner_radius_all(6)
+	bar.add_theme_stylebox_override("background", bg)
+	bar.add_theme_stylebox_override("fill", fg)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return bar

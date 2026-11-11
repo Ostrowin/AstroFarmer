@@ -1,0 +1,7 @@
+# Normalizacja końców linii (domyślne w Godot 4)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.glb binary
+*.wav binary
+*.ogg binary

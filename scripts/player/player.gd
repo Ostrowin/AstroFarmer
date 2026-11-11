@@ -1,0 +1,124 @@
+class_name Player
+extends CharacterBody3D
+## Postać gracza: ruch względem kamery, skok, sprint, kamera TPP za plecami
+## (SpringArm3D, więc kamera nie przenika przez ściany) i Kondycja (zdrowie).
+
+signal health_changed(health: float, max_health: float)
+signal died
+
+@export var max_health := 100.0
+@export var walk_speed := 5.0
+@export var sprint_speed := 8.5
+@export var jump_velocity := 5.5
+@export var acceleration := 12.0
+@export var turn_speed := 12.0
+@export var mouse_sensitivity := 0.0025
+@export var min_pitch_deg := -70.0
+@export var max_pitch_deg := 20.0
+
+## Wyłączane np. podczas przejścia na wyprawę.
+var input_enabled := true
+## Kondycja: spada od ataków i burzy na wyprawie.
+var health := 100.0
+## Mnożnik prędkości (ulepszenie wyprawy "Turbo-buty").
+var speed_multiplier := 1.0
+
+var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _hurt_cooldown := 0.0
+
+## PlayerInteraction w bazie, ExpeditionInteraction na wyprawie.
+@onready var interaction: Node = $Interaction
+@onready var camera: Camera3D = $CameraPivot/CameraPitch/SpringArm3D/Camera3D
+@onready var _visual: Node3D = $Visual
+@onready var _yaw: Node3D = $CameraPivot
+@onready var _pitch: Node3D = $CameraPivot/CameraPitch
+@onready var _spring_arm: SpringArm3D = $CameraPivot/CameraPitch/SpringArm3D
+
+
+func _ready() -> void:
+	health = max_health
+	_spring_arm.add_excluded_object(get_rid())
+	capture_mouse()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and is_mouse_captured():
+		var motion := event as InputEventMouseMotion
+		_yaw.rotate_y(-motion.relative.x * mouse_sensitivity)
+		_pitch.rotation.x = clampf(
+			_pitch.rotation.x - motion.relative.y * mouse_sensitivity,
+			deg_to_rad(min_pitch_deg), deg_to_rad(max_pitch_deg))
+	elif event.is_action_pressed("ui_cancel"):
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif event is InputEventMouseButton and event.pressed and not is_mouse_captured():
+		capture_mouse()
+		get_viewport().set_input_as_handled()
+
+
+func _physics_process(delta: float) -> void:
+	_hurt_cooldown -= delta
+	if not is_on_floor():
+		velocity.y -= _gravity * delta
+
+	var can_move := input_enabled and is_mouse_captured()
+	if can_move and Input.is_action_just_pressed("jump") and is_on_floor():
+		velocity.y = jump_velocity
+
+	var input := Vector2.ZERO
+	if can_move:
+		input = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var direction := (Basis(Vector3.UP, _yaw.rotation.y) * Vector3(input.x, 0.0, input.y)).normalized()
+	var speed := (sprint_speed if Input.is_action_pressed("sprint") else walk_speed) * speed_multiplier
+
+	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+	horizontal = horizontal.lerp(direction * speed, clampf(acceleration * delta, 0.0, 1.0))
+	velocity.x = horizontal.x
+	velocity.z = horizontal.z
+	move_and_slide()
+
+	if direction.length_squared() > 0.01:
+		var target_yaw := atan2(-direction.x, -direction.z)
+		_visual.rotation.y = lerp_angle(_visual.rotation.y, target_yaw, clampf(turn_speed * delta, 0.0, 1.0))
+
+
+# --- Kondycja ----------------------------------------------------------------
+
+## Obrażenia. `silent` = ciągłe obrażenia (burza): bez odrzutu, dźwięku i przerwy.
+func take_damage(amount: float, from := Vector3.INF, silent := false) -> void:
+	if health <= 0.0:
+		return
+	if not silent:
+		if _hurt_cooldown > 0.0:
+			return
+		_hurt_cooldown = 0.5
+		Sfx.play(&"hurt", global_position)
+		if from != Vector3.INF:
+			var push := global_position - from
+			push.y = 0.0
+			velocity += push.normalized() * 7.0 + Vector3.UP * 3.0
+		_visual.scale = Vector3(1.25, 0.75, 1.25)
+		create_tween().tween_property(_visual, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	health = maxf(0.0, health - amount)
+	health_changed.emit(health, max_health)
+	if health <= 0.0:
+		died.emit()
+
+
+func heal(amount: float) -> void:
+	if health <= 0.0:
+		return
+	health = minf(max_health, health + amount)
+	health_changed.emit(health, max_health)
+
+
+func add_max_health(amount: float) -> void:
+	max_health += amount
+	heal(amount)
+
+
+func is_mouse_captured() -> bool:
+	return Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+
+
+func capture_mouse() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

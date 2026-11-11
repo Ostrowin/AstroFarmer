@@ -1,0 +1,12 @@
+# Godot 4
+.godot/
+/android/
+
+# Eksporty
+/build/
+*.exe
+*.pck
+
+# System
+.DS_Store
+Thumbs.db
