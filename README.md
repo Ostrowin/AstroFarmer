@@ -39,6 +39,10 @@ Otwórz `project.godot` w Godot 4.7 i naciśnij F5. Albo z terminala:
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_progress.tscn
 ```
 
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_controls.tscn
+```
+
 Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; Tab przełącza kamerę):
 
 ```bash
@@ -58,6 +62,21 @@ Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; 
 
 ## Sterowanie
 
-**Baza:** WASD ruch · Spacja skok · Shift sprint · mysz kamera · 1-8 / kółko wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot) · LPM użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek) · E zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy · Esc zwalnia mysz · F9 następny cykl (debug) · F10 nowa gra (debug)
+Ruch jak w Risk of Rain 2:
+- WASD ruch, Spacja skok, mysz kamera.
+- Ctrl włącza bieg. Bieg trwa, dopóki się ruszasz i nie strzelasz.
+- Shift: dash (odnowienie 2 s).
+- Esc zwalnia mysz.
 
-**Wyprawa:** 1 ogłuszacz · 2 rzut nasionem Snappera · 3 zjedz Voidberry · 4 rzut Boomshroomem · LPM użyj · E podnieś / zjedz dziki owoc / nabierz wody z Mglistego źródła / wezwij ewakuację · Q skanuj
+**Baza** (sadzenie i budowanie na siatce 1×1 m):
+- 1-8 / kółko: wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot).
+- LPM: użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek).
+- E: zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy.
+- F9 następny cykl, F10 nowa gra (debug).
+
+**Wyprawa:**
+- LPM: przedmiot z paska. 1 pistolet (przytrzymaj = seria), 2 zjedz Voidberry.
+- PPM: rzuć to, co masz w drugiej ręce (nasiono Snappera albo Boomshrooma). R zmienia rzucany przedmiot.
+- Tab: plecak. Przeciągnij nasiono na rękę PPM; PPM na przedmiocie wyrzuca 1 sztukę, przeciągnięcie do kosza wyrzuca stos.
+- E: podnieś / zjedz dziki owoc / nabierz wody z Mglistego źródła / wezwij ewakuację.
+- Q: skanuj.

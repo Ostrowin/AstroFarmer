@@ -2,6 +2,7 @@ class_name Farm
 extends Node3D
 ## Baza: rośliny (sadzenie, zbiór, wzrost co cykl), słupki płotu
 ## i najazdy fauny rozstrzygane po wzroście w każdym cyklu. Zapis do GameState.
+## Sadzenie i budowanie na siatce 1×1 m: każda roślina i słupek zajmuje jedno pole.
 
 signal changed
 signal cycle_report(lines: Array)
@@ -9,10 +10,8 @@ signal raid_resolved(result: Dictionary)
 
 const MAX_SLOPE_NORMAL_Y := 0.85
 const REACH := 3.5
-const POST_SPACING := 0.8
-const POST_TO_PLANT := 0.6
-## Słupki bliżej niż to łączą się poprzeczką.
-const RAIL_DISTANCE := 2.6
+## Bok pola siatki (metry).
+const CELL := 1.0
 
 var rng := RandomNumberGenerator.new()
 
@@ -35,42 +34,59 @@ func _ready() -> void:
 
 # --- Sadzenie ----------------------------------------------------------------
 
+# --- Siatka -------------------------------------------------------------------
+
+static func cell_of(point: Vector3) -> Vector2i:
+	return Vector2i(floori(point.x / CELL), floori(point.z / CELL))
+
+
+static func cell_center(cell: Vector2i, y := 0.0) -> Vector3:
+	return Vector3((cell.x + 0.5) * CELL, y, (cell.y + 0.5) * CELL)
+
+
+## Środek pola siatki pod punktem (zachowuje wysokość).
+static func snap(point: Vector3) -> Vector3:
+	return cell_center(cell_of(point), point.y)
+
+
+## Roślina albo słupek na danym polu (null = wolne).
+func occupant(cell: Vector2i) -> Node3D:
+	for plant in _plants:
+		if cell_of(plant.global_position) == cell:
+			return plant
+	for post in _posts:
+		if cell_of(post.global_position) == cell:
+			return post
+	return null
+
+
+## Wspólne zasady dla sadzenia i budowania na polu pod punktem.
+func _cell_problem(point: Vector3, normal: Vector3, collider: Object, from: Vector3, soil_message: String) -> String:
+	if collider == null or not (collider is Node and (collider as Node).is_in_group("soil")):
+		return soil_message
+	if normal.y < MAX_SLOPE_NORMAL_Y:
+		return "Za stromo"
+	if _flat_distance(snap(point), from) > REACH:
+		return "Za daleko"
+	var taken := occupant(cell_of(point))
+	if taken is Plant:
+		return "Pole zajęte: %s" % (taken as Plant).display_name()
+	if taken is FencePost:
+		return "Pole zajęte: słupek płotu"
+	return ""
+
+
 ## Zwraca "" jeśli można posadzić, w przeciwnym razie powód (do pokazania graczowi).
 func placement_problem(data: PlantData, point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
 	if GameState.get_resource(data.seed_item()) <= 0:
 		return "Brak nasion: %s" % data.display_name
-	if collider == null or not (collider is Node and (collider as Node).is_in_group("soil")):
-		return "Tu nic nie urośnie: to nie gleba"
-	if normal.y < MAX_SLOPE_NORMAL_Y:
-		return "Za stromo"
-	if Vector2(point.x - from.x, point.z - from.z).length() > REACH:
-		return "Za daleko"
-	for plant in _plants:
-		var spacing := maxf(data.min_spacing, plant.data.min_spacing)
-		if Vector2(plant.global_position.x - point.x, plant.global_position.z - point.z).length() < spacing:
-			return "Za blisko innej rośliny (min. %.1f m)" % spacing
-	for post in _posts:
-		if _flat_distance(post.global_position, point) < POST_TO_PLANT:
-			return "Za blisko płotu"
-	return ""
+	return _cell_problem(point, normal, collider, from, "Tu nic nie urośnie: to nie gleba")
 
 
 func post_problem(point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
 	if GameState.get_resource(&"fence_post") <= 0:
-		return "Brak słupków: zrób je w warsztacie (2 kryształy = 3 słupki)"
-	if collider == null or not (collider is Node and (collider as Node).is_in_group("soil")):
-		return "Płot stawia się na gruncie"
-	if normal.y < MAX_SLOPE_NORMAL_Y:
-		return "Za stromo"
-	if _flat_distance(point, from) > REACH:
-		return "Za daleko"
-	for post in _posts:
-		if _flat_distance(post.global_position, point) < POST_SPACING:
-			return "Za blisko innego słupka"
-	for plant in _plants:
-		if _flat_distance(plant.global_position, point) < POST_TO_PLANT:
-			return "Za blisko rośliny"
-	return ""
+		return "Brak słupków: zrób je w warsztacie (2 kryształy = 4 słupki)"
+	return _cell_problem(point, normal, collider, from, "Płot stawia się na gruncie")
 
 
 func place_post(point: Vector3) -> FencePost:
@@ -243,9 +259,20 @@ func post_count() -> int:
 func _spawn_post(pos: Vector3) -> FencePost:
 	var post := FencePost.new()
 	add_child(post)
-	post.global_position = pos
+	post.global_position = _free_cell_near(pos)
 	_posts.append(post)
 	return post
+
+
+## Czy dwa słupki łączy poprzeczka: sąsiednie pola (także po skosie)
+## albo co drugie pole w linii prostej, jeśli między nimi nic nie stoi.
+func _rail_between(a: Vector2i, b: Vector2i) -> bool:
+	var d := b - a
+	if maxi(absi(d.x), absi(d.y)) == 1:
+		return true
+	if (absi(d.x) == 2 and d.y == 0) or (absi(d.y) == 2 and d.x == 0):
+		return occupant(a + d / 2) == null
+	return false
 
 
 ## Poprzeczki między bliskimi słupkami: z kilku słupków robi się płot.
@@ -257,7 +284,7 @@ func _rebuild_rails() -> void:
 			var a := _posts[i].global_position
 			var b := _posts[j].global_position
 			var length := _flat_distance(a, b)
-			if length > RAIL_DISTANCE or length < 0.01:
+			if not _rail_between(cell_of(a), cell_of(b)):
 				continue
 			for height in [0.45, 0.85]:
 				var rail := MeshInstance3D.new()
@@ -270,6 +297,20 @@ func _rebuild_rails() -> void:
 				rail.global_transform = Transform3D(Basis.looking_at(Vector3(b.x - a.x, 0, b.z - a.z)), mid)
 
 
+## Środek wolnego pola najbliżej punktu (stare zapisy sprzed siatki trafiają na siatkę).
+func _free_cell_near(pos: Vector3) -> Vector3:
+	var start := cell_of(pos)
+	for radius in 6:
+		for x in range(-radius, radius + 1):
+			for z in range(-radius, radius + 1):
+				if maxi(absi(x), absi(z)) != radius:
+					continue
+				var cell := start + Vector2i(x, z)
+				if occupant(cell) == null:
+					return cell_center(cell, pos.y)
+	return cell_center(start, pos.y)
+
+
 static func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x - b.x, a.z - b.z).length()
 
@@ -280,6 +321,7 @@ func _spawn(data: PlantData, pos: Vector3, stage := 0, progress := 0, watered :=
 	if PlantVisuals.MUTATIONS.has(mutation):
 		plant.mutation = mutation
 	plant.fertilized = fertilized
+	pos = _free_cell_near(pos)
 	add_child(plant)
 	plant.global_position = pos
 	# Stały, "losowy" obrót zależny od pozycji: różnorodność bez zapisywania kąta.

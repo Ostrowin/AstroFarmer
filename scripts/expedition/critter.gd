@@ -5,6 +5,11 @@ extends CharacterBody3D
 ##     Ogłuszony spada i gubi kulkę pyłku (składnik Pyłkowych ciastek).
 ##   Chrupik: roślinożerca w stadku. Od Przebudzenia 25 objada dzikie krzewy
 ##     (konkurencja o jedzenie). Ucieka przed graczem, ogłuszony siedzi.
+## Pistolet: trafiony Pyłkowiec spada i gubi pyłek, Chrupik ucieka w panice.
+## Przy 0 zdrowia giną: Pyłkowiec zostawia pyłek (jeśli go jeszcze miał),
+## Chrupik nawóz.
+
+signal killed(critter: Critter)
 
 enum Kind { POLLENBUG, CHRUPIK }
 
@@ -15,6 +20,8 @@ const ROAM_RADIUS := {Kind.POLLENBUG: 4.0, Kind.CHRUPIK: 5.0}
 const GRAZE_AWAKENING := 25.0
 const GRAZE_RANGE := 14.0
 const EAT_SECONDS := 2.0
+const MAX_HEALTH := {Kind.POLLENBUG: 10.0, Kind.CHRUPIK: 20.0}
+const PANIC_SECONDS := 3.0
 
 var kind: Kind = Kind.CHRUPIK
 ## Środek terenu stworzenia; ustawiane przed dodaniem do sceny.
@@ -22,6 +29,8 @@ var home := Vector3.ZERO
 var stunned_time := 0.0
 ## Pyłkowiec gubi pyłek tylko raz.
 var has_pollen := true
+var health := 10.0
+var _panic := 0.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _target := Vector3.ZERO
@@ -46,6 +55,7 @@ func _ready() -> void:
 	collision.shape = shape
 	collision.position.y = shape.radius
 	add_child(collision)
+	health = MAX_HEALTH[kind]
 	_build_model()
 	_time = randf() * TAU
 	_pick_target()
@@ -70,6 +80,49 @@ func is_stunned() -> bool:
 	return stunned_time > 0.0
 
 
+## Trafienie z pistoletu. Zwraca true, jeśli stworzenie zginęło.
+func take_hit(amount: float, _from := Vector3.INF) -> bool:
+	if health <= 0.0:
+		return false
+	health -= amount
+	if health <= 0.0:
+		_die()
+		return true
+	if kind == Kind.POLLENBUG:
+		stun(1.5)
+	else:
+		_panic = PANIC_SECONDS
+		_bush = null
+	_model.scale = Vector3(1.3, 0.7, 1.3)
+	create_tween().tween_property(_model, "scale", Vector3.ONE, 0.25)
+	return false
+
+
+func _die() -> void:
+	remove_from_group("critter")
+	collision_layer = 0
+	set_physics_process(false)
+	Sfx.play(&"death", global_position, 0.2)
+	var color := Color(1.0, 0.82, 0.25) if kind == Kind.POLLENBUG else Color(0.55, 0.62, 0.35)
+	Effects.burst(get_parent(), global_position + Vector3(0, 0.3, 0), color, 20)
+	if kind == Kind.POLLENBUG and has_pollen:
+		has_pollen = false
+		_drop_pollen.call_deferred()
+	elif kind == Kind.CHRUPIK:
+		_drop_fertilizer.call_deferred()
+	killed.emit(self)
+	var tween := create_tween()
+	tween.tween_property(_model, "scale", Vector3.ZERO, 0.3)
+	tween.tween_callback(queue_free)
+
+
+func _drop_fertilizer() -> void:
+	var pickup := Pickup.new()
+	pickup.setup({"kind": "sample", "item": &"fertilizer", "amount": 1, "color": RaidMarks.FERTILIZER_COLOR.lightened(0.3)})
+	get_parent().add_child(pickup)
+	pickup.global_position = Vector3(global_position.x, 0.0, global_position.z)
+
+
 func _physics_process(delta: float) -> void:
 	_time += delta
 	if stunned_time > 0.0:
@@ -92,9 +145,10 @@ func _physics_process(delta: float) -> void:
 	if player:
 		away = global_position - player.global_position
 		away.y = 0.0
-	if player and away.length() < FLEE_RANGE[kind]:
+	_panic = maxf(0.0, _panic - delta)
+	if player and (away.length() < FLEE_RANGE[kind] or _panic > 0.0):
 		desired = away.normalized()
-		speed = FLEE_SPEED[kind]
+		speed = FLEE_SPEED[kind] * (1.3 if _panic > 0.0 else 1.0)
 		_bush = null
 	else:
 		if kind == Kind.CHRUPIK:

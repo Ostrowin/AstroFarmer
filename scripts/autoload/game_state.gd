@@ -26,6 +26,7 @@ const BACKPACK_BONUS := 3
 ## Ile Uwagi planety dodaje wywiezienie 1 sztuki przedmiotu.
 const ATTENTION_PER_ITEM := {
 	&"sample_glowmoss": 10,
+	&"thorn": 3,
 	&"crystal": 1,
 }
 ## O tyle spada Uwaga po skromnej wyprawie (bez rzadkich rzeczy) albo porażce.
@@ -124,6 +125,7 @@ func start_run(loadout: Dictionary, options: Dictionary = {}) -> RunState:
 		if amount > 0 and spend_resource(id, amount):
 			new_run.backpack[id] = amount
 			new_run.loadout[id] = amount
+	new_run.ensure_offhand()
 	run = new_run
 	return new_run
 
@@ -341,7 +343,7 @@ func from_dict(data: Dictionary) -> void:
 		discoveries[StringName(id)] = true
 	var saved_research: Dictionary = data.get("research", {})
 	for id in saved_research:
-		research[StringName(id)] = (saved_research[id] as Array).map(func(h): return String(h))
+		research[StringName(id)] = (saved_research[id] as Array).map(func(h): return Codex.RENAMED_HOWS.get(String(h), String(h)))
 	# Starsze zapisy: odkrycia ze skanera bez wpisu w bazie danych.
 	for id in discoveries:
 		if Codex.has_entry(id) and not research.has(id):
@@ -362,7 +364,8 @@ func from_dict(data: Dictionary) -> void:
 		if typeof(entry) == TYPE_DICTIONARY:
 			structures.append(entry)
 	for id in data.get("upgrades", []):
-		upgrades[StringName(id)] = true
+		# Ogłuszacz Mk2 z wcześniejszych wersji = Pistolet Mk2.
+		upgrades[&"pistol_mk2" if String(id) == "stunner_mk2" else StringName(id)] = true
 	raid_pressure = int(data.get("raid_pressure", Raid.START_PRESSURE))
 	pending_cycles = int(data.get("pending_cycles", 0))
 	resources_changed.emit()

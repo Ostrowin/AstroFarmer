@@ -16,7 +16,7 @@ func _rebuild() -> void:
 	_box.add_child(label("Baza danych · kompletność %d%%" % Codex.completion(research, max_level), 26))
 	var found := Codex.discovered_count(research, 1)
 	if max_level < 2:
-		_box.add_child(label("Poziom 2 łąki: odkryj %d z %d wpisów poziomu 1 (masz %d). Każdy fakt to inna akcja: skan, hodowla, zbiór, ogłuszenie, obrona..." % [
+		_box.add_child(label("Poziom 2 łąki: odkryj %d z %d wpisów poziomu 1 (masz %d). Każdy fakt to inna akcja: skan, hodowla, zbiór, trafienie, obrona..." % [
 			Codex.LEVEL2_REQUIRED, Codex.entry_count(1), found], 15, 760, Color(1.0, 0.85, 0.6)))
 	else:
 		_box.add_child(label("Poziom 2 łąki odblokowany: wybierz go przy drzwiach wyprawy.", 15, 760, Color(0.6, 1.0, 0.6)))

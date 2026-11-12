@@ -53,6 +53,6 @@ func _craft(id: StringName) -> void:
 
 static func _stock_text() -> String:
 	var parts: Array[String] = []
-	for id in [&"crystal", &"sample_glowmoss", &"fence_post"]:
+	for id in [&"crystal", &"sample_glowmoss", &"thorn", &"fence_post"]:
 		parts.append("%s: %d" % [PlantCatalog.item_name(id), GameState.get_resource(id)])
 	return " · ".join(parts)

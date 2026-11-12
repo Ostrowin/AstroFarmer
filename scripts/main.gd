@@ -43,6 +43,7 @@ func _ready() -> void:
 	_interaction.workbench_used.connect(_open_workbench)
 	_interaction.codex_used.connect(_open_codex)
 	_hud.bind(_interaction)
+	_hud.track_player(_player)
 	_farm.cycle_report.connect(_on_cycle_report)
 	_farm.raid_resolved.connect(_on_raid)
 	_farm.changed.connect(_save)

@@ -26,6 +26,11 @@ var buffs: Array[String] = []
 var level := 1
 ## Danie z kuchni zjedzone przed wyjściem (id z Meals) albo &"".
 var meal: StringName = &""
+## Przedmiot w drugiej ręce (PPM): jedno z THROWABLES albo &"".
+var offhand: StringName = &""
+
+## Przedmioty, które można włożyć do drugiej ręki i rzucać (PPM).
+const THROWABLES: Array[StringName] = [&"seed_snapper", &"seed_boomshroom"]
 
 var _reached: Array[int] = []
 
@@ -60,8 +65,51 @@ func remove_item(id: StringName, amount := 1) -> bool:
 	backpack[id] = count(id) - amount
 	if backpack[id] <= 0:
 		backpack.erase(id)
+	if id == offhand and count(id) == 0:
+		offhand = &""
+		ensure_offhand()
 	changed.emit()
 	return true
+
+
+# --- Druga ręka (PPM) -------------------------------------------------------
+
+## Rzucane przedmioty, które są w plecaku.
+func throwables() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for id in THROWABLES:
+		if count(id) > 0:
+			result.append(id)
+	return result
+
+
+## Wkłada przedmiot do drugiej ręki (tylko rzucane, które są w plecaku).
+func set_offhand(id: StringName) -> bool:
+	if not THROWABLES.has(id) or count(id) <= 0:
+		return false
+	offhand = id
+	changed.emit()
+	return true
+
+
+## Pusta ręka: weź pierwszy rzucany przedmiot z plecaka.
+func ensure_offhand() -> void:
+	if offhand != &"" and count(offhand) > 0:
+		return
+	var available := throwables()
+	offhand = available[0] if not available.is_empty() else &""
+
+
+## R: następny rzucany przedmiot.
+func cycle_offhand() -> StringName:
+	var available := throwables()
+	if available.is_empty():
+		offhand = &""
+	else:
+		var index := available.find(offhand)
+		offhand = available[(index + 1) % available.size()]
+	changed.emit()
+	return offhand
 
 
 func add_awakening(amount: float) -> void:

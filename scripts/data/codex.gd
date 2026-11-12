@@ -3,7 +3,7 @@ extends RefCounted
 ## Baza danych: wpisy o roślinach, stworzeniach i minerałach.
 ## Każdy wpis ma kilka faktów, odkrywanych różnymi akcjami ("how"):
 ##   scan (skaner Q), grow (wyhodowane w bazie), harvest (zbiór w bazie),
-##   eat, stun, trap, boom, pickup, craft, repel (obrona w najeździe),
+##   eat, hit (trafienie z pistoletu), trap, boom, pickup, craft, repel (obrona w najeździe),
 ##   raid (przetrwany najazd), sprout (obudzenie Mgielnika).
 ## Czysta logika: funkcje dostają słownik research z GameState
 ## (id -> Array nazw "how"), żeby dało się je testować bez autoloadów.
@@ -36,17 +36,17 @@ const ENTRIES := {
 	]},
 	&"pollenbug": {"name": "Pyłkowiec", "category": "Stworzenia", "level": 1, "facts": [
 		{"how": "scan", "text": "Latający zapylacz. Krąży przy dzikich krzewach i ucieka, gdy podejdziesz.", "hint": "zeskanuj go w locie"},
-		{"how": "stun", "text": "Ogłuszony spada i gubi kulkę pyłku.", "hint": "ogłusz go"},
+		{"how": "hit", "text": "Trafiony spada i gubi kulkę pyłku. Zabity też ją zostawia, ale wtedy już nie zapyla.", "hint": "trafić go z pistoletu"},
 		{"how": "pickup", "text": "Pyłek to składnik Pyłkowych ciastek w kuchni.", "hint": "podnieś pyłek"},
 	]},
 	&"chrupik": {"name": "Chrupik", "category": "Stworzenia", "level": 1, "facts": [
 		{"how": "scan", "text": "Płochliwy roślinożerca. Stadko objada dzikie krzewy, gdy łąka się budzi.", "hint": "zeskanuj stadko"},
-		{"how": "stun", "text": "Ogłuszony siedzi kilka sekund. Chrupiki nie atakują ludzi.", "hint": "ogłusz go"},
+		{"how": "hit", "text": "Chrupiki nie atakują ludzi: trafiony ucieka w panice, zabity zostawia nawóz.", "hint": "trafić go z pistoletu"},
 		{"how": "raid", "text": "To one najeżdżają farmę, gdy Niepokój fauny dojdzie do 100%.", "hint": "przetrwaj najazd w bazie"},
 	]},
 	&"thornback": {"name": "Thornback", "category": "Stworzenia", "level": 1, "facts": [
 		{"how": "scan", "text": "Drapieżnik z kolcami. Śpi w legowisku na północy łąki.", "hint": "zeskanuj go z bezpiecznej odległości"},
-		{"how": "stun", "text": "Ogłuszony ucieka zamiast walczyć. Wychodzi z legowiska przy Przebudzeniu 50.", "hint": "ogłusz go"},
+		{"how": "hit", "text": "Postrzelony budzi się i rzuca na ciebie. Ranny ucieka, zabity zostawia kolce (warsztat: Pistolet Mk2).", "hint": "trafić go z pistoletu"},
 		{"how": "trap", "text": "Snapper trzyma go 4 s. Przy Przebudzeniu 100 poluje na ciebie wszędzie.", "hint": "złap go Snapperem"},
 	]},
 	&"glowmoss": {"name": "Lśniący mech", "category": "Minerały i próbki", "level": 1, "facts": [
@@ -76,6 +76,9 @@ const CRAFT_SOURCES := {
 	&"crystal": &"crystal_vein",
 	&"sample_glowmoss": &"glowmoss",
 }
+
+## Stare nazwy akcji z wcześniejszych zapisów -> nowe.
+const RENAMED_HOWS := {"stun": "hit"}
 
 
 static func has_entry(id: StringName) -> bool:

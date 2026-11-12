@@ -73,7 +73,7 @@ Nie konkurujemy ilością cozy treści (dom, mech, co-op). Wygrywamy ryzykiem, s
 - **Baza danych w prototypie (M3):** każdy wpis ma 3 fakty i każdy fakt odkrywa inna akcja (skan, hodowla, zbiór, ogłuszenie, obrona w najeździe...). Dzięki temu baza danych nagradza różne style gry, nie tylko skanowanie. Poziom 2 łąki otwiera się po odkryciu 6 z 9 wpisów poziomu 1. Chrupiki z wyprawy to te same szkodniki, które najeżdżają farmę: baza danych łączy oba światy.
 - **Przebudzenie 100, "planeta się broni":** rusza 90-sekundowe odliczanie, a pogoda zaczyna stale obniżać Kondycję. Trzeba dotrzeć do punktu ewakuacji.
 - **Kondycja** (zdrowie) spada od ataków stworzeń i pogody. Porażka następuje przy Kondycji = 0 albo gdy odliczanie z progu 100 dobiegnie końca przed ewakuacją. Wtedy kapsuła ratunkowa zabiera nieprzytomnego farmera do bazy, bez dramatycznej śmierci.
-- **Reakcja na zagrożenie w MVP i v1:** unikanie, sprint, **ogłuszacz** (odpycha i ogłusza) oraz **rośliny-narzędzia** (sekcja niżej). Broni palnej nie ma. Rośliny przeganiają, unieruchamiają i ogłuszają. Przegonione stworzenie ucieka w kreskówkowym stylu, zamiast ginąć. Czy później coś może zabijać, zostaje w decyzji #8.
+- **Reakcja na zagrożenie w MVP i v1:** unikanie, bieg i dash, **pistolet** (zadaje obrażenia) oraz **rośliny-narzędzia** (sekcja niżej). Rośliny przeganiają, unieruchamiają i ogłuszają. Stworzenia mają zdrowie: ranne uciekają, zabite zostawiają materiały (kolce, nawóz, pyłek). Zabicie drapieżnika budzi planetę (Przebudzenie +8). Decyzja #8 zmieniona 2026-11-12, wcześniej "bez broni palnej".
 - **Reguła porażki w MVP:** zeskanowane dane zostają, niesiony łup przepada. Później dochodzą bezpieczne próbki wysłane kurierem (`N3`) i zarośnięty plecak (`N6`).
 
 ### Nasiona jako broń i obrona (uproszczony nasienny build)
@@ -195,7 +195,7 @@ Reszta (szkodniki, choroby roślin, gatunek-zwornik, ukryte polany, zabijanie i 
 | 4 | Co zostaje po porażce? | MVP: zeskanowane dane. Później: także próbki wysłane kurierem (`N3`) + zarośnięty plecak (`N6`). |
 | 6 | Czy placówki działają między wyprawami? | Nie produkują, ale zarastają i tworzą mini-ekosystem (`K4`). Etap: drugi biom (M5). |
 | 7 | Wzrost roślin pod nieobecność gracza? | Czas farmy w **cyklach**: 1 wyprawa = 1 cykl. Bez czekania w czasie rzeczywistym. W trakcie cyklu bazę może spotkać najazd. |
-| 8 | Nacisk na walkę i broń? | **Częściowo:** bez broni palnej. Bronią są rośliny-narzędzia i ogłuszacz, później Seed Cannon. Otwarte: czy cokolwiek może zabijać. |
+| 8 | Nacisk na walkę i broń? | **Rozstrzygnięte (2026-11-12):** pistolet zadaje obrażenia, stworzenia mają zdrowie i mogą zginąć. Rośliny-narzędzia dalej łapią i ogłuszają, później Seed Cannon. Otwarte: czy zabijanie obniża Równowagę (M4). |
 | 12 | Konsekwencje ingerencji w ekosystem? | Równowaga. |
 | 13 | Zakończenie fabularne? | **Wstępnie:** ożywienie Serca planety drzewami-kotwicami z 3 biomów. Serce to osobna, zamknięta scena, więc nie trzeba trwale zmieniać terenu innych biomów. Do potwierdzenia, gdy powstanie trzeci biom. |
 

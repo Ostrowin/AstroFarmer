@@ -9,8 +9,8 @@ signal rest
 signal cancelled
 
 const OPTIONS := [
-	{"id": &"seed_snapper", "label": "Nasiona Snappera", "hint": "rzucone wyrastają w pułapkę na drapieżnika", "max": 4},
-	{"id": &"seed_boomshroom", "label": "Nasiona Boomshrooma", "hint": "rzucone robią puff: ogłuszają wszystko w 4 m", "max": 3},
+	{"id": &"seed_snapper", "label": "Nasiona Snappera", "hint": "rzucone (PPM) wyrastają w pułapkę na drapieżnika", "max": 4},
+	{"id": &"seed_boomshroom", "label": "Nasiona Boomshrooma", "hint": "rzucone (PPM) robią puff: ogłuszają wszystko w 4 m", "max": 3},
 	{"id": &"voidberry", "label": "Voidberry (owoc)", "hint": "zjedzony leczy 30 Kondycji", "max": 4},
 ]
 
@@ -59,7 +59,7 @@ func _ready() -> void:
 	_level_label = _label("", 14, true)
 	_level_label.modulate = Color(0.8, 0.9, 1.0)
 	box.add_child(_level_label)
-	box.add_child(_label("Ogłuszacz jest zawsze w wyposażeniu.", 16))
+	box.add_child(_label("Pistolet (LPM) jest zawsze w wyposażeniu. Nasiona do rzucania idą do drugiej ręki (PPM).", 16))
 	_planet_label = _label("", 15, true)
 	_planet_label.modulate = Color(1.0, 0.85, 0.6)
 	box.add_child(_planet_label)

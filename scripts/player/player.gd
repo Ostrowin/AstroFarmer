@@ -1,7 +1,9 @@
 class_name Player
 extends CharacterBody3D
-## Postać gracza: ruch względem kamery, skok, sprint, kamera TPP za plecami
+## Postać gracza: ruch względem kamery, skok, kamera TPP za plecami
 ## (SpringArm3D, więc kamera nie przenika przez ściany) i Kondycja (zdrowie).
+## Sterowanie jak w Risk of Rain 2: Ctrl włącza bieg (trwa, dopóki się ruszasz
+## i nie strzelasz), Shift robi dash z czasem odnowienia.
 
 signal health_changed(health: float, max_health: float)
 signal died
@@ -12,6 +14,9 @@ signal died
 @export var jump_velocity := 5.5
 @export var acceleration := 12.0
 @export var turn_speed := 12.0
+@export var dash_speed := 17.0
+@export var dash_time := 0.18
+@export var dash_cooldown := 2.0
 @export var mouse_sensitivity := 0.0025
 @export var min_pitch_deg := -70.0
 @export var max_pitch_deg := 20.0
@@ -22,6 +27,13 @@ var input_enabled := true
 var health := 100.0
 ## Mnożnik prędkości (ulepszenie wyprawy "Turbo-buty").
 var speed_multiplier := 1.0
+## Bieg włączony Ctrl; gaśnie, gdy przestajesz się ruszać albo strzelasz.
+var sprinting := false
+## Ile sekund do kolejnego dasha (0 = gotowy).
+var dash_cooldown_left := 0.0
+
+var _dash_left := 0.0
+var _dash_direction := Vector3.ZERO
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _hurt_cooldown := 0.0
@@ -60,6 +72,7 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
+	dash_cooldown_left = maxf(0.0, dash_cooldown_left - delta)
 	var can_move := input_enabled and is_mouse_captured()
 	if can_move and Input.is_action_just_pressed("jump") and is_on_floor():
 		velocity.y = jump_velocity
@@ -68,17 +81,56 @@ func _physics_process(delta: float) -> void:
 	if can_move:
 		input = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (Basis(Vector3.UP, _yaw.rotation.y) * Vector3(input.x, 0.0, input.y)).normalized()
-	var speed := (sprint_speed if Input.is_action_pressed("sprint") else walk_speed) * speed_multiplier
+	if can_move and Input.is_action_just_pressed("sprint"):
+		sprinting = true
+	if input.length_squared() < 0.01:
+		sprinting = false
+	if can_move and Input.is_action_just_pressed("dash"):
+		dash(direction)
 
-	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
-	horizontal = horizontal.lerp(direction * speed, clampf(acceleration * delta, 0.0, 1.0))
-	velocity.x = horizontal.x
-	velocity.z = horizontal.z
+	if _dash_left > 0.0:
+		_dash_left -= delta
+		velocity.x = _dash_direction.x * dash_speed
+		velocity.z = _dash_direction.z * dash_speed
+	else:
+		var speed := (sprint_speed if sprinting else walk_speed) * speed_multiplier
+		var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+		horizontal = horizontal.lerp(direction * speed, clampf(acceleration * delta, 0.0, 1.0))
+		velocity.x = horizontal.x
+		velocity.z = horizontal.z
 	move_and_slide()
 
 	if direction.length_squared() > 0.01:
 		var target_yaw := atan2(-direction.x, -direction.z)
 		_visual.rotation.y = lerp_angle(_visual.rotation.y, target_yaw, clampf(turn_speed * delta, 0.0, 1.0))
+
+
+# --- Ruch specjalny ----------------------------------------------------------
+
+## Dash w kierunku ruchu (bez wciśniętego kierunku: tam, gdzie patrzy kamera).
+func dash(direction := Vector3.ZERO) -> bool:
+	if dash_cooldown_left > 0.0:
+		return false
+	if direction.length_squared() < 0.01:
+		direction = Basis(Vector3.UP, _yaw.rotation.y) * Vector3.FORWARD
+	_dash_direction = Vector3(direction.x, 0.0, direction.z).normalized()
+	_dash_left = dash_time
+	dash_cooldown_left = dash_cooldown
+	_visual.rotation.y = atan2(-_dash_direction.x, -_dash_direction.z)
+	_visual.scale = Vector3(0.8, 0.9, 1.3)
+	create_tween().tween_property(_visual, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	Sfx.play(&"dash", global_position)
+	Effects.burst(get_parent(), global_position + Vector3(0, 0.2, 0), Color(0.85, 0.85, 0.9), 10)
+	return true
+
+
+func is_dashing() -> bool:
+	return _dash_left > 0.0
+
+
+## Strzał i inne akcje bojowe przerywają bieg (jak w RoR2).
+func stop_sprint() -> void:
+	sprinting = false
 
 
 # --- Kondycja ----------------------------------------------------------------

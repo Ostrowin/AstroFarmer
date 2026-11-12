@@ -4,9 +4,9 @@ extends RefCounted
 
 const LIST := [
 	{
-		"id": &"fence", "name": "Słupki płotu ×3",
-		"desc": "Każdy słupek zatrzyma 1 Chrupika w promieniu 2 m. Bliskie słupki łączą się w płot.",
-		"cost": {&"crystal": 2}, "gives": {&"fence_post": 3},
+		"id": &"fence", "name": "Słupki płotu ×4",
+		"desc": "Każdy słupek zatrzyma 1 Chrupika w promieniu 2 m. Słupki co 1-2 pola łączą się w płot.",
+		"cost": {&"crystal": 2}, "gives": {&"fence_post": 4},
 	},
 	{
 		"id": &"can_mk2", "name": "Duża konewka",
@@ -19,9 +19,9 @@ const LIST := [
 		"cost": {&"crystal": 4, &"sample_glowmoss": 1}, "upgrade": true,
 	},
 	{
-		"id": &"stunner_mk2", "name": "Ogłuszacz Mk2",
-		"desc": "Ładuje się 0.7 s zamiast 1.2 s i ogłusza na 4 s zamiast 3.",
-		"cost": {&"crystal": 3, &"sample_glowmoss": 1}, "upgrade": true,
+		"id": &"pistol_mk2", "name": "Pistolet Mk2",
+		"desc": "Mocniejsze i szybsze strzały: 15 obrażeń co 0.2 s zamiast 10 co 0.28 s.",
+		"cost": {&"crystal": 3, &"thorn": 2}, "upgrade": true,
 	},
 ]
 

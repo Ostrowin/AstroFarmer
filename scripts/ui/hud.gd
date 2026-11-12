@@ -22,6 +22,9 @@ var _fade: ColorRect
 var _fade_label: Label
 var _click_hint: Label
 var _crosshair: ColorRect
+var _move_label: Label
+## Gracz, którego dash i bieg pokazuje HUD (track_player).
+var _tracked: Player
 
 
 func _ready() -> void:
@@ -100,6 +103,15 @@ func _ready() -> void:
 	_click_hint.offset_bottom = -40
 	root.add_child(_click_hint)
 
+	_move_label = _make_label(15)
+	_move_label.anchor_top = 1.0
+	_move_label.anchor_bottom = 1.0
+	_move_label.offset_left = 16
+	_move_label.offset_top = -132
+	_move_label.offset_right = 520
+	_move_label.offset_bottom = -106
+	root.add_child(_move_label)
+
 	_fade = ColorRect.new()
 	_fade.color = Color(0.05, 0.03, 0.1, 1)
 	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -124,6 +136,14 @@ var modal := false
 
 func _process(_delta: float) -> void:
 	_click_hint.visible = not modal and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and _fade.modulate.a < 0.01
+	if _tracked and is_instance_valid(_tracked):
+		var dash := "gotowy" if _tracked.dash_cooldown_left <= 0.0 else "%.1f s" % _tracked.dash_cooldown_left
+		_move_label.text = "Shift: dash %s  ·  Ctrl: bieg%s" % [dash, " (włączony)" if _tracked.sprinting else ""]
+
+
+## Pokazuje stan dasha i biegu gracza.
+func track_player(player: Player) -> void:
+	_tracked = player
 
 
 func bind(interaction) -> void:
@@ -193,7 +213,7 @@ func _on_level_unlocked(_biome: StringName, level: int) -> void:
 
 ## Chowa/pokazuje interfejs gry (np. na czas przerywnika z lądowaniem).
 func show_overlay(show: bool) -> void:
-	for control: Control in [_status, _inventory, _prompt, _hotbar, _crosshair]:
+	for control: Control in [_status, _inventory, _prompt, _hotbar, _crosshair, _move_label]:
 		control.visible = show
 
 

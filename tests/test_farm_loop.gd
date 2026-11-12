@@ -44,7 +44,9 @@ func _run() -> void:
 	var plant := farm.plant_seed(voidberry, spot)
 	_check(plant != null, "posadzono Voidberry")
 	_check(state.get_resource(&"seed_voidberry") == 1, "zużyto 1 nasiono")
-	_check(farm.placement_problem(voidberry, spot + Vector3(0.3, 0, 0), Vector3.UP, soil, here).begins_with("Za blisko"), "za blisko innej rośliny")
+	_check(farm.placement_problem(voidberry, spot + Vector3(0.3, 0, 0), Vector3.UP, soil, here).begins_with("Pole zajęte"), "siatka: pole zajęte")
+	_check(plant.global_position.x == 1.5 and plant.global_position.z == 0.5, "roślina na środku pola siatki")
+	_check(farm.placement_problem(voidberry, spot + Vector3(1.0, 0, 0), Vector3.UP, soil, here) == "", "sąsiednie pole wolne")
 	_check(state.farm.size() == 1, "farma zapisana w GameState")
 
 	# Bez wody nie rośnie.

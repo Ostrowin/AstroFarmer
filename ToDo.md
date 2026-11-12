@@ -117,6 +117,20 @@ Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper
 
 **➡ Po M3: MVP gotowe** (zakres zrobiony 2026-11-11; brakuje playtestu i strojenia). Odpowiedzieć na 6 pytań z bazy wiedzy (sekcja 17.2) i zapisać wnioski w `docs/playtest-mvp.md`.
 
+## M3+. Sterowanie, siatka i plecak (zrobione 2026-11-12, przed grafiką)
+
+- [x] Sadzenie i budowanie na siatce 1×1 m: podgląd pola (zielone/czerwone) z kratkami dookoła. Każda roślina i słupek zajmuje jedno pole. Słupki co 1-2 pola łączą się w płot. Stare zapisy trafiają na siatkę same.
+- [x] Sterowanie jak w RoR2: Ctrl włącza bieg (gaśnie, gdy stoisz albo strzelasz), Shift robi dash (odnowienie 2 s). Stan dasha widać w HUD.
+- [x] Na wyprawie LPM używa przedmiotu z paska (pistolet z serią, jedzenie), a PPM drugiej ręki (rzucane nasiona). R zmienia rzucany przedmiot.
+- [x] **Pistolet** (zamiast ogłuszacza): 10 obrażeń co 0.28 s, zasięg 30 m; Mk2 z warsztatu (3 kryształy + 2 kolce) daje 15 co 0.2 s.
+  - Thornback ma 80 zdrowia. Postrzelony budzi się i atakuje, poniżej 25% ucieka, przy 0 pada i zostawia kolce. Zabicie dodaje +8 Przebudzenia.
+  - Pyłkowiec (10 zdrowia) trafiony spada i gubi pyłek.
+  - Chrupik (20 zdrowia) trafiony ucieka w panice, zabity zostawia nawóz.
+- [x] **Plecak** na wyprawie (Tab): siatka przedmiotów z opisami, druga ręka (przeciągnij nasiono albo kliknij je dwa razy), wyrzucanie (PPM = 1 sztuka, kosz = cały stos). Wyrzucone leży na ziemi i nie podnosi ponownie Przebudzenia. Gra toczy się dalej przy otwartym plecaku.
+- [x] Magazyn w bazie zostaje, ekran przygotowania dalej pakuje plecak.
+- [x] Testy: `tests/test_controls.tscn` (35 sprawdzeń).
+- [ ] Ręczny test sterowania: czucie dasha i serii, czytelność plecaka.
+
 ## M4. Żywa planeta v1
 
 **Test etapu:** tester po 2-3 wyprawach potrafi powiedzieć, **dlaczego** dolina się zmieniła, i raz celowo próbuje ją rozchwiać albo ustabilizować dla konkretnej nagrody. Przynajmniej raz rezygnuje z rzadkiego łupu, bo boi się o bazę.
@@ -200,7 +214,8 @@ Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper
 Propozycje rozstrzygnięć są w [Design_Zywa_Planeta.md](Design_Zywa_Planeta.md). Poniżej to, co zostało otwarte:
 
 - [ ] **#5** Ile planety jest dostępne bezpośrednio, a ile przez osobne sceny wypraw? (Propozycja na start: dolina z bazą = jedna scena, każdy biom = osobna scena wyprawy.)
-- [ ] **#8** Częściowo rozstrzygnięte: bez broni palnej, bronią są rośliny-narzędzia, ogłuszacz, później Seed Cannon. Otwarte: czy cokolwiek może zabijać (na razie przegonione stworzenia uciekają), a jeśli tak, czy zabijanie staje się wejściem "−" Równowagi.
+- [x] **#8** Rozstrzygnięte 2026-11-12: pistolet zadaje obrażenia, stworzenia mają zdrowie i mogą zginąć (zastąpił ogłuszacz). Rośliny-narzędzia dalej łapią i ogłuszają.
+- [ ] Czy zabijanie ma być wejściem "−" Równowagi biomu? Rozstrzygnąć w M4 (na razie zabicie drapieżnika daje +8 Przebudzenia).
 - [x] Jak liczyć zasięg obrony w najeździe automatycznym? Rozstrzygnięte w M3: promień wokół każdego obrońcy + pojemność na najazd.
 - [ ] **#9** Pojazdy bojowe: system czy opcja? (Propozycja: opcja, "Kiedyś".)
 - [ ] **#10** Granice swobodnego budowania? (Propozycja: swobodne sadzenie, budynki na prostej siatce w bazie.)

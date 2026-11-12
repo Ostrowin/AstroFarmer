@@ -109,7 +109,7 @@ func _test_workshop() -> void:
 	_check(Recipes.problem(fence).begins_with("Brakuje"), "bez kryształów nie zrobisz płotu")
 	GameState.add_resource(&"crystal", 10)
 	GameState.add_resource(&"sample_glowmoss", 1)
-	_check(Recipes.craft(&"fence") and GameState.get_resource(&"fence_post") == 3, "2 kryształy = 3 słupki")
+	_check(Recipes.craft(&"fence") and GameState.get_resource(&"fence_post") == 4, "2 kryształy = 4 słupki")
 	_check(GameState.get_resource(&"crystal") == 8, "koszt zużyty")
 
 	_check(GameState.water_capacity() == 5, "konewka 5 przed ulepszeniem")
@@ -157,13 +157,13 @@ func _test_farm_raid() -> void:
 
 	# Płot: stawianie i powody odmowy.
 	GameState.add_resource(&"fence_post", 2)
-	_check(farm.post_problem(Vector3(0.3, 0, 0), Vector3.UP, soil, Vector3.ZERO) == "Za blisko rośliny", "słupek nie wejdzie w roślinę")
+	_check(farm.post_problem(Vector3(0.3, 0, 0), Vector3.UP, soil, Vector3.ZERO).begins_with("Pole zajęte"), "słupek nie wejdzie na pole rośliny")
 	_check(farm.post_problem(Vector3(1.2, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "", "słupek na gruncie obok rośliny")
 	var post := farm.place_post(Vector3(1.2, 0, 1.2))
 	_check(post != null and GameState.structures.size() == 1, "słupek postawiony i zapisany")
-	_check(farm.post_problem(Vector3(1.5, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "Za blisko innego słupka", "słupki nie na sobie")
-	farm.place_post(Vector3(-1.2, 0, 1.2))
-	_check(farm.get_node("Rails").get_child_count() == 2, "bliskie słupki łączą się poprzeczkami")
+	_check(farm.post_problem(Vector3(1.5, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "Pole zajęte: słupek płotu", "słupki nie na sobie")
+	farm.place_post(Vector3(-0.2, 0, 1.2))
+	_check(farm.get_node("Rails").get_child_count() == 2, "słupki co 2 pola łączą się poprzeczkami")
 	farm.remove_post(post)
 	_check(farm.post_count() == 1 and GameState.get_resource(&"fence_post") == 1, "E zabiera słupek do magazynu")
 

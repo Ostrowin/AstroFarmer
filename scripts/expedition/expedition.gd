@@ -11,6 +11,8 @@ signal finished(report: Dictionary)
 const AWAKENING_PER_SECOND := 0.35
 const STORM_SECONDS := 90.0
 const STORM_DAMAGE_PER_SECOND := 1.0
+## Zabicie drapieżnika budzi planetę.
+const KILL_AWAKENING := 8.0
 const EVAC_SECONDS := 5.0
 const EVAC_RADIUS := 4.5
 const PICKUP_COUNT := 11
@@ -59,6 +61,8 @@ var _storm_time := -1.0
 var _environment: Environment
 ## Mnożnik tempa Przebudzenia (danie z kuchni).
 var _awakening_rate := 1.0
+var _inventory: InventoryPanel
+var _interaction: ExpeditionInteraction
 
 
 func _ready() -> void:
@@ -76,6 +80,12 @@ func _ready() -> void:
 
 	var interaction := _player.interaction as ExpeditionInteraction
 	interaction.evac_requested.connect(_start_evac)
+	interaction.inventory_requested.connect(_toggle_inventory)
+	_interaction = interaction
+	_inventory = InventoryPanel.new()
+	_hud.add_child(_inventory)
+	_inventory.closed.connect(_on_inventory_closed)
+	_inventory.drop_requested.connect(func(id: StringName, amount: int) -> void: interaction.drop_item(id, amount))
 	_hud.bind(interaction)
 	_hud.set_player(_player)
 	_player.died.connect(func() -> void: _finish(false, "Kondycja spadła do zera."))
@@ -152,6 +162,7 @@ func _spawn_world() -> void:
 	var creature := Creature.new()
 	creature.position = den.position
 	creature.den_position = den.position
+	creature.killed.connect(_on_creature_killed)
 	_level.add_child(creature)
 
 	for group: Array in CRITTERS:
@@ -224,6 +235,31 @@ func _roll_loot() -> Dictionary:
 	return result
 
 
+# --- Plecak i walka ---------------------------------------------------------
+
+func _toggle_inventory() -> void:
+	if _ending:
+		return
+	if _inventory.visible:
+		_inventory.close()
+		return
+	_player.input_enabled = false
+	_hud.modal = true
+	_inventory.open(run)
+
+
+func _on_inventory_closed() -> void:
+	_hud.modal = false
+	if not _ending:
+		_player.input_enabled = true
+		_player.capture_mouse()
+
+
+func _on_creature_killed(_creature: Creature) -> void:
+	run.add_awakening(KILL_AWAKENING)
+	_hud.notify("Drapieżnik padł. Planeta to poczuła: Przebudzenie +%d. Zostawił kolce." % int(KILL_AWAKENING))
+
+
 # --- Przebudzenie i pogoda ---------------------------------------------------
 
 func _on_threshold(threshold: int) -> void:
@@ -271,6 +307,8 @@ func _finish(success: bool, cause := "") -> void:
 		return
 	_ending = true
 	_player.input_enabled = false
+	if _inventory and _inventory.visible:
+		_inventory.close()
 	_hud.set_alert("")
 	var text := "Ewakuacja udana!\nWracasz do bazy." if success else "Kapsuła ratunkowa zabiera cię nieprzytomnego...\n" + cause
 	await _hud.fade_out(text)

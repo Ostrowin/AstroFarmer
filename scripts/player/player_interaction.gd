@@ -32,6 +32,8 @@ var selected := 0
 
 var _target := {}
 var _ghost: Node3D
+var _grid: MeshInstance3D
+var _grid_cell := Vector2i(999999, 999999)
 var _ghost_ok: StandardMaterial3D
 var _ghost_bad: StandardMaterial3D
 var _last_prompt := ""
@@ -122,6 +124,7 @@ func _update_target() -> void:
 	var query := PhysicsRayQueryParameters3D.create(origin, origin - camera.global_basis.z * RAY_LENGTH, RAY_MASK, [_player.get_rid()])
 	_target = _player.get_world_3d().direct_space_state.intersect_ray(query)
 	_ghost.visible = false
+	_grid.visible = false
 
 	var collider: Object = _target.get("collider")
 	var slot: Dictionary = SLOTS[selected]
@@ -183,9 +186,7 @@ func _update_target() -> void:
 	if slot["kind"] == "seed" and collider != null:
 		var data := PlantCatalog.get_plant(slot["plant"])
 		var problem := farm.placement_problem(data, _target["position"], _target["normal"], collider, _player.global_position)
-		_ghost.visible = true
-		_ghost.global_position = _target["position"]
-		_set_ghost_ok(problem == "")
+		_show_ghost(_target["position"], problem == "")
 		if problem == "":
 			_set_prompt("[LPM] Posadź: %s" % data.display_name, true)
 		else:
@@ -193,9 +194,7 @@ func _update_target() -> void:
 		return
 	if slot["kind"] == "fence" and collider != null:
 		var problem := farm.post_problem(_target["position"], _target["normal"], collider, _player.global_position)
-		_ghost.visible = true
-		_ghost.global_position = _target["position"]
-		_set_ghost_ok(problem == "")
+		_show_ghost(_target["position"], problem == "")
 		_set_prompt("[LPM] Postaw słupek płotu" if problem == "" else problem, problem == "")
 		return
 	match slot["kind"]:
@@ -206,6 +205,36 @@ func _update_target() -> void:
 			_set_prompt("Nawóz · celuj w rosnącą roślinę", true)
 			return
 	_set_prompt("", true)
+
+
+## Podgląd na siatce: zielone/czerwone pole + kratki dookoła.
+func _show_ghost(point: Vector3, ok: bool) -> void:
+	var snapped := Farm.snap(point)
+	_ghost.visible = true
+	_ghost.global_position = snapped
+	_set_ghost_ok(ok)
+	_grid.visible = true
+	var cell := Farm.cell_of(point)
+	if cell != _grid_cell:
+		_grid_cell = cell
+		_rebuild_grid(cell, point.y)
+
+
+func _rebuild_grid(center: Vector2i, y: float) -> void:
+	const RADIUS := 3
+	var mesh := ImmediateMesh.new()
+	mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	var lo := Farm.cell_center(center - Vector2i(RADIUS, RADIUS)) - Vector3(Farm.CELL, 0, Farm.CELL) * 0.5
+	var size := (RADIUS * 2 + 1) * Farm.CELL
+	var h := y + 0.03
+	for i in RADIUS * 2 + 2:
+		var offset := i * Farm.CELL
+		mesh.surface_add_vertex(Vector3(lo.x + offset, h, lo.z))
+		mesh.surface_add_vertex(Vector3(lo.x + offset, h, lo.z + size))
+		mesh.surface_add_vertex(Vector3(lo.x, h, lo.z + offset))
+		mesh.surface_add_vertex(Vector3(lo.x + size, h, lo.z + offset))
+	mesh.surface_end()
+	_grid.mesh = mesh
 
 
 func _in_reach(point: Vector3, reach := Farm.REACH) -> bool:
@@ -322,15 +351,12 @@ func _build_ghost() -> void:
 	_ghost_bad = _ghost_material(Color(1.0, 0.35, 0.3, 0.45))
 	_ghost = Node3D.new()
 	_ghost.top_level = true
-	var ring := MeshInstance3D.new()
-	var ring_mesh := CylinderMesh.new()
-	ring_mesh.top_radius = 0.4
-	ring_mesh.bottom_radius = 0.4
-	ring_mesh.height = 0.03
-	ring_mesh.radial_segments = 16
-	ring.mesh = ring_mesh
-	ring.position.y = 0.02
-	_ghost.add_child(ring)
+	var tile := MeshInstance3D.new()
+	var tile_mesh := BoxMesh.new()
+	tile_mesh.size = Vector3(Farm.CELL * 0.94, 0.03, Farm.CELL * 0.94)
+	tile.mesh = tile_mesh
+	tile.position.y = 0.02
+	_ghost.add_child(tile)
 	var sprout := MeshInstance3D.new()
 	var sprout_mesh := CylinderMesh.new()
 	sprout_mesh.top_radius = 0.0
@@ -342,6 +368,14 @@ func _build_ghost() -> void:
 	_ghost.add_child(sprout)
 	add_child(_ghost)
 	_set_ghost_ok(true)
+	_grid = MeshInstance3D.new()
+	_grid.top_level = true
+	var grid_material := StandardMaterial3D.new()
+	grid_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	grid_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	grid_material.albedo_color = Color(1, 1, 1, 0.35)
+	_grid.material_override = grid_material
+	add_child(_grid)
 
 
 func _ghost_material(color: Color) -> StandardMaterial3D:

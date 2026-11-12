@@ -13,6 +13,8 @@ var scan_name := ""
 var color := Color.WHITE
 ## Dla "artifact": {"id", "name", "desc"}.
 var buff: Dictionary = {}
+## Wyrzucone z plecaka: ponowne podniesienie nie podnosi Przebudzenia.
+var dropped := false
 
 var _visual: Node3D
 var _time := 0.0
@@ -27,6 +29,36 @@ func setup(entry: Dictionary) -> void:
 	scan_name = entry.get("scan_name", "")
 	color = entry.get("color", Color.WHITE)
 	buff = entry.get("buff", {})
+	dropped = entry.get("dropped", false)
+
+
+## Opis znajdźki dla dowolnego przedmiotu z plecaka (np. wyrzuconego).
+static func entry_for(id: StringName, amount := 1) -> Dictionary:
+	var entry := {"item": id, "amount": amount, "kind": "sample", "color": Color(0.8, 0.8, 0.9)}
+	var text := String(id)
+	if text.begins_with("seed_"):
+		var plant := PlantCatalog.get_plant(StringName(text.trim_prefix("seed_")))
+		if plant:
+			entry.merge({"kind": "seed", "color": plant.accent_color, "scan": plant.id, "scan_name": plant.display_name}, true)
+		return entry
+	match id:
+		&"crystal":
+			entry.merge({"kind": "crystal", "color": Color(0.45, 0.95, 1.0), "scan": &"crystal_vein", "scan_name": "Żyła kryształów"}, true)
+		&"sample_glowmoss":
+			entry.merge({"rare": true, "color": Color(0.85, 1.0, 0.4), "scan": &"glowmoss", "scan_name": "Lśniący mech"}, true)
+		&"pollen":
+			entry.merge({"color": Color(1.0, 0.85, 0.25), "scan": &"pollenbug", "scan_name": "Pyłkowiec"}, true)
+		&"thorn":
+			entry["color"] = Creature.THORN_COLOR
+		&"fertilizer":
+			entry["color"] = RaidMarks.FERTILIZER_COLOR.lightened(0.3)
+		&"water_misty":
+			entry.merge({"color": MistySpring.WATER, "scan": &"misty_spring", "scan_name": "Mgliste źródło"}, true)
+		&"voidberry":
+			entry["color"] = Color(0.62, 0.3, 0.95)
+		&"mist_fruit":
+			entry["color"] = Color(0.6, 0.85, 1.0)
+	return entry
 
 
 func _ready() -> void:

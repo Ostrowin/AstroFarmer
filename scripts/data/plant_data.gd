@@ -19,7 +19,8 @@ enum Shape { BUSH, CRYSTAL, SNAPPER, MUSHROOM, MIST }
 @export_range(1, 5) var cycles_per_stage: int = 1
 ## Czy roślina musi być podlana w cyklu, żeby urosnąć.
 @export var needs_water: bool = true
-## Minimalna odległość od innych roślin przy sadzeniu (metry).
+## Nieużywane od wprowadzenia siatki (każda roślina zajmuje 1 pole).
+## Zostawione na przyszłe większe rośliny (np. 2×2).
 @export var min_spacing: float = 1.0
 ## Nasiono-zagadka: kiełkuje (etap 0 -> 1) tylko po podlaniu tym zasobem
 ## zamiast zwykłej wody (np. &"water_misty"). Puste = zwykła woda.

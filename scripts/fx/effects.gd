@@ -28,7 +28,7 @@ static func burst(parent: Node, position: Vector3, color: Color, amount := 24) -
 	particles.get_tree().create_timer(particles.lifetime + 0.5).timeout.connect(particles.queue_free)
 
 
-## Krótki błysk promienia (ogłuszacz).
+## Krótki błysk promienia (smuga strzału).
 static func beam(parent: Node, from: Vector3, to: Vector3, color: Color) -> void:
 	var length := from.distance_to(to)
 	if length < 0.01:

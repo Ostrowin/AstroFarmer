@@ -7,10 +7,27 @@ var _health_label: Label
 var _awake_bar: ProgressBar
 var _awake_label: Label
 var _alert: Label
+var _offhand_panel: PanelContainer
+var _offhand_label: Label
 
 
 func _ready() -> void:
 	super()
+	_offhand_panel = PanelContainer.new()
+	_offhand_panel.anchor_left = 0.5
+	_offhand_panel.anchor_right = 0.5
+	_offhand_panel.anchor_top = 1.0
+	_offhand_panel.anchor_bottom = 1.0
+	_offhand_panel.offset_left = 180
+	_offhand_panel.offset_right = 380
+	_offhand_panel.offset_top = -96
+	_offhand_panel.offset_bottom = -26
+	_offhand_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_offhand_label = _make_label(16)
+	_offhand_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_offhand_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_offhand_panel.add_child(_offhand_label)
+	_root.add_child(_offhand_panel)
 	var bars := VBoxContainer.new()
 	bars.anchor_left = 0.5
 	bars.anchor_right = 0.5
@@ -42,7 +59,23 @@ func _ready() -> void:
 	set_awakening(0.0)
 
 
+func refresh() -> void:
+	super()
+	if _offhand_label == null or _interaction == null or not _interaction.has_method("offhand_text"):
+		return
+	_offhand_label.text = _interaction.offhand_text()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.06, 0.14, 0.6)
+	style.set_corner_radius_all(10)
+	style.set_border_width_all(2)
+	style.border_color = _interaction.offhand_color()
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	_offhand_panel.add_theme_stylebox_override("panel", style)
+
+
 func set_player(player: Player) -> void:
+	track_player(player)
 	player.health_changed.connect(_on_health_changed)
 	_on_health_changed(player.health, player.max_health)
 

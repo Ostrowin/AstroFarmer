@@ -27,6 +27,7 @@ const OTHER_ITEMS := {
 	&"fence_post": "Słupek płotu",
 	&"pollen": "Pyłek Pyłkowca",
 	&"water_misty": "Woda z Mglistego źródła",
+	&"thorn": "Kolec Thornbacka",
 }
 
 

@@ -3,19 +3,28 @@ extends CharacterBody3D
 ## Thornback: drapieżnik z kolcami na grzbiecie.
 ## Przebudzenie < 50: śpi w legowisku, atakuje tylko, gdy podejdziesz za blisko.
 ## Przebudzenie 50+: patroluje okolicę. 100: poluje na gracza wszędzie.
-## Ogłuszacz i Snapper go zatrzymują; potem ucieka (nie ginie).
+## Snapper i Boomshroom go zatrzymują; potem ucieka.
+## Pistolet zadaje obrażenia: postrzelony budzi się i atakuje, ranny (poniżej 25%)
+## ucieka, przy 0 zdrowia pada i zostawia kolce.
 
-enum State { SLEEP, WANDER, CHASE, WINDUP, STUNNED, TRAPPED, FLEE }
+signal killed(creature: Creature)
+
+enum State { SLEEP, WANDER, CHASE, WINDUP, STUNNED, TRAPPED, FLEE, DEAD }
+
+const FLEE_HEALTH := 0.25
+const THORN_COLOR := Color(1.0, 0.55, 0.2)
 
 @export var walk_speed := 2.4
 @export var run_speed := 5.4
 @export var attack_damage := 15.0
 @export var attack_range := 1.8
 @export var wake_range := 3.5
+@export var max_health := 80.0
 
 ## Środek terytorium; ustawiane przed dodaniem do sceny.
 var den_position := Vector3.ZERO
 var state: State = State.SLEEP
+var health := 80.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _timer := 0.0
@@ -27,6 +36,9 @@ var _body: Node3D
 var _eye_material: StandardMaterial3D
 var _zzz: Label3D
 var _stars: Label3D
+var _health_label: Label3D
+var _fled_once := false
+var _body_materials: Dictionary = {}
 
 
 func _ready() -> void:
@@ -41,6 +53,7 @@ func _ready() -> void:
 	collision.shape = shape
 	collision.position.y = 0.55
 	add_child(collision)
+	health = max_health
 	_build_model()
 	_set_state(State.SLEEP)
 
@@ -55,15 +68,43 @@ func state_name() -> String:
 
 # --- Reakcje na gracza -------------------------------------------------------
 
+func is_dead() -> bool:
+	return state == State.DEAD
+
+
+## Trafienie z pistoletu. Zwraca true, jeśli to był śmiertelny strzał.
+func take_hit(amount: float, from := Vector3.INF) -> bool:
+	if is_dead():
+		return false
+	health = maxf(0.0, health - amount)
+	_update_health_label()
+	_flash()
+	if from != Vector3.INF:
+		var push := _flat(global_position - from).normalized()
+		velocity += push * 2.5
+	if health <= 0.0:
+		_die()
+		return true
+	if health < max_health * FLEE_HEALTH and not _fled_once:
+		_fled_once = true
+		_set_state(State.FLEE)
+		_timer = 5.0
+	elif state in [State.SLEEP, State.WANDER]:
+		_alert()
+	return false
+
+
 func stun(seconds := 3.0) -> void:
+	if is_dead():
+		return
 	_set_state(State.STUNNED)
 	_timer = seconds
 	Sfx.play(&"stun", global_position)
 
 
-## Zwraca false, jeśli już jest złapany.
+## Zwraca false, jeśli już jest złapany (albo martwy).
 func trap(seconds := 4.0) -> bool:
-	if state == State.TRAPPED:
+	if state == State.TRAPPED or is_dead():
 		return false
 	_set_state(State.TRAPPED)
 	_timer = seconds
@@ -78,6 +119,11 @@ func _physics_process(delta: float) -> void:
 	_attack_cooldown -= delta
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
+	if is_dead():
+		velocity.x = move_toward(velocity.x, 0.0, delta * 10.0)
+		velocity.z = move_toward(velocity.z, 0.0, delta * 10.0)
+		move_and_slide()
+		return
 
 	var awakening := GameState.run.awakening if GameState.run else 0.0
 	var player := get_tree().get_first_node_in_group("player") as Player
@@ -132,6 +178,51 @@ func _physics_process(delta: float) -> void:
 	_animate(delta, move, speed)
 
 
+func _die() -> void:
+	_set_state(State.DEAD)
+	remove_from_group("creature")
+	collision_layer = 0
+	_health_label.visible = false
+	Sfx.play(&"death", global_position)
+	var tween := create_tween()
+	tween.tween_property(_model, "rotation:z", PI * 0.5, 0.5).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(4.0)
+	tween.tween_property(_model, "scale", Vector3.ZERO, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_callback(queue_free)
+	_drop_thorns.call_deferred()
+	killed.emit(self)
+
+
+func _drop_thorns() -> void:
+	var pickup := Pickup.new()
+	pickup.setup({"kind": "sample", "item": &"thorn", "amount": randi_range(1, 2), "color": THORN_COLOR})
+	get_parent().add_child(pickup)
+	pickup.global_position = Vector3(global_position.x + 0.8, 0.0, global_position.z)
+
+
+## Błysk na biało po trafieniu. Oryginalne materiały zapamiętane raz,
+## żeby szybkie serie strzałów nie zostawiły stworzenia białego.
+func _flash() -> void:
+	if _body_materials.is_empty():
+		for child in _body.get_children():
+			if child is MeshInstance3D:
+				_body_materials[child] = (child as MeshInstance3D).material_override
+	for mesh: MeshInstance3D in _body_materials:
+		mesh.material_override = PlantVisuals.material(Color(1, 1, 1), 1.5)
+	get_tree().create_timer(0.08).timeout.connect(_restore_materials)
+
+
+func _restore_materials() -> void:
+	for mesh: MeshInstance3D in _body_materials:
+		if is_instance_valid(mesh):
+			mesh.material_override = _body_materials[mesh]
+
+
+func _update_health_label() -> void:
+	_health_label.text = "%d / %d" % [ceili(health), int(max_health)]
+	_health_label.visible = health < max_health and not is_dead()
+
+
 func _alert() -> void:
 	_set_state(State.CHASE)
 	Sfx.play(&"roar", global_position)
@@ -158,6 +249,8 @@ func _set_state(new_state: State) -> void:
 	_stars.visible = state == State.STUNNED or state == State.TRAPPED
 	var eye := Color(1, 0.25, 0.2)
 	match state:
+		State.DEAD:
+			eye = Color(0.15, 0.1, 0.15)
 		State.SLEEP:
 			eye = Color(0.3, 0.25, 0.4)
 		State.WANDER, State.FLEE:
@@ -247,6 +340,15 @@ func _build_model() -> void:
 	_stars.outline_size = 10
 	_stars.position = Vector3(0, 1.45, -0.7)
 	add_child(_stars)
+	_health_label = Label3D.new()
+	_health_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_health_label.font_size = 30
+	_health_label.pixel_size = 0.008
+	_health_label.modulate = Color(1, 0.35, 0.3)
+	_health_label.outline_size = 8
+	_health_label.position = Vector3(0, 1.75, 0)
+	_health_label.visible = false
+	add_child(_health_label)
 
 
 func _add(parent: Node3D, mesh: Mesh, pos: Vector3, color: Color, rot := Vector3.ZERO) -> MeshInstance3D:

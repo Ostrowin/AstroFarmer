@@ -35,6 +35,9 @@ func _ready() -> void:
 		&"boom": _synth(0.45, _wave_boom),
 		&"craft": _synth(0.3, _wave_craft),
 		&"land": _synth(0.6, _wave_land),
+		&"shot": _synth(0.14, _wave_shot),
+		&"dash": _synth(0.22, _wave_dash),
+		&"death": _synth(0.8, _wave_death),
 	}
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer3D.new()
@@ -166,6 +169,22 @@ func _wave_craft(t: float) -> float:
 func _wave_land(t: float) -> float:
 	var env := exp(-t * 6.0)
 	return (randf_range(-1, 1) * 0.5 + sin(TAU * 55.0 * t) * 0.7) * env * 0.55
+
+
+func _wave_shot(t: float) -> float:
+	# Krótki "pew": opadający ton + trzask.
+	var tone := sin(TAU * (900.0 * t - 2500.0 * t * t)) * exp(-t * 25.0)
+	return (tone * 0.35 + randf_range(-1, 1) * exp(-t * 60.0) * 0.25)
+
+
+func _wave_dash(t: float) -> float:
+	# Świst: szum z narastającą i gasnącą głośnością.
+	return randf_range(-1, 1) * sin(PI * t / 0.22) * 0.22
+
+
+func _wave_death(t: float) -> float:
+	var f := 220.0 - 140.0 * t
+	return (sin(TAU * f * t) + 0.4 * sin(TAU * f * 1.5 * t)) * exp(-t * 3.0) * 0.3
 
 
 func _synth(duration: float, sample: Callable) -> AudioStreamWAV:
