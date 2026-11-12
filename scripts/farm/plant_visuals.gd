@@ -6,20 +6,55 @@ extends RefCounted
 ## Kąt otwarcia szczęk Snappera (radiany): górna +, dolna -.
 const JAW_OPEN := 0.45
 
+## Widoczne mutacje upraw: nazwa, bonus do plonu i wygląd.
+const MUTATIONS := {
+	&"golden": {"name": "Złota", "desc": "+1 plonu", "harvest_bonus": 1, "seed_bonus": 0},
+	&"giant": {"name": "Olbrzymia", "desc": "+2 plonu", "harvest_bonus": 2, "seed_bonus": 0},
+	&"glowing": {"name": "Świecąca", "desc": "+1 nasiono", "harvest_bonus": 0, "seed_bonus": 1},
+}
+const GOLD := Color(0.98, 0.8, 0.25)
+
 static var _materials: Dictionary = {}
 
 
-static func build(data: PlantData, stage: int) -> Node3D:
+static func build(data: PlantData, stage: int, mutation: StringName = &"") -> Node3D:
 	var root := Node3D.new()
 	root.name = "Model"
 	var growth := float(stage) / float(maxi(1, data.last_stage()))
+	var target := root
+	if mutation != &"":
+		# Mutacja zmienia kolory na kopii danych; olbrzymia powiększa wnętrze modelu
+		# (zewnętrzny węzeł skaluje animacja "podskoku").
+		data = data.duplicate()
+		match mutation:
+			&"golden":
+				data.leaf_color = GOLD
+				data.accent_color = data.accent_color.lerp(Color(1, 0.6, 0.1), 0.5)
+			&"glowing":
+				data.leaf_color = data.leaf_color.lightened(0.25)
+				var light := OmniLight3D.new()
+				light.light_color = data.accent_color.lightened(0.3)
+				light.light_energy = 1.2
+				light.omni_range = 2.5
+				light.position.y = 0.6
+				root.add_child(light)
+			&"giant":
+				target = Node3D.new()
+				target.scale = Vector3.ONE * 1.4
+				root.add_child(target)
 	match data.shape:
 		PlantData.Shape.BUSH:
-			_build_bush(root, data, stage, growth)
+			_build_bush(target, data, stage, growth)
 		PlantData.Shape.CRYSTAL:
-			_build_crystal(root, data, stage, growth)
+			_build_crystal(target, data, stage, growth)
 		PlantData.Shape.SNAPPER:
-			_build_snapper(root, data, stage, growth)
+			_build_snapper(target, data, stage, growth)
+		PlantData.Shape.MUSHROOM:
+			_build_mushroom(target, data, stage, growth)
+		PlantData.Shape.MIST:
+			_build_mist(target, data, stage, growth)
+	if mutation == &"glowing":
+		_glow_all(target)
 	return root
 
 
@@ -112,6 +147,66 @@ static func _build_snapper(root: Node3D, data: PlantData, stage: int, growth: fl
 			_add(pivot, tooth, Vector3(x, -0.03 * side, -0.3), Color(1, 0.97, 0.9), Vector3(PI if side > 0 else 0.0, 0, 0))
 	_add(head, _sphere(0.06, 0.12), Vector3(0, 0.2, 0.02), Color(1, 1, 0.85), Vector3.ZERO, 0.5)
 	_add(head, _sphere(0.03, 0.06), Vector3(0, 0.21, -0.03), Color(0.1, 0.05, 0.1))
+
+
+static func _build_mushroom(root: Node3D, data: PlantData, stage: int, growth: float) -> void:
+	if stage == 0:
+		# Kiełek grzyba: mała kulka na nóżce.
+		_add(root, _cylinder(0.03, 0.04, 0.16), Vector3(0, 0.08, 0), data.leaf_color)
+		_add(root, _sphere(0.08, 0.1), Vector3(0, 0.18, 0), data.accent_color.darkened(0.2))
+		return
+	var height := lerpf(0.3, 0.55, growth)
+	var radius := lerpf(0.22, 0.42, growth)
+	_add(root, _cylinder(0.08, 0.11, height), Vector3(0, height * 0.5, 0), data.leaf_color)
+	# Kapelusz na osobnym węźle "Cap": puff go ściska.
+	var cap := Node3D.new()
+	cap.name = "Cap"
+	cap.position = Vector3(0, height, 0)
+	root.add_child(cap)
+	_add(cap, _sphere(radius, radius * 1.1), Vector3(0, radius * 0.25, 0), data.accent_color)
+	var spot := _sphere(radius * 0.18, radius * 0.12)
+	for i in 5:
+		var angle := TAU * i / 5.0 + 0.4
+		var pos := Vector3(cos(angle) * radius * 0.62, radius * 0.6, sin(angle) * radius * 0.62)
+		_add(cap, spot, pos, Color(1, 0.95, 0.75), Vector3(sin(angle) * 0.6, 0, -cos(angle) * 0.6), 0.8 if stage == data.last_stage() else 0.0)
+	if stage < data.last_stage():
+		return
+	# Dojrzały: oczka pod kapeluszem (trochę uroczo, trochę strasznie).
+	for side in [-1.0, 1.0]:
+		_add(root, _sphere(0.055, 0.09), Vector3(0.07 * side, height - 0.05, -0.1), Color(1, 1, 0.85), Vector3.ZERO, 0.6)
+		_add(root, _sphere(0.025, 0.04), Vector3(0.07 * side, height - 0.05, -0.145), Color(0.1, 0.05, 0.1))
+
+
+static func _build_mist(root: Node3D, data: PlantData, stage: int, growth: float) -> void:
+	if stage == 0:
+		# Uśpione nasiono: twarda, szara łupina z bladą szczeliną.
+		_add(root, _sphere(0.13, 0.17), Vector3(0, 0.08, 0), Color(0.55, 0.58, 0.65))
+		_add(root, _cylinder(0.012, 0.012, 0.14), Vector3(0, 0.13, 0.11), data.accent_color, Vector3(0.3, 0, 0), 0.8)
+		return
+	var height := lerpf(0.45, 0.95, growth)
+	_add(root, _cylinder(0.025, 0.04, height), Vector3(0, height * 0.5, 0), data.leaf_color)
+	for i in 2:
+		var side := -1.0 if i == 0 else 1.0
+		_add(root, _sphere(0.13, 0.04), Vector3(0.1 * side, height * 0.35, 0), data.leaf_color.darkened(0.1), Vector3(0, 0, -0.5 * side))
+	var bulb := lerpf(0.1, 0.2, growth)
+	_add(root, _sphere(bulb, bulb * 1.5), Vector3(0, height + bulb * 0.4, 0), data.accent_color, Vector3.ZERO, 1.0)
+	if stage < data.last_stage():
+		return
+	# Dojrzały: wokół bańki unoszą się małe, świecące krople mgły.
+	var orb := _sphere(0.05, 0.1)
+	for i in 4:
+		var angle := TAU * i / 4.0
+		_add(root, orb, Vector3(cos(angle) * 0.3, height + 0.1 + 0.08 * sin(angle * 2.0), sin(angle) * 0.3), Color(0.85, 0.95, 1.0), Vector3.ZERO, 1.5)
+
+
+## Mutacja "świecąca": wszystkie części lekko świecą.
+static func _glow_all(node: Node) -> void:
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			var mesh := child as MeshInstance3D
+			var base := (mesh.material_override as StandardMaterial3D).albedo_color
+			mesh.material_override = material(base, 0.5)
+		_glow_all(child)
 
 
 # --- Pomocnicze --------------------------------------------------------------

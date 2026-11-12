@@ -10,17 +10,32 @@ signal discovery_added(id: StringName)
 signal resources_changed
 signal biome_changed(biome_id: StringName)
 signal planet_attention_changed(value: int)
+## Nowy fakt w bazie danych (Codex). count = ile faktów wpisu znamy teraz.
+signal research_added(id: StringName, text: String, count: int)
+signal level_unlocked(biome_id: StringName, level: int)
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
 const START_BIOME := &"zielona_dolina"
 ## Pojemność konewki; woda trzymana jako zasób &"water".
 const WATER_CAPACITY := 5
+## Konewka po ulepszeniu w warsztacie.
+const WATER_CAPACITY_UPGRADED := 8
+## Dodatkowe miejsca w plecaku po ulepszeniu w warsztacie.
+const BACKPACK_BONUS := 3
+## Ile Uwagi planety dodaje wywiezienie 1 sztuki przedmiotu.
+const ATTENTION_PER_ITEM := {
+	&"sample_glowmoss": 10,
+	&"crystal": 1,
+}
+## O tyle spada Uwaga po skromnej wyprawie (bez rzadkich rzeczy) albo porażce.
+const ATTENTION_DECAY := 5
 ## Wyposażenie na start nowej gry.
 const STARTING_RESOURCES := {
 	&"seed_voidberry": 2,
 	&"seed_crystal_bloom": 1,
 	&"seed_snapper": 1,
+	&"seed_boomshroom": 1,
 	&"water": WATER_CAPACITY,
 }
 
@@ -28,6 +43,8 @@ const STARTING_RESOURCES := {
 var cycle: int = 0
 ## Odkryte gatunki, minerały, anomalie: id -> true.
 var discoveries: Dictionary = {}
+## Baza danych: id wpisu -> Array nazw akcji ("scan", "grow"...), które odkryły fakty.
+var research: Dictionary = {}
 ## Zasoby w magazynie bazy: id -> ilość.
 var resources: Dictionary = {}
 ## Stan biomów: id -> {"balance": int (-100..100), "max_level": int}.
@@ -37,6 +54,12 @@ var biomes: Dictionary = {}
 var planet_attention: int = 0
 ## Rośliny posadzone w bazie (zapisywane przez Farm): lista słowników.
 var farm: Array = []
+## Budowle postawione w bazie (np. słupki płotu): lista {"id", "x", "y", "z"}.
+var structures: Array = []
+## Trwałe ulepszenia z warsztatu: id -> true.
+var upgrades: Dictionary = {}
+## Niepokój fauny 0..100: rośnie co cykl, przy 100 jest najazd na bazę.
+var raid_pressure: int = 0
 ## Plik zapisu; sceny testowe ustawiają własny, żeby nie nadpisać gry.
 var save_path: String = SAVE_PATH
 ## Trwająca wyprawa (null w bazie). Nie jest zapisywana.
@@ -55,10 +78,14 @@ func _ready() -> void:
 func reset() -> void:
 	cycle = 0
 	discoveries.clear()
+	research.clear()
 	resources.clear()
 	biomes.clear()
 	planet_attention = 0
 	farm = []
+	structures = []
+	upgrades.clear()
+	raid_pressure = Raid.START_PRESSURE
 	run = null
 	last_run_report = {}
 	pending_cycles = 0
@@ -83,8 +110,14 @@ func advance_cycle() -> void:
 # --- Wyprawy -----------------------------------------------------------------
 
 ## Zaczyna wyprawę: zabiera wyposażenie z magazynu do plecaka.
-func start_run(loadout: Dictionary) -> RunState:
+## options: "meal" (id dania z Meals, zjadane od razu), "level" (poziom łąki).
+func start_run(loadout: Dictionary, options: Dictionary = {}) -> RunState:
 	var new_run := RunState.new()
+	new_run.capacity = backpack_capacity()
+	new_run.level = clampi(int(options.get("level", 1)), 1, get_biome(START_BIOME)["max_level"])
+	var meal: StringName = options.get("meal", &"")
+	if meal != &"" and cook_meal(meal):
+		new_run.meal = meal
 	for id in loadout:
 		var amount := mini(int(loadout[id]), get_resource(id))
 		amount = mini(amount, new_run.free_space())
@@ -98,7 +131,8 @@ func start_run(loadout: Dictionary) -> RunState:
 ## Kończy wyprawę. Sukces: plecak trafia do magazynu. Porażka: plecak przepada.
 ## Odkrycia zostają zawsze. Cykl rozlicza baza po powrocie (pending_cycles).
 func finish_run(success: bool, cause := "") -> Dictionary:
-	var report := {"success": success, "cause": cause, "items": {}, "lost": {}, "discoveries": [], "buffs": []}
+	var report := {"success": success, "cause": cause, "items": {}, "lost": {}, "discoveries": [], "buffs": [], "attention": 0}
+	var attention := -ATTENTION_DECAY
 	if run:
 		report["discoveries"] = run.discoveries.duplicate()
 		report["buffs"] = run.buffs.duplicate()
@@ -106,15 +140,89 @@ func finish_run(success: bool, cause := "") -> Dictionary:
 			for id in run.backpack:
 				add_resource(id, int(run.backpack[id]))
 			report["items"] = run.backpack.duplicate()
+			var gained := attention_for(run.backpack)
+			if gained > 0:
+				attention = gained
 		else:
 			report["lost"] = run.backpack.duplicate()
+	var before := planet_attention
+	change_planet_attention(attention)
+	report["attention"] = planet_attention - before
 	run = null
 	pending_cycles += 1
 	last_run_report = report
 	return report
 
 
+## Ile Uwagi planety ściągnie wywiezienie tych przedmiotów.
+static func attention_for(items: Dictionary) -> int:
+	var total := 0
+	for id in items:
+		total += int(ATTENTION_PER_ITEM.get(id, 0)) * int(items[id])
+	return total
+
+
+# --- Ulepszenia --------------------------------------------------------------
+
+func has_upgrade(id: StringName) -> bool:
+	return upgrades.has(id)
+
+
+func add_upgrade(id: StringName) -> void:
+	upgrades[id] = true
+	resources_changed.emit()
+
+
+func water_capacity() -> int:
+	return WATER_CAPACITY_UPGRADED if has_upgrade(&"can_mk2") else WATER_CAPACITY
+
+
+func backpack_capacity() -> int:
+	return RunState.BACKPACK_CAPACITY + (BACKPACK_BONUS if has_upgrade(&"backpack_mk2") else 0)
+
+
+## Zużywa składniki dania z magazynu. Zwraca true, jeśli danie powstało.
+func cook_meal(id: StringName) -> bool:
+	var meal := Meals.get_meal(id)
+	if not Meals.can_cook(meal, resources):
+		return false
+	var cost: Dictionary = meal["cost"]
+	for item in cost:
+		spend_resource(item, int(cost[item]))
+	return true
+
+
 # --- Odkrycia ----------------------------------------------------------------
+
+## Odkrywa fakt w bazie danych. Zwraca jego treść albo "" (już znany / brak faktu).
+func learn(id: StringName, how: String) -> String:
+	var found := Codex.fact(id, how)
+	if found.is_empty():
+		return ""
+	var known: Array = research.get(id, [])
+	if known.has(how):
+		return ""
+	known.append(how)
+	research[id] = known
+	add_discovery(id)
+	research_added.emit(id, found["text"], known.size())
+	_check_unlocks()
+	return found["text"]
+
+
+func knows(id: StringName, how: String) -> bool:
+	return (research.get(id, []) as Array).has(how)
+
+
+func max_level() -> int:
+	return get_biome(START_BIOME)["max_level"]
+
+
+func _check_unlocks() -> void:
+	if max_level() < 2 and Codex.discovered_count(research, 1) >= Codex.LEVEL2_REQUIRED:
+		unlock_biome_level(START_BIOME, 2)
+		level_unlocked.emit(START_BIOME, 2)
+
 
 ## Zwraca true, jeśli to nowe odkrycie.
 func add_discovery(id: StringName) -> bool:
@@ -213,10 +321,14 @@ func to_dict() -> Dictionary:
 		"version": SAVE_VERSION,
 		"cycle": cycle,
 		"discoveries": discoveries.keys().map(func(k): return String(k)),
+		"research": _stringify_keys(research),
 		"resources": _stringify_keys(resources),
 		"biomes": _stringify_keys(biomes),
 		"planet_attention": planet_attention,
 		"farm": farm.duplicate(true),
+		"structures": structures.duplicate(true),
+		"upgrades": upgrades.keys().map(func(k): return String(k)),
+		"raid_pressure": raid_pressure,
 		"pending_cycles": pending_cycles,
 	}
 
@@ -227,6 +339,13 @@ func from_dict(data: Dictionary) -> void:
 	cycle = int(data.get("cycle", 0))
 	for id in data.get("discoveries", []):
 		discoveries[StringName(id)] = true
+	var saved_research: Dictionary = data.get("research", {})
+	for id in saved_research:
+		research[StringName(id)] = (saved_research[id] as Array).map(func(h): return String(h))
+	# Starsze zapisy: odkrycia ze skanera bez wpisu w bazie danych.
+	for id in discoveries:
+		if Codex.has_entry(id) and not research.has(id):
+			research[id] = ["scan"]
 	var saved_resources: Dictionary = data.get("resources", {})
 	for id in saved_resources:
 		resources[StringName(id)] = int(saved_resources[id])
@@ -239,6 +358,12 @@ func from_dict(data: Dictionary) -> void:
 	for entry in data.get("farm", []):
 		if typeof(entry) == TYPE_DICTIONARY:
 			farm.append(entry)
+	for entry in data.get("structures", []):
+		if typeof(entry) == TYPE_DICTIONARY:
+			structures.append(entry)
+	for id in data.get("upgrades", []):
+		upgrades[StringName(id)] = true
+	raid_pressure = int(data.get("raid_pressure", Raid.START_PRESSURE))
 	pending_cycles = int(data.get("pending_cycles", 0))
 	resources_changed.emit()
 

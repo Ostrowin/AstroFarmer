@@ -75,14 +75,15 @@ func _status_text() -> String:
 	var run := GameState.run
 	var found := run.discoveries.size() if run else 0
 	var buffs := (", ".join(run.buffs) if run and not run.buffs.is_empty() else "brak")
-	return "Wyprawa · Dzika łąka\nNowe odkrycia: %d\nUlepszenia: %s" % [found, buffs]
+	var level := " · poziom 2" if run and run.level >= 2 else ""
+	return "Wyprawa · Dzika łąka%s\nNowe odkrycia: %d\nUlepszenia: %s" % [level, found, buffs]
 
 
 func _inventory_text() -> String:
 	var run := GameState.run
 	if run == null:
 		return "Plecak\n(brak wyprawy)"
-	return "Plecak %d/%d\n%s" % [run.used_space(), RunState.BACKPACK_CAPACITY, Hud.item_lines(run.backpack)]
+	return "Plecak %d/%d\n%s" % [run.used_space(), run.capacity, Hud.item_lines(run.backpack)]
 
 
 func _make_bar(fill: Color) -> ProgressBar:

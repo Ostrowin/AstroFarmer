@@ -7,6 +7,8 @@ const PLANTS := {
 	&"voidberry": preload("res://data/plants/voidberry.tres"),
 	&"crystal_bloom": preload("res://data/plants/crystal_bloom.tres"),
 	&"snapper": preload("res://data/plants/snapper.tres"),
+	&"boomshroom": preload("res://data/plants/boomshroom.tres"),
+	&"mistbloom": preload("res://data/plants/mistbloom.tres"),
 }
 
 
@@ -21,6 +23,10 @@ static func all_ids() -> Array:
 ## Przedmioty, które nie pochodzą z roślin (próbki, minerały z wypraw).
 const OTHER_ITEMS := {
 	&"sample_glowmoss": "Próbka: Lśniący mech",
+	&"fertilizer": "Nawóz",
+	&"fence_post": "Słupek płotu",
+	&"pollen": "Pyłek Pyłkowca",
+	&"water_misty": "Woda z Mglistego źródła",
 }
 
 

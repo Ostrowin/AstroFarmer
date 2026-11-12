@@ -3,7 +3,7 @@ extends Resource
 ## Opis gatunku rośliny. Każdy gatunek to plik .tres w data/plants/.
 
 ## Kształt modelu budowanego w kodzie (prototyp bez assetów).
-enum Shape { BUSH, CRYSTAL, SNAPPER }
+enum Shape { BUSH, CRYSTAL, SNAPPER, MUSHROOM, MIST }
 
 @export var id: StringName
 @export var display_name: String
@@ -21,6 +21,9 @@ enum Shape { BUSH, CRYSTAL, SNAPPER }
 @export var needs_water: bool = true
 ## Minimalna odległość od innych roślin przy sadzeniu (metry).
 @export var min_spacing: float = 1.0
+## Nasiono-zagadka: kiełkuje (etap 0 -> 1) tylko po podlaniu tym zasobem
+## zamiast zwykłej wody (np. &"water_misty"). Puste = zwykła woda.
+@export var sprout_item: StringName
 
 @export_group("Zbiór")
 ## Id przedmiotu z plonu; puste = roślina daje tylko nasiona.

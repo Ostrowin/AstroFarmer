@@ -18,6 +18,8 @@ func _run() -> void:
 		_finish()
 		return
 	state.new_game()
+	# Najazdy testuje test_base_defense; tutaj wyłączone, żeby nie ruszały upraw.
+	state.raid_pressure = -100000
 
 	var farm := Farm.new()
 	add_child(farm)

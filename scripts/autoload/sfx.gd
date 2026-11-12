@@ -32,6 +32,9 @@ func _ready() -> void:
 		&"throw": _synth(0.25, _wave_throw),
 		&"alarm": _synth(1.2, _wave_alarm),
 		&"evac": _synth(0.9, _wave_evac),
+		&"boom": _synth(0.45, _wave_boom),
+		&"craft": _synth(0.3, _wave_craft),
+		&"land": _synth(0.6, _wave_land),
 	}
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer3D.new()
@@ -141,6 +144,28 @@ func _wave_alarm(t: float) -> float:
 func _wave_evac(t: float) -> float:
 	var phase := TAU * (300.0 * t + 300.0 * t * t)
 	return sin(phase) * minf(t * 5.0, 1.0) * (1.0 - t / 0.9) * 0.35
+
+
+func _wave_boom(t: float) -> float:
+	# Głuchy "puff": szum + niski ton, szybko gasnący.
+	var env := exp(-t * 9.0)
+	return (randf_range(-1, 1) * 0.6 + sin(TAU * 70.0 * t) * 0.6) * env * 0.5
+
+
+func _wave_craft(t: float) -> float:
+	# Dwa stuknięcia młotka i dzwoneczek.
+	var knock := 0.0
+	for start in [0.0, 0.1]:
+		var local: float = t - start
+		if local >= 0.0:
+			knock += sin(TAU * 420.0 * local) * exp(-local * 40.0)
+	var bell := sin(TAU * 1320.0 * t) * exp(-maxf(0.0, t - 0.18) * 12.0) * (1.0 if t > 0.18 else 0.0)
+	return (knock * 0.4 + bell * 0.2)
+
+
+func _wave_land(t: float) -> float:
+	var env := exp(-t * 6.0)
+	return (randf_range(-1, 1) * 0.5 + sin(TAU * 55.0 * t) * 0.7) * env * 0.55
 
 
 func _synth(duration: float, sample: Callable) -> AudioStreamWAV:

@@ -3,6 +3,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/tree_cone.tscn" id="1_tree_cone"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/tree_mushroom.tscn" id="2_tree_mushroom"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/rock.tscn" id="3_rock"]
+[ext_resource type="Script" path="res://scripts/farm/workbench.gd" id="4_workbench"]
+[ext_resource type="Script" path="res://scripts/farm/landing_pod.gd" id="5_pod"]
 
 [sub_resource type="PlaneMesh" id="Mesh_ground"]
 size = Vector2(120, 120)
@@ -125,7 +127,7 @@ surface_material_override/0 = SubResource("Material_pond")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
 shape = SubResource("Shape_pond")
 
-[node name="Hut" type="StaticBody3D" parent="." groups=["building"]]
+[node name="Hut" type="StaticBody3D" parent="." groups=["building", "codex"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -3)
 
 [node name="Walls" type="MeshInstance3D" parent="Hut"]
@@ -187,6 +189,21 @@ shape = SubResource("Shape_pillar")
 [node name="CollisionPortal" type="CollisionShape3D" parent="ExpeditionGate"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
 shape = SubResource("Shape_portal")
+
+[node name="Workbench" type="StaticBody3D" parent="."]
+transform = Transform3D(0.866, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866, -10.5, 0, 0.6)
+script = ExtResource("4_workbench")
+
+[node name="LandingPod" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 9.5)
+script = ExtResource("5_pod")
+
+[node name="LandingCamera" type="Camera3D" parent="."]
+transform = Transform3D(0.7071, -0.2051, 0.6767, 0, 0.957, 0.29, -0.7071, -0.2051, 0.6767, 3, 4.5, 16.5)
+fov = 60.0
+
+[node name="LandingExit" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)
 
 [node name="Rocks" type="Node3D" parent="."]
 

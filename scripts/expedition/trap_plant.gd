@@ -40,6 +40,8 @@ func _physics_process(delta: float) -> void:
 			continue
 		var offset := creature.global_position - global_position
 		if Vector2(offset.x, offset.z).length() < RADIUS and creature.trap(TRAP_SECONDS):
+			GameState.learn(&"snapper", "trap")
+			GameState.learn(&"thornback", "trap")
 			_close_jaws()
 			_done = true
 			get_tree().create_timer(TRAP_SECONDS).timeout.connect(_wilt)

@@ -104,6 +104,17 @@ func take_damage(amount: float, from := Vector3.INF, silent := false) -> void:
 		died.emit()
 
 
+## Odrzut bez obrażeń (np. Boomshroom w bazie).
+func knockback(from: Vector3, force := 8.0) -> void:
+	var push := global_position - from
+	push.y = 0.0
+	if push.length_squared() < 0.001:
+		push = Vector3.BACK
+	velocity += push.normalized() * force + Vector3.UP * force * 0.5
+	_visual.scale = Vector3(1.2, 0.8, 1.2)
+	create_tween().tween_property(_visual, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
 func heal(amount: float) -> void:
 	if health <= 0.0:
 		return

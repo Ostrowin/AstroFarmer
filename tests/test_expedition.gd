@@ -72,6 +72,12 @@ func _run() -> void:
 	GameState.run.add_item(&"crystal", 2)
 	var exp2 := _spawn_expedition()
 	await _frames(3)
+	var creature2: Creature = exp2.get_node("Level").get_children().filter(func(n: Node) -> bool: return n is Creature)[0]
+	var boom := BoomPlant.new()
+	exp2.get_node("Level").add_child(boom)
+	boom.global_position = creature2.global_position + Vector3(1.5, 0, 0)
+	await get_tree().create_timer(BoomPlant.GROW_TIME + 0.3).timeout
+	_check(creature2.state == Creature.State.STUNNED, "rzucony Boomshroom ogłusza drapieżnika w zasięgu")
 	var report2: Array = []
 	exp2.finished.connect(func(r: Dictionary) -> void: report2.append(r))
 	exp2.call("_start_evac")

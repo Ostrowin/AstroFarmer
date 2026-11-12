@@ -1,23 +1,30 @@
 class_name PlayerInteraction
 extends Node
-## Celowanie środkiem ekranu, pasek narzędzi (nasiona, konewka),
-## podgląd sadzenia z powodem odmowy, podlewanie, zbiór i drzwi wyprawy.
+## Celowanie środkiem ekranu, pasek narzędzi (nasiona, konewka, nawóz, płot),
+## podgląd sadzenia z powodem odmowy, podlewanie, zbiór, warsztat i drzwi wyprawy.
 
 signal prompt_changed(text: String, ok: bool)
 signal hotbar_changed(index: int)
 signal notify(text: String)
 signal gate_used
+signal workbench_used
+signal codex_used
 
 const RAY_LENGTH := 12.0
 ## Warstwy: 1 world + 3 plants.
 const RAY_MASK := 1 | 4
 
-## Pasek narzędzi. "seed" sadzi gatunek, "can" to konewka.
+## Pasek narzędzi. "seed" sadzi gatunek, "can" to konewka,
+## "fertilizer" przyspiesza wzrost, "fence" stawia słupek płotu.
 const SLOTS := [
 	{"kind": "seed", "plant": &"voidberry"},
 	{"kind": "seed", "plant": &"crystal_bloom"},
 	{"kind": "seed", "plant": &"snapper"},
+	{"kind": "seed", "plant": &"boomshroom"},
+	{"kind": "seed", "plant": &"mistbloom"},
 	{"kind": "can"},
+	{"kind": "fertilizer"},
+	{"kind": "fence"},
 ]
 
 var farm: Farm
@@ -70,23 +77,38 @@ func slot_count() -> int:
 
 func slot_title(index: int) -> String:
 	var slot: Dictionary = SLOTS[index]
-	if slot["kind"] == "seed":
-		return PlantCatalog.get_plant(slot["plant"]).display_name
+	match slot["kind"]:
+		"seed":
+			return PlantCatalog.get_plant(slot["plant"]).display_name
+		"fertilizer":
+			return "Nawóz"
+		"fence":
+			return "Płot"
 	return "Konewka"
 
 
 func slot_detail(index: int) -> String:
 	var slot: Dictionary = SLOTS[index]
-	if slot["kind"] == "seed":
-		var data := PlantCatalog.get_plant(slot["plant"])
-		return "nasiona: %d" % GameState.get_resource(data.seed_item())
-	return "woda: %d/%d" % [GameState.get_resource(&"water"), GameState.WATER_CAPACITY]
+	match slot["kind"]:
+		"seed":
+			var data := PlantCatalog.get_plant(slot["plant"])
+			return "nasiona: %d" % GameState.get_resource(data.seed_item())
+		"fertilizer":
+			return "porcje: %d" % GameState.get_resource(&"fertilizer")
+		"fence":
+			return "słupki: %d" % GameState.get_resource(&"fence_post")
+	return "woda: %d/%d" % [GameState.get_resource(&"water"), GameState.water_capacity()]
 
 
 func slot_color(index: int) -> Color:
 	var slot: Dictionary = SLOTS[index]
-	if slot["kind"] == "seed":
-		return PlantCatalog.get_plant(slot["plant"]).accent_color
+	match slot["kind"]:
+		"seed":
+			return PlantCatalog.get_plant(slot["plant"]).accent_color
+		"fertilizer":
+			return RaidMarks.FERTILIZER_COLOR.lightened(0.3)
+		"fence":
+			return FencePost.WOOD
 	return Color(0.35, 0.7, 1.0)
 
 
@@ -109,13 +131,40 @@ func _update_target() -> void:
 			_set_prompt("%s · podejdź bliżej" % plant.data.display_name, false)
 		elif plant.is_ripe():
 			_set_prompt("[E] Zbierz: %s" % plant.data.display_name, true)
+		elif slot["kind"] == "can" and plant.is_thirsty() and plant.needs_sprout_item():
+			var have := GameState.get_resource(plant.data.sprout_item)
+			if have > 0:
+				_set_prompt("[LPM] Podlej wodą z Mglistego źródła (masz %d) · %s" % [have, plant.status_text()], true)
+			else:
+				_set_prompt("%s · brak wody z Mglistego źródła (poziom 2 łąki)" % plant.status_text(), false)
 		elif slot["kind"] == "can" and plant.is_thirsty():
 			if GameState.get_resource(&"water") > 0:
 				_set_prompt("[LPM] Podlej · %s" % plant.status_text(), true)
 			else:
 				_set_prompt("Konewka pusta: napełnij w stawie", false)
+		elif slot["kind"] == "fertilizer":
+			if GameState.get_resource(&"fertilizer") > 0:
+				_set_prompt("[LPM] Nawóź: +1 cykl wzrostu od razu · %s" % plant.status_text(), true)
+			else:
+				_set_prompt("Brak nawozu: zostawiają go przegonione Chrupiki", false)
 		else:
 			_set_prompt(plant.status_text(), true)
+		return
+	if collider is FencePost:
+		var post := collider as FencePost
+		_set_prompt(post.get_status() if _in_reach(post.global_position) else "Słupek płotu · podejdź bliżej", true)
+		return
+	if collider is Node and (collider as Node).is_in_group("codex"):
+		if _in_reach(_target["position"], 4.5):
+			_set_prompt("[E] Komputer w chatce: baza danych (%d%%)" % Codex.completion(GameState.research, GameState.max_level()), true)
+		else:
+			_set_prompt("Chatka", true)
+		return
+	if collider is Node and (collider as Node).is_in_group("workbench"):
+		if _in_reach(_target["position"], 4.0):
+			_set_prompt("[E] Warsztat: ulepszenia i płot", true)
+		else:
+			_set_prompt("Warsztat", true)
 		return
 	if collider is Node and (collider as Node).is_in_group("gate"):
 		if _in_reach(_target["position"], 5.0):
@@ -126,7 +175,7 @@ func _update_target() -> void:
 	if collider is Node and (collider as Node).is_in_group("water") and slot["kind"] == "can":
 		if not _in_reach(_target["position"]):
 			_set_prompt("Staw · podejdź bliżej", false)
-		elif GameState.get_resource(&"water") >= GameState.WATER_CAPACITY:
+		elif GameState.get_resource(&"water") >= GameState.water_capacity():
 			_set_prompt("Konewka pełna", true)
 		else:
 			_set_prompt("[LPM] Napełnij konewkę", true)
@@ -142,9 +191,20 @@ func _update_target() -> void:
 		else:
 			_set_prompt(problem, false)
 		return
-	if slot["kind"] == "can":
-		_set_prompt("Konewka · celuj w spragnioną roślinę albo w staw", true)
+	if slot["kind"] == "fence" and collider != null:
+		var problem := farm.post_problem(_target["position"], _target["normal"], collider, _player.global_position)
+		_ghost.visible = true
+		_ghost.global_position = _target["position"]
+		_set_ghost_ok(problem == "")
+		_set_prompt("[LPM] Postaw słupek płotu" if problem == "" else problem, problem == "")
 		return
+	match slot["kind"]:
+		"can":
+			_set_prompt("Konewka · celuj w spragnioną roślinę albo w staw", true)
+			return
+		"fertilizer":
+			_set_prompt("Nawóz · celuj w rosnącą roślinę", true)
+			return
 	_set_prompt("", true)
 
 
@@ -172,26 +232,51 @@ func _use_tool() -> void:
 		Sfx.play(&"plant", point)
 		Effects.burst(farm, point + Vector3(0, 0.1, 0), Color(0.55, 0.42, 0.3), 10)
 		return
+	if slot["kind"] == "fence":
+		if collider == null or collider is Plant or collider is FencePost:
+			return
+		var problem := farm.post_problem(_target["position"], _target["normal"], collider, _player.global_position)
+		if problem != "":
+			Sfx.play(&"deny")
+			notify.emit(problem)
+			return
+		farm.place_post(_target["position"])
+		Sfx.play(&"craft", _target["position"])
+		Effects.burst(farm, _target["position"] + Vector3(0, 0.1, 0), FencePost.WOOD, 10)
+		return
+	if slot["kind"] == "fertilizer":
+		if not (collider is Plant) or not _in_reach((collider as Plant).global_position):
+			return
+		var target := collider as Plant
+		if target.is_ripe():
+			return
+		if not farm.fertilize(target):
+			Sfx.play(&"deny")
+			notify.emit("Brak nawozu")
+			return
+		Sfx.play(&"plant", target.global_position)
+		Effects.burst(farm, target.global_position + Vector3(0, 0.3, 0), RaidMarks.FERTILIZER_COLOR.lightened(0.3), 16)
+		notify.emit("Nawóz: %s rośnie szybciej (i chętniej mutuje)" % target.data.display_name)
+		return
 
 	# Konewka
 	if collider is Plant:
 		var plant := collider as Plant
 		if not _in_reach(plant.global_position) or not plant.is_thirsty():
 			return
-		if not GameState.spend_resource(&"water", 1):
+		var problem := farm.water_plant(plant)
+		if problem != "":
 			Sfx.play(&"deny")
-			notify.emit("Konewka pusta: napełnij w stawie")
+			notify.emit(problem)
 			return
-		plant.water()
-		farm.changed.emit()
 		Sfx.play(&"water", plant.global_position)
 		Effects.burst(farm, plant.global_position + Vector3(0, 0.6, 0), Color(0.35, 0.7, 1.0), 14)
 	elif collider is Node and (collider as Node).is_in_group("water") and _in_reach(_target["position"]):
-		var missing := GameState.WATER_CAPACITY - GameState.get_resource(&"water")
+		var missing := GameState.water_capacity() - GameState.get_resource(&"water")
 		if missing > 0:
 			GameState.add_resource(&"water", missing)
 			Sfx.play(&"fill", _target["position"])
-			notify.emit("Konewka napełniona (%d/%d)" % [GameState.WATER_CAPACITY, GameState.WATER_CAPACITY])
+			notify.emit("Konewka napełniona (%d/%d)" % [GameState.water_capacity(), GameState.water_capacity()])
 
 
 func _interact() -> void:
@@ -211,6 +296,14 @@ func _interact() -> void:
 				Effects.fly_to(farm, pos + Vector3(0, 0.5, 0), _player, color, delay)
 				delay += 0.06
 		notify.emit(_describe_gain(gained))
+	elif collider is FencePost and _in_reach((collider as FencePost).global_position):
+		farm.remove_post(collider as FencePost)
+		Sfx.play(&"pickup", _player.global_position)
+		notify.emit("Słupek wrócił do magazynu")
+	elif collider is Node and (collider as Node).is_in_group("workbench") and _in_reach(_target["position"], 4.0):
+		workbench_used.emit()
+	elif collider is Node and (collider as Node).is_in_group("codex") and _in_reach(_target["position"], 4.5):
+		codex_used.emit()
 	elif collider is Node and (collider as Node).is_in_group("gate") and _in_reach(_target["position"], 5.0):
 		gate_used.emit()
 

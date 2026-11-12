@@ -29,7 +29,7 @@ func _ready() -> void:
 	$Main/Farm.load_from_state()
 	# Drapieżnik (śpi, bo nie ma wyprawy) i znajdźki z wypraw.
 	var creature := Creature.new()
-	creature.position = Vector3(3.2, 0.3, -1.5)
+	creature.position = Vector3(4.6, 0.3, -1.5)
 	$Main.add_child(creature)
 	var kinds := [
 		{"kind": "seed", "color": Color(0.62, 0.3, 0.95)},
@@ -47,7 +47,7 @@ func _ready() -> void:
 	# Kamera z bliska na rośliny (Tab przełącza na kamerę gracza).
 	_close_up = Camera3D.new()
 	add_child(_close_up)
-	_close_up.look_at_from_position(Vector3(0.0, 2.3, 4.6), Vector3(0, 0.4, -0.8))
+	_close_up.look_at_from_position(Vector3(0.6, 3.4, 5.0), Vector3(0.4, 0.3, -1.6))
 	_close_up.current = true
 
 

@@ -1,7 +1,8 @@
 class_name ExpeditionInteraction
 extends Node
-## Sterowanie na wyprawie: ogłuszacz, rzucane nasiona Snappera, jedzenie,
-## podnoszenie znajdziek (E), skanowanie (Q) i wezwanie ewakuacji.
+## Sterowanie na wyprawie: ogłuszacz, rzucane nasiona Snappera i Boomshrooma,
+## jedzenie, podnoszenie znajdziek (E), woda z Mglistego źródła, skanowanie (Q)
+## i wezwanie ewakuacji. Akcje odkrywają fakty w bazie danych (GameState.learn).
 
 signal prompt_changed(text: String, ok: bool)
 signal hotbar_changed(index: int)
@@ -16,6 +17,9 @@ const SCAN_RANGE := 18.0
 const STUN_RANGE := 14.0
 const STUN_COOLDOWN := 1.2
 const STUN_SECONDS := 3.0
+## Ogłuszacz Mk2 z warsztatu.
+const STUN_COOLDOWN_MK2 := 0.7
+const STUN_SECONDS_MK2 := 4.0
 const THROW_RANGE := 12.0
 const FOOD_HEAL := 30.0
 const AWAKENING_COMMON := 2.0
@@ -25,6 +29,7 @@ const SLOTS := [
 	{"kind": "stunner"},
 	{"kind": "trap", "item": &"seed_snapper"},
 	{"kind": "food", "item": &"voidberry"},
+	{"kind": "boom", "item": &"seed_boomshroom"},
 ]
 
 var selected := 0
@@ -77,6 +82,8 @@ func slot_title(index: int) -> String:
 			return "Ogłuszacz"
 		"trap":
 			return "Snapper (rzut)"
+		"boom":
+			return "Boomshroom (rzut)"
 		_:
 			return "Voidberry (zjedz)"
 
@@ -94,6 +101,8 @@ func slot_color(index: int) -> Color:
 			return Color(1, 0.9, 0.4)
 		"trap":
 			return Color(0.9, 0.25, 0.3)
+		"boom":
+			return Color(1, 0.45, 0.2)
 		_:
 			return Color(0.62, 0.3, 0.95)
 
@@ -118,6 +127,23 @@ func _update_target() -> void:
 		if scan_hint != "":
 			parts.append(scan_hint)
 		_set_prompt(" · ".join(parts), true)
+		return
+	if collider is Critter:
+		var critter := collider as Critter
+		var critter_parts: Array[String] = [String(critter.get_scan_info()["name"])]
+		if critter.is_stunned():
+			critter_parts.append("ogłuszony")
+		elif slot["kind"] == "stunner" and _distance_to(critter.global_position) <= STUN_RANGE:
+			critter_parts.append("[LPM] Ogłusz")
+		if scan_hint != "":
+			critter_parts.append(scan_hint)
+		_set_prompt(" · ".join(critter_parts), true)
+		return
+	if collider is MistySpring:
+		var spring_text := "Mgliste źródło"
+		if _in_reach(_target["position"], EVAC_REACH):
+			spring_text = "[E] Nabierz wody z Mglistego źródła (+1 do plecaka)" if GameState.run and GameState.run.free_space() > 0 else "Plecak pełny"
+		_set_prompt(spring_text + (" · " + scan_hint if scan_hint != "" else ""), true)
 		return
 	if collider is Pickup:
 		var pickup := collider as Pickup
@@ -155,6 +181,13 @@ func _update_target() -> void:
 				_set_prompt("Za daleko na rzut (max %d m)" % int(THROW_RANGE), false)
 			else:
 				_set_prompt("[LPM] Rzuć nasiono Snappera: wyrośnie pułapka", true)
+		"boom":
+			if _run_count(slot["item"]) <= 0:
+				_set_prompt("Brak nasion Boomshrooma w plecaku", false)
+			elif collider == null or _distance_to(_target["position"]) > THROW_RANGE:
+				_set_prompt("Za daleko na rzut (max %d m)" % int(THROW_RANGE), false)
+			else:
+				_set_prompt("[LPM] Rzuć Boomshroom: puff ogłusza wszystko w %d m" % int(BoomPlant.RADIUS), true)
 		"food":
 			if _run_count(slot["item"]) <= 0:
 				_set_prompt("Brak Voidberry w plecaku", false)
@@ -168,7 +201,10 @@ func _update_target() -> void:
 
 func _scan_hint(collider: Object) -> String:
 	var info := _scan_info(collider)
-	if info.is_empty() or GameState.has_discovery(info["id"]):
+	if info.is_empty():
+		return ""
+	var id: StringName = info["id"]
+	if GameState.knows(id, "scan") if Codex.has_entry(id) else GameState.has_discovery(id):
 		return ""
 	return "[Q] Skanuj" if _distance_to(_target["position"]) <= SCAN_RANGE else "za daleko na skan"
 
@@ -203,7 +239,7 @@ func _use_tool() -> void:
 			if _stun_cooldown > 0.0:
 				Sfx.play(&"deny")
 				return
-			_stun_cooldown = STUN_COOLDOWN
+			_stun_cooldown = _stun_cooldown_time()
 			var from := _player.global_position + Vector3(0, 1.2, 0)
 			var to: Vector3 = _target.get("position", _player.camera.global_position - _player.camera.global_basis.z * STUN_RANGE)
 			if from.distance_to(to) > STUN_RANGE:
@@ -211,9 +247,11 @@ func _use_tool() -> void:
 			Effects.beam(get_tree().current_scene, from, to, Color(1, 0.95, 0.4, 0.9))
 			Sfx.play(&"zap", from)
 			hotbar_changed.emit(selected)
-			get_tree().create_timer(STUN_COOLDOWN).timeout.connect(func() -> void: hotbar_changed.emit(selected))
-			if collider is Creature and _distance_to((collider as Creature).global_position) <= STUN_RANGE:
-				(collider as Creature).stun(STUN_SECONDS)
+			get_tree().create_timer(_stun_cooldown_time()).timeout.connect(func() -> void: hotbar_changed.emit(selected))
+			var seconds := STUN_SECONDS_MK2 if GameState.has_upgrade(&"stunner_mk2") else STUN_SECONDS
+			if (collider is Creature or collider is Critter) and _distance_to((collider as Node3D).global_position) <= STUN_RANGE:
+				collider.call("stun", seconds)
+				GameState.learn(collider.call("get_scan_info")["id"], "stun")
 		"trap":
 			if run == null or collider == null or collider is Creature or _distance_to(_target["position"]) > THROW_RANGE:
 				Sfx.play(&"deny")
@@ -226,6 +264,21 @@ func _use_tool() -> void:
 			get_tree().current_scene.add_child(trap)
 			trap.global_position = _target["position"]
 			Sfx.play(&"throw", _player.global_position)
+		"boom":
+			if run == null or collider == null or _distance_to(_target["position"]) > THROW_RANGE:
+				Sfx.play(&"deny")
+				return
+			if not run.remove_item(slot["item"]):
+				Sfx.play(&"deny")
+				notify.emit("Brak nasion Boomshrooma")
+				return
+			var boom := BoomPlant.new()
+			get_tree().current_scene.add_child(boom)
+			var landing: Vector3 = _target["position"]
+			if collider is Creature:
+				landing = (collider as Creature).global_position
+			boom.global_position = Vector3(landing.x, _player.global_position.y if collider is Creature else landing.y, landing.z)
+			Sfx.play(&"throw", _player.global_position)
 		"food":
 			if run == null or _player.health >= _player.max_health:
 				return
@@ -233,6 +286,7 @@ func _use_tool() -> void:
 				Sfx.play(&"deny")
 				return
 			_player.heal(FOOD_HEAL)
+			GameState.learn(&"voidberry", "eat")
 			Sfx.play(&"eat", _player.global_position)
 			notify.emit("Zjedzono Voidberry (+%d Kondycji)" % int(FOOD_HEAL))
 
@@ -258,6 +312,8 @@ func _interact() -> void:
 		Sfx.play(&"pickup", pickup.global_position)
 		Effects.fly_to(get_tree().current_scene, pickup.global_position + Vector3(0, 0.4, 0), _player, pickup.color)
 		notify.emit("+%d %s" % [added, pickup.display_name()])
+		if pickup.scan_id != &"":
+			GameState.learn(pickup.scan_id, "pickup")
 		if pickup.rare:
 			run.add_awakening(AWAKENING_RARE)
 			notify.emit("Coś rzadkiego... Przebudzenie rośnie szybciej (+%d)" % int(AWAKENING_RARE))
@@ -272,8 +328,17 @@ func _interact() -> void:
 		var bush := collider as WildBush
 		if _in_reach(bush.global_position) and bush.eat():
 			_player.heal(WildBush.HEAL)
+			GameState.learn(&"voidberry", "eat")
 			Sfx.play(&"eat", bush.global_position)
 			notify.emit("Dziki owoc: +%d Kondycji" % int(WildBush.HEAL))
+	elif collider is MistySpring and _in_reach(_target["position"], EVAC_REACH):
+		if run == null or run.add_item(&"water_misty", 1) <= 0:
+			Sfx.play(&"deny")
+			notify.emit("Plecak pełny")
+			return
+		Sfx.play(&"fill", _target["position"])
+		notify.emit("+1 Woda z Mglistego źródła")
+		GameState.learn(&"misty_spring", "pickup")
 	elif collider is Node and (collider as Node).is_in_group("evac") and _in_reach(_target["position"], EVAC_REACH):
 		evac_requested.emit()
 
@@ -287,7 +352,8 @@ func _scan() -> void:
 		notify.emit("Za daleko na skan (max %d m)" % int(SCAN_RANGE))
 		return
 	var id: StringName = info["id"]
-	if not GameState.add_discovery(id):
+	var is_new := not GameState.has_discovery(id)
+	if GameState.learn(id, "scan") == "" and not GameState.add_discovery(id):
 		notify.emit("Już w bazie danych: %s" % info["name"])
 		return
 	if GameState.run:
@@ -295,7 +361,12 @@ func _scan() -> void:
 		GameState.run.changed.emit()
 	Sfx.play(&"scan", _target["position"])
 	Effects.burst(get_tree().current_scene, _target["position"] + Vector3(0, 0.3, 0), Color(0.3, 0.95, 1.0), 16)
-	notify.emit("Nowe odkrycie: %s (zostaje nawet po porażce)" % info["name"])
+	if is_new:
+		notify.emit("Nowe odkrycie: %s (zostaje nawet po porażce)" % info["name"])
+
+
+func _stun_cooldown_time() -> float:
+	return STUN_COOLDOWN_MK2 if GameState.has_upgrade(&"stunner_mk2") else STUN_COOLDOWN
 
 
 func _apply_buff(buff: Dictionary) -> void:

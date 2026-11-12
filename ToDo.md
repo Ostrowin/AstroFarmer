@@ -78,29 +78,44 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 
 **Test etapu:** po powrocie tester sam wybiera, co ulepszyć, i rozumie, jak to pomoże na następnej wyprawie. Po najeździe potrafi powiedzieć, dlaczego obronił albo stracił uprawy, i przed kolejną wyprawą sam dosadza rośliny obronne.
 
-**Baza pod presją (nowe w wersji 2):**
-- [ ] **Uwaga planety** (0-100, globalna, trwała): rośnie z wywożonych rzadkich rzeczy, spada powoli po skromnych wyprawach. 2 progi: 0-49 rzadkie, słabe najazdy · 50+ częstsze i silniejsze.
-- [ ] Najazd fauny w trakcie cyklu (rój szkodników / roślinożercy), rozstrzygany automatycznie: siła zagrożenia vs obrona w zasięgu farmy.
-- [ ] Obrona: Snapper posadzony na stałe, **Boomshroom** (odrzut + ogłuszenie, 4. gatunek), proste ogrodzenie z warsztatu.
-- [ ] **Rytuał powrotu** (`W3`): krótka scena lądowania + raport najazdu: co obroniono, co stracono, co zostawił napastnik (np. nawóz).
-- [ ] Zasada: najazd nigdy nie niszczy całej bazy. Najgorzej: część upraw albo uszkodzony budynek do naprawy surowcami.
+**Baza pod presją (nowe w wersji 2), część 1 zrobiona:**
+- [x] **Uwaga planety** (0-100, globalna, trwała): +10 za Lśniący mech i +1 za kryształ wywiezione z udanej wyprawy, −5 po skromnej wyprawie albo porażce. Od 50 najazdy są częstsze i większe. Widać ją w HUD, na ekranie wyprawy i w raporcie (zawsze z powodem).
+- [x] Najazd fauny w trakcie cyklu (Rój Chrupików), rozstrzygany automatycznie (`scripts/farm/raid.gd`). **Niepokój fauny** rośnie co cykl (szybciej przy wysokiej Uwadze), przy 100 jest najazd. Pierwszy najazd po 3 cyklach. HUD pokazuje, za ile cykli następny.
+- [x] Obrona to promień wokół obrońcy i pojemność na najazd: dojrzały Snapper (3 m, 2 szkodniki), **Boomshroom** (4. gatunek, 4.5 m, 3) i słupki płotu z warsztatu (2 m, 1; bliskie słupki łączą się w płot, E zabiera słupek).
+- [x] Boomshroom w bazie odrzuca gracza, który podejdzie za blisko. Na wyprawie rzucony (slot 4) robi puff i ogłusza wszystko w 4 m.
+- [x] Przegonione Chrupiki zostawiają **nawóz** (slot 6: natychmiast +1 cykl wzrostu). Ślady najazdu (kupki nawozu, ogryzki) widać w bazie do następnego cyklu.
+- [x] **Rytuał powrotu** (`W3`): kamera na lądowisko, kapsuła opada z płomieniem i osiada. Potem panel raportu z sekcjami Wyprawa / Planeta / Farma / Najazd. Ten sam panel po "Przeczekaj cykl".
+- [x] Zasada: najazd nigdy nie niszczy więcej niż połowy upraw. Najgorzej: utracone etapy wzrostu i część kiełków.
+- [x] Testy: `tests/test_base_defense.tscn` (56 sprawdzeń: reguły najazdu, Uwaga, warsztat, nawóz, płot, najazd na farmie, rytuał powrotu i raport) + Boomshroom w `test_expedition`.
+- [ ] Strojenie po playteście: tempo Niepokoju, liczba Chrupików, zasięgi obrońców, Uwaga za łupy.
 
 **Postęp:**
 
-- [ ] Skaner: rozszerzenie skanu z M2 na rośliny, stworzenia, minerały.
-- [ ] Baza danych z wpisami uzupełnianymi stopniowo (procent kompletności).
-- [ ] Podstawowy crafting: stół warsztatowy + 3-5 receptur (np. większy plecak, lepsza konewka).
-- [ ] Kuchnia ekspedycyjna (`E2`): 2 dania z upraw = buff na run. Najprostsze połączenie farma → wyprawa.
-- [ ] Kolejne stworzenia: zapylacz i roślinożerca (drapieżnik jest już z M2).
-- [ ] +2 gatunki roślin (razem 5: Boomshroom + nasiono-zagadka).
-- [ ] 2-3 proste, widoczne mutacje (np. kolor + bonus do plonu).
-- [ ] Poziom biomu 2: odblokowany przez odkrycia progowe (np. 60% wpisów).
-- [ ] 1 nasiono-zagadka (`R3`) dostępne dopiero na poziomie 2 = wymagany przez MVP "przykład odblokowania nowej zawartości". Kiełkuje tylko po podlaniu wodą z Mglistego źródła (poziom 2, przynoszona w plecaku).
+- [x] Skaner: skan działa na rośliny (dzikie krzewy, nasiona), stworzenia (Thornback, Pyłkowiec, Chrupik), minerały i próbki (kryształy, mech, Mgliste źródło).
+- [x] Baza danych (`scripts/data/codex.gd`): 11 wpisów po 3 fakty, każdy fakt odkrywa inna akcja: skan, hodowla, zbiór, jedzenie, ogłuszenie, pułapka, puff, podniesienie, warsztat, obrona w najeździe. Komputer w chatce (E) pokazuje znane fakty, podpowiedzi do brakujących i procent kompletności. Nowy fakt = powiadomienie w HUD.
+- [x] Podstawowy crafting: stół warsztatowy obok chatki + 4 receptury (słupki płotu, Duża konewka 8 porcji, Większy plecak +3, Ogłuszacz Mk2). Ulepszenia są trwałe i zapisywane.
+- [x] Kuchnia ekspedycyjna (`E2`), na ekranie przygotowania jedno danie przed wyjściem:
+  - Sałatka z Voidberry: +25 maks. Kondycji.
+  - Kryształowa herbatka: Przebudzenie o 25% wolniej.
+  - Pyłkowe ciastka: +20% szybkości.
+  - Mgielny napar: Przebudzenie o połowę wolniej.
+  Składniki schodzą z magazynu przy wyjściu.
+- [x] Kolejne stworzenia: **Pyłkowiec** (latający zapylacz, ucieka przed graczem, ogłuszony gubi pyłek do ciastek) i stadko **Chrupików** (roślinożercy, od Przebudzenia 25 objadają dzikie krzewy; to te same Chrupiki, które najeżdżają farmę).
+- [x] +2 gatunki roślin (razem 5): Boomshroom i Mgielnik (nasiono-zagadka).
+- [x] 3 widoczne mutacje upraw, losowane przy dojrzewaniu (12%, a po nawozie 30%):
+  - Złota: złote liście, +1 plonu.
+  - Olbrzymia: większa, +2 plonu.
+  - Świecąca: świeci, +1 nasiono.
+  Mutacja jest zapisywana.
+- [x] Poziom 2 łąki: odblokowany po odkryciu 6 z 9 wpisów poziomu 1. Wybór poziomu przy drzwiach wyprawy. Poziom 2 ma gęstą mgłę, Przebudzenie od 10, +2 znajdźki, Mgliste źródło i nasiono Mgielnika.
+- [x] Nasiono-zagadka **Mgielnik** (`R3`) jest tylko na poziomie 2. Kiełkuje wyłącznie po podlaniu wodą z Mglistego źródła (E przy źródle, 1 porcja = 1 miejsce w plecaku); nawóz i zwykła woda go nie budzą. Potem rośnie normalnie i daje Mgielny owoc do naparu.
+- [x] Testy: `tests/test_progress.tscn` (49 sprawdzeń: baza danych i odblokowanie poziomu 2, kuchnia, mutacje, Mgielnik, Pyłkowiec i Chrupiki, poziom 2, panel bazy danych).
+- [ ] Strojenie po playteście: próg poziomu 2, szanse mutacji, siła dań, tempo objadania krzewów przez Chrupiki.
 - [ ] *Opcjonalnie, jeśli starczy sił:* zlecenia z niekompletnych wpisów (`N5`), robot-botanik komentujący wpisy (`T4`), nazywanie gatunków przy pierwszym spotkaniu (`W4`).
 
 Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper, Boomshroom), `W3` (+ opcjonalnie `N5`, `T4`, `W4`). Reszta MVP to zakres z bazy wiedzy, sekcja 17.
 
-**➡ Po M3: MVP gotowe.** Odpowiedzieć na 6 pytań z bazy wiedzy (sekcja 17.2) i zapisać wnioski w `docs/playtest-mvp.md`.
+**➡ Po M3: MVP gotowe** (zakres zrobiony 2026-11-11; brakuje playtestu i strojenia). Odpowiedzieć na 6 pytań z bazy wiedzy (sekcja 17.2) i zapisać wnioski w `docs/playtest-mvp.md`.
 
 ## M4. Żywa planeta v1
 
@@ -186,12 +201,12 @@ Propozycje rozstrzygnięć są w [Design_Zywa_Planeta.md](Design_Zywa_Planeta.md
 
 - [ ] **#5** Ile planety jest dostępne bezpośrednio, a ile przez osobne sceny wypraw? (Propozycja na start: dolina z bazą = jedna scena, każdy biom = osobna scena wyprawy.)
 - [ ] **#8** Częściowo rozstrzygnięte: bez broni palnej, bronią są rośliny-narzędzia, ogłuszacz, później Seed Cannon. Otwarte: czy cokolwiek może zabijać (na razie przegonione stworzenia uciekają), a jeśli tak, czy zabijanie staje się wejściem "−" Równowagi.
-- [ ] Jak liczyć zasięg obrony w najeździe automatycznym (promień wokół rośliny czy "strefa farmy")? Rozstrzygnąć w prototypie M3.
+- [x] Jak liczyć zasięg obrony w najeździe automatycznym? Rozstrzygnięte w M3: promień wokół każdego obrońcy + pojemność na najazd.
 - [ ] **#9** Pojazdy bojowe: system czy opcja? (Propozycja: opcja, "Kiedyś".)
 - [ ] **#10** Granice swobodnego budowania? (Propozycja: swobodne sadzenie, budynki na prostej siatce w bazie.)
 - [ ] **#11** Woda i energia w różnych biomach? (Do zaprojektowania przy M5.)
 - [ ] Czy oprócz liczb w dzienniku pokazywać stały pasek Równowagi na HUD? Rozstrzygnąć w playteście M4.
-- [ ] Czy baza też może być zagrożona (najazdy szkodników)? Na razie: nie.
+- [x] Czy baza też może być zagrożona (najazdy szkodników)? Tak, od wersji 2 (najazdy fauny w M3).
 - [ ] Ostateczna nazwa planety (robocza: Elysium-7) i gry.
 
 ## ⚠️ Pilnować

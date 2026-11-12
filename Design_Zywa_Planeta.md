@@ -70,6 +70,7 @@ Nie konkurujemy ilością cozy treści (dom, mech, co-op). Wygrywamy ryzykiem, s
 - **Przebudzenie** (0-100) rośnie z czasem pobytu i skokowo po zebraniu rzadkich rzeczy. W MVP są 2 progi: 50 (zmiana pogody + drapieżnik zaczyna patrolować) i 100. W v1 dochodzą: 25 (ostrzeżenie dźwiękowe + zmiana koloru nieba) i 75 (drapieżnik aktywnie poluje na gracza, burza gęstnieje).
 - **Stworzenia w MVP:** pierwszy wrogi drapieżnik jest już na mini-wyprawie (M2), żeby było czego unikać i co ogłuszać. Zapylacz i roślinożerca dochodzą w M3.
 - **Skanowanie w MVP:** prosta akcja skanu jest już w M2 (zapisuje odkrycie), a pełna baza danych z wpisami dochodzi w M3. Dzięki temu regułę porażki da się sprawdzić od pierwszej wyprawy.
+- **Baza danych w prototypie (M3):** każdy wpis ma 3 fakty i każdy fakt odkrywa inna akcja (skan, hodowla, zbiór, ogłuszenie, obrona w najeździe...). Dzięki temu baza danych nagradza różne style gry, nie tylko skanowanie. Poziom 2 łąki otwiera się po odkryciu 6 z 9 wpisów poziomu 1. Chrupiki z wyprawy to te same szkodniki, które najeżdżają farmę: baza danych łączy oba światy.
 - **Przebudzenie 100, "planeta się broni":** rusza 90-sekundowe odliczanie, a pogoda zaczyna stale obniżać Kondycję. Trzeba dotrzeć do punktu ewakuacji.
 - **Kondycja** (zdrowie) spada od ataków stworzeń i pogody. Porażka następuje przy Kondycji = 0 albo gdy odliczanie z progu 100 dobiegnie końca przed ewakuacją. Wtedy kapsuła ratunkowa zabiera nieprzytomnego farmera do bazy, bez dramatycznej śmierci.
 - **Reakcja na zagrożenie w MVP i v1:** unikanie, sprint, **ogłuszacz** (odpycha i ogłusza) oraz **rośliny-narzędzia** (sekcja niżej). Broni palnej nie ma. Rośliny przeganiają, unieruchamiają i ogłuszają. Przegonione stworzenie ucieka w kreskówkowym stylu, zamiast ginąć. Czy później coś może zabijać, zostaje w decyzji #8.
@@ -108,6 +109,12 @@ Baza leży w niebezpiecznej krainie. Podczas każdego cyklu, kiedy jesteś na wy
 
 **Jak rozstrzyga się najazd:**
 - **MVP (automatycznie):** w trakcie cyklu siła zagrożenia jest porównywana z obroną w zasięgu farmy. Wynik widać przy powrocie, w rytuale powrotu (`W3`): co obroniono, co stracono, co zostawił napastnik.
+  **Jak to działa w prototypie (M3):**
+  - **Niepokój fauny** (0-100) rośnie co cykl o 15 + połowę Uwagi planety. Przy 100 przychodzi najazd i Niepokój spada do zera. Nowa gra zaczyna od 55, więc pierwszy najazd jest po 3 cyklach. HUD i ekran wyprawy pokazują, za ile cykli będzie następny, co zastępuje prognozę do czasu `N4`.
+  - **Rój Chrupików:** 3 szkodniki + 1 na każde 20 Uwagi; od Uwagi 50 nazywa się "Wielki rój". Każdy celuje w losową uprawę. Rośliny-narzędzia nie są celem.
+  - **Zasięg obrony to promień wokół obrońcy** (rozstrzyga pytanie otwarte z M3). Każdy obrońca ma pojemność na jeden najazd: dojrzały Snapper 3 m / 2 szkodniki, dojrzały Boomshroom 4.5 m / 3, słupek płotu 2 m / 1. Szkodnika przejmuje najbliższy obrońca z wolną pojemnością.
+  - Nieprzegoniony szkodnik zabiera uprawie 1 etap wzrostu. Kiełek znika, ale najwyżej połowa upraw na najazd. Przegoniony zostawia **nawóz** (natychmiast +1 cykl wzrostu rośliny).
+  - Ślady najazdu (kupki nawozu przy obrońcach, ogryzki przy uprawach) są widoczne w bazie do następnego cyklu.
 - **v1 (na żywo, czasem):** kapsuła ląduje w środku ataku i bronisz bazy przez krótką scenę (ok. 60-90 s). Rzadziej niż najazdy automatyczne, żeby nie zamienić gry w tower defense.
 
 **Zasady, które trzymają to w ryzach:**
@@ -130,6 +137,7 @@ Trzy wskaźniki, każdy z inną rolą:
 - **Rośnie** z rzadkich rzeczy wywożonych z dowolnego biomu (kryształy, rzadkie nasiona, próbki z wyższych poziomów). Nie rośnie z samego upływu czasu, więc spokojna eksploracja nie jest karana.
 - **Spada** powoli po skromnych wyprawach i gdy Równowaga odwiedzanych biomów jest dodatnia.
 - **Progi w MVP:** 0-49 rzadkie, słabe najazdy fauny · 50+ częstsze i silniejsze najazdy. W v1 dochodzą progi z zagrożeniami planety.
+- **Liczby w prototypie (M3):** udana wyprawa dodaje +10 za każdą próbkę Lśniącego mchu i +1 za każdy kryształ. Wyprawa bez takich rzeczy albo porażka (nic nie wywiezione) odejmuje 5. Raport po powrocie zawsze podaje zmianę i jej powód.
 - Gracz sam decyduje, jak szybko podkręca grę: chciwość daje szybszy rozwój, ale baza dostaje mocniej.
 
 Trudność biomów pozostaje osobna i per biom (sekcja "Poziomy biomu").
@@ -209,7 +217,7 @@ Decyzje 5, 9, 10 i 11 pozostają otwarte, a 8 częściowo (lista w [ToDo.md](ToD
 - Dokładne liczby: tempo hamulca, przesunięcie Równowagi na wyprawę, tempo Przebudzenia, przyrost i spadek Uwagi planety.
 - ~~Czy baza też może być zagrożona?~~ Rozstrzygnięte w wersji 2: tak (sekcja "Baza pod presją").
 - Jak często najazd na żywo, żeby był wydarzeniem, a nie obowiązkiem? Propozycja startowa: najwyżej co 3-4 cykle.
-- Jak zasięg obrony liczy się w trybie automatycznym (promień wokół rośliny czy "strefa farmy")? Do prototypu w M3.
+- ~~Jak zasięg obrony liczy się w trybie automatycznym (promień wokół rośliny czy "strefa farmy")?~~ Rozstrzygnięte w M3: promień wokół każdego obrońcy + pojemność na najazd (sekcja "Baza pod presją").
 
 ## Kryteria sukcesu
 

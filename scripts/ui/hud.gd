@@ -21,6 +21,7 @@ var _notifications: VBoxContainer
 var _fade: ColorRect
 var _fade_label: Label
 var _click_hint: Label
+var _crosshair: ColorRect
 
 
 func _ready() -> void:
@@ -45,6 +46,7 @@ func _ready() -> void:
 	root.add_child(_inventory)
 
 	var crosshair := ColorRect.new()
+	_crosshair = crosshair
 	crosshair.color = Color(1, 1, 1, 0.85)
 	crosshair.set_anchors_preset(Control.PRESET_CENTER)
 	crosshair.offset_left = -3
@@ -70,8 +72,8 @@ func _ready() -> void:
 	_hotbar.anchor_right = 0.5
 	_hotbar.anchor_top = 1.0
 	_hotbar.anchor_bottom = 1.0
-	_hotbar.offset_left = -400
-	_hotbar.offset_right = 400
+	_hotbar.offset_left = -600
+	_hotbar.offset_right = 600
 	_hotbar.offset_top = -96
 	_hotbar.offset_bottom = -20
 	_hotbar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -111,6 +113,8 @@ func _ready() -> void:
 	_fade.add_child(_fade_label)
 
 	GameState.resources_changed.connect(refresh)
+	GameState.research_added.connect(_on_research)
+	GameState.level_unlocked.connect(_on_level_unlocked)
 	GameState.cycle_advanced.connect(func(_c: int) -> void: refresh())
 
 
@@ -129,7 +133,7 @@ func bind(interaction) -> void:
 	_slots.clear()
 	for i in interaction.slot_count():
 		var panel := PanelContainer.new()
-		panel.custom_minimum_size = Vector2(150, 70)
+		panel.custom_minimum_size = Vector2(132 if interaction.slot_count() > 7 else (140 if interaction.slot_count() > 5 else 150), 70)
 		var label := _make_label(17)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -155,7 +159,11 @@ func refresh() -> void:
 
 ## Nadpisywane w HUD wyprawy.
 func _status_text() -> String:
-	return "Astro Farmer · Zielona dolina\nCykl: %d · Odkrycia: %d" % [GameState.cycle, GameState.discoveries.size()]
+	var attention := GameState.planet_attention
+	var mood := "wysoka!" if attention >= Raid.ATTENTION_HIGH else "spokojnie"
+	var raid_in := Raid.cycles_until(GameState.raid_pressure, attention)
+	return "Astro Farmer · Zielona dolina\nCykl: %d · Baza danych: %d%%\nUwaga planety: %d (%s)\nNiepokój fauny: %d%% · najazd za ~%s" % [
+		GameState.cycle, Codex.completion(GameState.research, GameState.max_level()), attention, mood, GameState.raid_pressure, Raid.cycles_text(raid_in)]
 
 
 ## Nadpisywane w HUD wyprawy.
@@ -171,6 +179,22 @@ static func item_lines(items: Dictionary, skip: Array = []) -> String:
 		lines.append("%s: %d" % [PlantCatalog.item_name(id), items[id]])
 	lines.sort()
 	return "\n".join(lines) if not lines.is_empty() else "(pusto)"
+
+
+func _on_research(id: StringName, text: String, count: int) -> void:
+	notify("Baza danych · %s (%d/%d): %s" % [Codex.entry_name(id), count, Codex.fact_count(id), text])
+	refresh()
+
+
+func _on_level_unlocked(_biome: StringName, level: int) -> void:
+	Sfx.play(&"chime")
+	notify("Odblokowano poziom %d łąki! Wybierz go przy drzwiach wyprawy." % level)
+
+
+## Chowa/pokazuje interfejs gry (np. na czas przerywnika z lądowaniem).
+func show_overlay(show: bool) -> void:
+	for control: Control in [_status, _inventory, _prompt, _hotbar, _crosshair]:
+		control.visible = show
 
 
 func set_prompt(text: String, ok: bool) -> void:

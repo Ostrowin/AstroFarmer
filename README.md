@@ -31,6 +31,14 @@ Otwórz `project.godot` w Godot 4.7 i naciśnij F5. Albo z terminala:
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_expedition.tscn
 ```
 
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_base_defense.tscn
+```
+
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_progress.tscn
+```
+
 Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; Tab przełącza kamerę):
 
 ```bash
@@ -50,6 +58,6 @@ Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; 
 
 ## Sterowanie
 
-**Baza:** WASD ruch · Spacja skok · Shift sprint · mysz kamera · 1-4 / kółko wybór narzędzia · LPM użyj (sadź, podlej, napełnij konewkę) · E zbierz / drzwi wyprawy · Esc zwalnia mysz · F9 następny cykl (debug) · F10 nowa gra (debug)
+**Baza:** WASD ruch · Spacja skok · Shift sprint · mysz kamera · 1-8 / kółko wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot) · LPM użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek) · E zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy · Esc zwalnia mysz · F9 następny cykl (debug) · F10 nowa gra (debug)
 
-**Wyprawa:** 1 ogłuszacz · 2 rzut nasionem Snappera · 3 zjedz Voidberry · LPM użyj · E podnieś / zjedz dziki owoc / wezwij ewakuację · Q skanuj
+**Wyprawa:** 1 ogłuszacz · 2 rzut nasionem Snappera · 3 zjedz Voidberry · 4 rzut Boomshroomem · LPM użyj · E podnieś / zjedz dziki owoc / nabierz wody z Mglistego źródła / wezwij ewakuację · Q skanuj

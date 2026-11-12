@@ -14,11 +14,24 @@ const STORM_DAMAGE_PER_SECOND := 1.0
 const EVAC_SECONDS := 5.0
 const EVAC_RADIUS := 4.5
 const PICKUP_COUNT := 11
+## Poziom 2: więcej znajdziek, Przebudzenie od 10, Mgliste źródło i Mgielnik.
+const LEVEL2_EXTRA_PICKUPS := 2
+const LEVEL2_START_AWAKENING := 10.0
+const SPRING_POSITION := Vector3(-27, 0, 0)
+const MISTBLOOM_POSITION := Vector3(-24, 0, -7)
+## Stadka małych stworzeń: [rodzaj, środek, liczba].
+const CRITTERS := [
+	[Critter.Kind.POLLENBUG, Vector3(-9, 0, 16), 1],
+	[Critter.Kind.POLLENBUG, Vector3(-18, 0, -12), 1],
+	[Critter.Kind.POLLENBUG, Vector3(20, 0, -4), 1],
+	[Critter.Kind.CHRUPIK, Vector3(15, 0, 8), 3],
+]
 
 const LOOT := [
 	{"item": &"seed_voidberry", "min": 1, "max": 2, "kind": "seed", "plant": &"voidberry", "weight": 3.0},
 	{"item": &"seed_snapper", "min": 1, "max": 2, "kind": "seed", "plant": &"snapper", "weight": 2.0},
 	{"item": &"seed_crystal_bloom", "min": 1, "max": 1, "kind": "seed", "plant": &"crystal_bloom", "weight": 1.5},
+	{"item": &"seed_boomshroom", "min": 1, "max": 2, "kind": "seed", "plant": &"boomshroom", "weight": 1.5},
 	{"item": &"crystal", "min": 1, "max": 2, "kind": "crystal", "weight": 3.0, "scan": &"crystal_vein", "scan_name": "Żyła kryształów", "color": Color(0.45, 0.95, 1.0)},
 	{"item": &"sample_glowmoss", "min": 1, "max": 1, "kind": "sample", "rare": true, "weight": 1.2, "scan": &"glowmoss", "scan_name": "Lśniący mech", "color": Color(0.85, 1.0, 0.4)},
 ]
@@ -44,6 +57,8 @@ var _storm_time := -1.0
 @onready var _sun: DirectionalLight3D = $Sun
 
 var _environment: Environment
+## Mnożnik tempa Przebudzenia (danie z kuchni).
+var _awakening_rate := 1.0
 
 
 func _ready() -> void:
@@ -55,6 +70,8 @@ func _ready() -> void:
 	# Uruchomiona bezpośrednio z edytora (F6): wyprawa testowa bez wyposażenia.
 	run = GameState.run if GameState.run else GameState.start_run({})
 	_spawn_world()
+	if run.level >= 2:
+		_apply_level_2()
 	_player.global_position = ($Level/PlayerSpawn as Node3D).global_position
 
 	var interaction := _player.interaction as ExpeditionInteraction
@@ -65,6 +82,9 @@ func _ready() -> void:
 	run.threshold_reached.connect(_on_threshold)
 	run.changed.connect(_hud.refresh)
 	_hud.refresh()
+	_apply_meal()
+	if run.level >= 2:
+		_hud.notify("Dzika łąka, poziom 2: gęsta mgła. Mgliste źródło bije na zachodzie.")
 	_hud.notify("Dzika łąka. Zbieraj (E), skanuj (Q), uważaj na legowisko na północy.")
 	_hud.notify("Gdy zechcesz wrócić: E przy lądowisku i 5 s na nim.")
 
@@ -72,7 +92,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _ending:
 		return
-	run.add_awakening(AWAKENING_PER_SECOND * delta)
+	run.add_awakening(AWAKENING_PER_SECOND * _awakening_rate * delta)
 	_hud.set_awakening(run.awakening)
 
 	var alert := ""
@@ -133,6 +153,54 @@ func _spawn_world() -> void:
 	creature.position = den.position
 	creature.den_position = den.position
 	_level.add_child(creature)
+
+	for group: Array in CRITTERS:
+		for i in int(group[2]):
+			var critter := Critter.new()
+			critter.kind = group[0]
+			critter.home = group[1]
+			critter.position = group[1] + Vector3(i * 1.2, 0.5, i * 0.7)
+			_level.add_child(critter)
+
+
+## Poziom 2: mgła, Mgliste źródło, nasiono Mgielnika i dodatkowe znajdźki.
+func _apply_level_2() -> void:
+	_environment.fog_density = 0.012
+	_environment.fog_light_color = Color(0.7, 0.8, 0.95)
+	var spring := MistySpring.new()
+	spring.position = SPRING_POSITION
+	_level.add_child(spring)
+	var seed_pickup := Pickup.new()
+	var mistbloom := PlantCatalog.get_plant(&"mistbloom")
+	seed_pickup.setup({"kind": "seed", "item": mistbloom.seed_item(), "amount": 1, "scan": mistbloom.id,
+		"scan_name": mistbloom.display_name, "color": mistbloom.accent_color})
+	seed_pickup.position = MISTBLOOM_POSITION
+	_level.add_child(seed_pickup)
+	var spots := $Level/PickupSpots.get_children()
+	spots.shuffle()
+	for i in LEVEL2_EXTRA_PICKUPS:
+		var pickup := Pickup.new()
+		pickup.setup(_roll_loot())
+		pickup.position = (spots[i] as Node3D).position + Vector3(2.5, 0, 1.5)
+		_level.add_child(pickup)
+	run.add_awakening(LEVEL2_START_AWAKENING)
+
+
+## Danie z kuchni zjedzone przed wyjściem.
+func _apply_meal() -> void:
+	if run.meal == &"":
+		return
+	var meal := Meals.get_meal(run.meal)
+	match meal.get("effect", ""):
+		"vitality":
+			_player.add_max_health(25.0)
+		"speed":
+			_player.speed_multiplier = maxf(_player.speed_multiplier, 1.2)
+		"calm":
+			_awakening_rate = Meals.awakening_rate(run.meal)
+	if not run.buffs.has(meal["name"]):
+		run.buffs.append(meal["name"])
+	_hud.notify("Danie z kuchni: %s (%s)" % [meal["name"], meal["desc"]])
 
 
 func _roll_loot() -> Dictionary:

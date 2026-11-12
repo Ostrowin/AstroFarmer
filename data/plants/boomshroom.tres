@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"boomshroom"
+display_name = "Boomshroom"
+description = "Grzyb obronny. Dojrzały wypuszcza chmurę zarodników z hukiem i odrzuca wszystko, co podejdzie za blisko. W bazie przegania szkodniki w szerokim promieniu, na wyprawie rzucony ogłusza stworzenia."
+shape = 3
+stages = 3
+cycles_per_stage = 1
+needs_water = true
+min_spacing = 1.4
+harvest_item = &""
+harvest_item_name = ""
+harvest_amount = Vector2i(0, 0)
+seeds_per_harvest = Vector2i(1, 2)
+is_tool = true
+leaf_color = Color(0.9, 0.85, 0.75, 1)
+accent_color = Color(1, 0.45, 0.2, 1)

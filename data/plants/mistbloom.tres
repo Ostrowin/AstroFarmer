@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"mistbloom"
+display_name = "Mgielnik"
+description = "Nasiono-zagadka z poziomu 2 łąki. Twarda łupina pęka tylko po podlaniu wodą z Mglistego źródła. Obudzony rośnie zwyczajnie i daje Mgielne owoce."
+shape = 4
+stages = 3
+cycles_per_stage = 1
+needs_water = true
+min_spacing = 1.2
+sprout_item = &"water_misty"
+harvest_item = &"mist_fruit"
+harvest_item_name = "Mgielny owoc"
+harvest_amount = Vector2i(1, 2)
+seeds_per_harvest = Vector2i(1, 1)
+is_tool = false
+leaf_color = Color(0.45, 0.6, 0.75, 1)
+accent_color = Color(0.6, 0.85, 1, 1)

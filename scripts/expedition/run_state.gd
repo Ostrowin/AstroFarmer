@@ -6,9 +6,12 @@ extends RefCounted
 signal changed
 signal threshold_reached(threshold: int)
 
+## Bazowa pojemność plecaka (bez ulepszeń z warsztatu).
 const BACKPACK_CAPACITY := 10
 const THRESHOLDS: Array[int] = [25, 50, 75, 100]
 
+## Pojemność tej wyprawy (z ulepszeniami); ustawia GameState.start_run.
+var capacity := BACKPACK_CAPACITY
 ## Przedmioty w plecaku: id -> ilość. Wyposażenie z bazy też zajmuje miejsce.
 var backpack: Dictionary = {}
 ## Przebudzenie 0..100: presja w trakcie wyprawy.
@@ -19,6 +22,10 @@ var discoveries: Array[StringName] = []
 var loadout: Dictionary = {}
 ## Nazwy aktywnych ulepszeń wyprawy.
 var buffs: Array[String] = []
+## Poziom łąki (2 = Mgliste źródło, Mgielnik).
+var level := 1
+## Danie z kuchni zjedzone przed wyjściem (id z Meals) albo &"".
+var meal: StringName = &""
 
 var _reached: Array[int] = []
 
@@ -31,7 +38,7 @@ func used_space() -> int:
 
 
 func free_space() -> int:
-	return BACKPACK_CAPACITY - used_space()
+	return capacity - used_space()
 
 
 func count(id: StringName) -> int:
