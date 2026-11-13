@@ -136,12 +136,12 @@ Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper
 
 Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bieżąco: każda nowa rzecz w grze najpierw dostaje szkic do akceptacji, a dopiero potem model.
 
-- [ ] **1. Dokończenie modeli:**
+- [x] **1. Dokończenie modeli** (zamknięte 2026-11-13):
   - [x] stworzenia (2026-11-12, `art/source/creatures.blend`, `art/models/creatures/`): Thornback ze szkieletem i animacjami Sleep/Idle/Walk/Run/Attack/Stunned; Pollenbug (skrzydła trzepoczą w kodzie) i Muncher (podskoki w kodzie),
   - [x] budynki (2026-11-12, `art/source/buildings.blend`, `art/models/buildings/`, szkice w `art/source/sketches/`): chatka (blaszany barak z drewnianym frontem, gankiem, latarnią i anteną), warsztat, drzwi wyprawy (pierścień z portalem i kryształami, konsola), kapsuła z lądowiskiem (właz otwiera się po lądowaniu), słupek płotu, lądowisko ewakuacji z masztem,
   - [x] natura (2026-11-13, `art/source/nature.blend`, `art/models/nature/`): spiralna sosna, drzewo-grzyb, nowe drzewo-latarnia (świecące bańki pod noc), głaz z mchem i kryształami, stos kamieni, Mgliste źródło, legowisko Thornbacka, staw w bazie, góry z kryształami,
-  - znajdźki,
-  - gracz: hełm astronauty (pomysł autora, 2026-11-13). Słomkowy kapelusz zostaje, np. na hełmie albo hełm otwierany. Najpierw szkic; do ustalenia, czy hełm jest tylko na wyprawie.
+  - [x] znajdźki (2026-11-13, `art/source/pickups.blend`, `art/models/pickups/`): nasiono w łupinie (kolor z rośliny), kępa kryształów, świecący mech, pyłek, kolec Thornbacka, worek nawozu, fiolka mglistej wody, kiść voidberry, owoc Mgielnika, artefakt (klejnot nad cokołem z runami),
+  - [x] gracz: hełm astronauty (pomysł autora, wybrany wariant A, 2026-11-13): szklana bańka, słomkowy kapelusz na jej czubku, kołnierz i rurka do plecaka; hełm noszony zawsze. Kopia modelu sprzed hełmu: `art/source/player_before_helmet.blend`.
 - [ ] **2. Dzień i noc:** pora doby (słońce, księżyc, niebo, mgła). Nocne wyprawy z innymi znajdźkami, stworzeniami i efektami.
 - [ ] **3. Bioluminescencja:** świecące rośliny, grzyby i teren nocą, świetliki, zarodniki w powietrzu, poświata (glow) w środowisku.
 - [ ] **4. Tekstury:** stylizowane, ręcznie malowane (TextureCraft, MaterialCraft), najpierw teren, potem rośliny, gracz i budynki.

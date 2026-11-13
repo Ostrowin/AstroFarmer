@@ -16,8 +16,25 @@ var buff: Dictionary = {}
 ## Wyrzucone z plecaka: ponowne podniesienie nie podnosi Przebudzenia.
 var dropped := false
 
+## Modele z Blendera. Brak modelu = bryły z kodu.
+const MODELS := {
+	"seed": preload("res://art/models/pickups/seed.glb"),
+	"crystal": preload("res://art/models/pickups/crystal.glb"),
+	"artifact": preload("res://art/models/pickups/relic.glb"),
+}
+const SAMPLE_MODELS := {
+	&"sample_glowmoss": preload("res://art/models/pickups/glowmoss.glb"),
+	&"pollen": preload("res://art/models/pickups/pollen.glb"),
+	&"thorn": preload("res://art/models/pickups/thorn.glb"),
+	&"fertilizer": preload("res://art/models/pickups/fertilizer.glb"),
+	&"water_misty": preload("res://art/models/pickups/misty_water.glb"),
+	&"voidberry": preload("res://art/models/pickups/voidberry.glb"),
+	&"mist_fruit": preload("res://art/models/pickups/mist_fruit.glb"),
+}
+
 var _visual: Node3D
 var _time := 0.0
+var _from_model := false
 
 
 func setup(entry: Dictionary) -> void:
@@ -81,7 +98,7 @@ func _process(delta: float) -> void:
 	match kind:
 		"artifact":
 			_visual.rotation.y += delta * 1.5
-			_visual.position.y = 0.25 + sin(_time * 2.0) * 0.1
+			_visual.position.y = (0.0 if _from_model else 0.25) + sin(_time * 2.0) * 0.1
 		"seed":
 			_visual.position.y = sin(_time * 2.5) * 0.05
 			_visual.rotation.y += delta * 0.6
@@ -100,6 +117,10 @@ func get_scan_info() -> Dictionary:
 
 
 func _build_visual() -> void:
+	var scene: PackedScene = SAMPLE_MODELS.get(item_id) if kind == "sample" else MODELS.get(kind)
+	if scene:
+		_build_model(scene)
+		return
 	match kind:
 		"seed":
 			_mesh(_sphere(0.17), Vector3(0, 0.35, 0), color, 1.0)
@@ -133,6 +154,32 @@ func _build_visual() -> void:
 			glow.omni_range = 4.0
 			glow.position.y = 0.6
 			add_child(glow)
+
+
+func _build_model(scene: PackedScene) -> void:
+	_from_model = true
+	var model := scene.instantiate() as Node3D
+	if kind == "artifact":
+		# Cokół stoi, klejnot z pierścieniem unosi się i obraca.
+		add_child(model)
+		var gem := model.get_node_or_null("Gem") as Node3D
+		if gem:
+			model.remove_child(gem)
+			_visual.add_child(gem)
+	else:
+		_visual.add_child(model)
+	if kind == "seed":
+		# Jeden model nasiona dla wszystkich roślin; kolor z rośliny.
+		var body := model.get_node_or_null("Body") as MeshInstance3D
+		if body:
+			body.material_override = PlantVisuals.material(color, 0.4)
+	if rare or kind == "artifact" or item_id == &"water_misty":
+		var light := OmniLight3D.new()
+		light.light_color = color
+		light.light_energy = 1.2
+		light.omni_range = 3.0
+		light.position.y = 0.6
+		add_child(light)
 
 
 func _mesh(mesh: Mesh, pos: Vector3, mesh_color: Color, glow := 0.0, rot := Vector3.ZERO) -> void:
