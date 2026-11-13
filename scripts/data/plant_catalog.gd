@@ -22,12 +22,12 @@ static func all_ids() -> Array:
 
 ## Przedmioty, które nie pochodzą z roślin (próbki, minerały z wypraw).
 const OTHER_ITEMS := {
-	&"sample_glowmoss": "Próbka: Lśniący mech",
-	&"fertilizer": "Nawóz",
-	&"fence_post": "Słupek płotu",
-	&"pollen": "Pyłek Pyłkowca",
-	&"water_misty": "Woda z Mglistego źródła",
-	&"thorn": "Kolec Thornbacka",
+	&"sample_glowmoss": "Glowmoss",
+	&"fertilizer": "Fertilizer",
+	&"fence_post": "Fence Post",
+	&"pollen": "Pollen",
+	&"water_misty": "Misty Water",
+	&"thorn": "Thornback Spike",
 }
 
 
@@ -39,7 +39,7 @@ static func item_name(item_id: StringName) -> String:
 	if text.begins_with("seed_"):
 		var plant := get_plant(StringName(text.trim_prefix("seed_")))
 		if plant:
-			return "Nasiona: %s" % plant.display_name
+			return "%s Seeds" % plant.display_name
 	for plant: PlantData in PLANTS.values():
 		if plant.harvest_item == item_id:
 			return plant.harvest_item_name

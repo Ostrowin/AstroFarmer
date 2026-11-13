@@ -19,9 +19,9 @@ const ATTENTION_HIGH := 50
 ## Obrońcy: rośliny-narzędzia (tylko dojrzałe) i budowle.
 ## radius = zasięg wokół obrońcy, capacity = ilu szkodników przegoni w jednym najeździe.
 const DEFENDERS := {
-	&"snapper": {"name": "Snapper", "verb": "złapał", "radius": 3.0, "capacity": 2},
-	&"boomshroom": {"name": "Boomshroom", "verb": "odrzucił", "radius": 4.5, "capacity": 3},
-	&"fence": {"name": "Płot", "verb": "zatrzymał", "radius": 2.0, "capacity": 1},
+	&"snapper": {"name": "Snapper", "verb": "caught", "radius": 3.0, "capacity": 2},
+	&"boomshroom": {"name": "Boomshroom", "verb": "blasted", "radius": 4.5, "capacity": 3},
+	&"fence": {"name": "Fence", "verb": "stopped", "radius": 2.0, "capacity": 1},
 }
 
 
@@ -36,7 +36,7 @@ static func pest_count(attention: int) -> int:
 
 
 static func raid_name(attention: int) -> String:
-	return "Wielki rój Chrupików" if attention >= ATTENTION_HIGH else "Rój Chrupików"
+	return "Great Muncher Swarm" if attention >= ATTENTION_HIGH else "Muncher Swarm"
 
 
 ## Za ile cykli najazd przy obecnym tempie (do HUD i ekranu wyprawy).
@@ -48,14 +48,9 @@ static func cycles_until(pressure: int, attention: int) -> int:
 	return int(ceil(float(missing) / float(gain)))
 
 
-## "1 cykl", "3 cykle", "5 cykli".
+## "1 cycle", "3 cycles" (tekst w grze po angielsku).
 static func cycles_text(count: int) -> String:
-	var word := "cykli"
-	if count == 1:
-		word = "cykl"
-	elif count % 10 in [2, 3, 4] and not (count % 100 in [12, 13, 14]):
-		word = "cykle"
-	return "%d %s" % [count, word]
+	return "%d %s" % [count, "cycle" if count == 1 else "cycles"]
 
 
 ## Rozstrzyga najazd. `plants` i `structures` w formacie GameState.farm / .structures.
@@ -157,7 +152,7 @@ static func _flat(entry: Dictionary) -> Vector2:
 
 static func _describe(result: Dictionary, plants: Array) -> Array[String]:
 	var lines: Array[String] = []
-	lines.append("%s (%d) wpadł na farmę!" % [result["name"], result["pests"]])
+	lines.append("%s (%d)" % [result["name"], result["pests"]])
 	var repelled: Dictionary = result["repelled"]
 	for id in DEFENDERS:
 		if repelled.has(id):
@@ -165,16 +160,14 @@ static func _describe(result: Dictionary, plants: Array) -> Array[String]:
 			lines.append("%s %s %d" % [info["name"], info["verb"], repelled[id]])
 	var bitten := _count_names(result["damaged"].keys(), plants, result["damaged"])
 	if not bitten.is_empty():
-		lines.append("Obgryzione (−etap): %s" % bitten)
+		lines.append("Bitten: %s" % bitten)
 	var eaten := _count_names(result["destroyed"], plants)
 	if not eaten.is_empty():
-		lines.append("Zjedzone kiełki: %s" % eaten)
-	if result["idle"] > 0:
-		lines.append("%d odeszło bez łupu" % result["idle"])
+		lines.append("Eaten: %s" % eaten)
 	if result["damaged"].is_empty() and result["destroyed"].is_empty():
-		lines.append("Uprawy całe!")
+		lines.append("Crops safe!")
 	if result["fertilizer"] > 0:
-		lines.append("Przegonione Chrupiki zostawiły: %d× Nawóz" % result["fertilizer"])
+		lines.append("+%d Fertilizer" % result["fertilizer"])
 	return lines
 
 

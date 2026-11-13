@@ -11,63 +11,63 @@ extends RefCounted
 ## Ile wpisów poziomu 1 trzeba odkryć, żeby odblokować poziom 2 doliny.
 const LEVEL2_REQUIRED := 6
 
-const CATEGORIES := ["Rośliny", "Stworzenia", "Minerały i próbki"]
+const CATEGORIES := ["Plants", "Creatures", "Minerals"]
 
 const ENTRIES := {
-	&"voidberry": {"name": "Voidberry", "category": "Rośliny", "level": 1, "facts": [
-		{"how": "scan", "text": "Krzew o fioletowych owocach, rośnie dziko na łące.", "hint": "zeskanuj dziki krzew (Q)"},
-		{"how": "harvest", "text": "W bazie daje 2-3 owoce i 1-2 nasiona na zbiór.", "hint": "zbierz dojrzałą roślinę w bazie"},
-		{"how": "eat", "text": "Owoc leczy Kondycję: dziki 25, z plecaka 30. Kuchnia robi z niego dania.", "hint": "zjedz owoc na wyprawie"},
+	&"voidberry": {"name": "Voidberry", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "A wild bush with violet berries.", "hint": "scan a wild bush"},
+		{"how": "harvest", "text": "Yields 2-3 berries and 1-2 seeds.", "hint": "harvest one at the base"},
+		{"how": "eat", "text": "Berries heal: wild 25, packed 30.", "hint": "eat one on an expedition"},
 	]},
-	&"crystal_bloom": {"name": "Crystal Bloom", "category": "Rośliny", "level": 1, "facts": [
-		{"how": "scan", "text": "Kwiat, który wyciąga minerały z gleby i zamyka je w kryształach.", "hint": "zeskanuj nasiona na wyprawie"},
-		{"how": "grow", "text": "Nie potrzebuje wody, ale każdy etap trwa 2 cykle.", "hint": "wyhoduj go w bazie"},
-		{"how": "harvest", "text": "Daje kryształy, surowiec warsztatu. Planeta ich pilnuje (+1 Uwagi za wywieziony kryształ).", "hint": "zbierz go w bazie"},
+	&"crystal_bloom": {"name": "Crystal Bloom", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "Pulls minerals from the soil into crystals.", "hint": "scan its seeds"},
+		{"how": "grow", "text": "Needs no water, but each stage takes 2 cycles.", "hint": "grow one"},
+		{"how": "harvest", "text": "Yields crystals. Shipping them raises Attention.", "hint": "harvest one"},
 	]},
-	&"snapper": {"name": "Snapper", "category": "Rośliny", "level": 1, "facts": [
-		{"how": "scan", "text": "Mięsożerna paszcza. Hodowany na nasiona.", "hint": "zeskanuj nasiona na wyprawie"},
-		{"how": "trap", "text": "Rzucone nasiono wyrasta w 1.5 s i trzyma drapieżnika 4 s.", "hint": "złap coś rzuconym Snapperem"},
-		{"how": "repel", "text": "Dojrzały w bazie łapie 2 Chrupiki w promieniu 3 m.", "hint": "obroń nim farmę w najeździe"},
+	&"snapper": {"name": "Snapper", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "A carnivorous jaw, grown for its seeds.", "hint": "scan its seeds"},
+		{"how": "trap", "text": "A thrown seed grows into a 4 s trap.", "hint": "trap something"},
+		{"how": "repel", "text": "Ripe, it catches 2 pests within 3 m.", "hint": "defend the farm with it"},
 	]},
-	&"boomshroom": {"name": "Boomshroom", "category": "Rośliny", "level": 1, "facts": [
-		{"how": "scan", "text": "Grzyb, który wybucha chmurą zarodników.", "hint": "zeskanuj nasiona na wyprawie"},
-		{"how": "boom", "text": "Rzucony robi puff i ogłusza wszystko w 4 m. Odrzuca też ciebie.", "hint": "ogłusz coś rzuconym Boomshroomem"},
-		{"how": "repel", "text": "Dojrzały w bazie odrzuca 3 Chrupiki w promieniu 4.5 m.", "hint": "obroń nim farmę w najeździe"},
+	&"boomshroom": {"name": "Boomshroom", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "A mushroom that bursts into spores.", "hint": "scan its seeds"},
+		{"how": "boom", "text": "Thrown, it stuns everything within 4 m.", "hint": "stun something with it"},
+		{"how": "repel", "text": "Ripe, it blasts 3 pests within 4.5 m.", "hint": "defend the farm with it"},
 	]},
-	&"pollenbug": {"name": "Pyłkowiec", "category": "Stworzenia", "level": 1, "facts": [
-		{"how": "scan", "text": "Latający zapylacz. Krąży przy dzikich krzewach i ucieka, gdy podejdziesz.", "hint": "zeskanuj go w locie"},
-		{"how": "hit", "text": "Trafiony spada i gubi kulkę pyłku. Zabity też ją zostawia, ale wtedy już nie zapyla.", "hint": "trafić go z pistoletu"},
-		{"how": "pickup", "text": "Pyłek to składnik Pyłkowych ciastek w kuchni.", "hint": "podnieś pyłek"},
+	&"pollenbug": {"name": "Pollenbug", "category": "Creatures", "level": 1, "facts": [
+		{"how": "scan", "text": "A shy pollinator near wild bushes.", "hint": "scan one"},
+		{"how": "hit", "text": "Hit, it drops a ball of pollen.", "hint": "hit one"},
+		{"how": "pickup", "text": "Pollen makes Pollen Cookies.", "hint": "pick up pollen"},
 	]},
-	&"chrupik": {"name": "Chrupik", "category": "Stworzenia", "level": 1, "facts": [
-		{"how": "scan", "text": "Płochliwy roślinożerca. Stadko objada dzikie krzewy, gdy łąka się budzi.", "hint": "zeskanuj stadko"},
-		{"how": "hit", "text": "Chrupiki nie atakują ludzi: trafiony ucieka w panice, zabity zostawia nawóz.", "hint": "trafić go z pistoletu"},
-		{"how": "raid", "text": "To one najeżdżają farmę, gdy Niepokój fauny dojdzie do 100%.", "hint": "przetrwaj najazd w bazie"},
+	&"chrupik": {"name": "Muncher", "category": "Creatures", "level": 1, "facts": [
+		{"how": "scan", "text": "A herd grazer. Eats wild bushes when the meadow wakes.", "hint": "scan one"},
+		{"how": "hit", "text": "Harmless. Flees when hit, drops fertilizer.", "hint": "hit one"},
+		{"how": "raid", "text": "Munchers are the ones raiding your farm.", "hint": "survive a raid"},
 	]},
-	&"thornback": {"name": "Thornback", "category": "Stworzenia", "level": 1, "facts": [
-		{"how": "scan", "text": "Drapieżnik z kolcami. Śpi w legowisku na północy łąki.", "hint": "zeskanuj go z bezpiecznej odległości"},
-		{"how": "hit", "text": "Postrzelony budzi się i rzuca na ciebie. Ranny ucieka, zabity zostawia kolce (warsztat: Pistolet Mk2).", "hint": "trafić go z pistoletu"},
-		{"how": "trap", "text": "Snapper trzyma go 4 s. Przy Przebudzeniu 100 poluje na ciebie wszędzie.", "hint": "złap go Snapperem"},
+	&"thornback": {"name": "Thornback", "category": "Creatures", "level": 1, "facts": [
+		{"how": "scan", "text": "A spiny predator sleeping in the north den.", "hint": "scan it from afar"},
+		{"how": "hit", "text": "Shooting wakes it. Wounded, it flees; dead, it drops spikes.", "hint": "hit it"},
+		{"how": "trap", "text": "A Snapper holds it for 4 s.", "hint": "trap it"},
 	]},
-	&"glowmoss": {"name": "Lśniący mech", "category": "Minerały i próbki", "level": 1, "facts": [
-		{"how": "scan", "text": "Świecący mech z najtrudniej dostępnych miejsc łąki.", "hint": "zeskanuj go na wyprawie"},
-		{"how": "pickup", "text": "Zerwanie go budzi planetę: Przebudzenie +12.", "hint": "podnieś próbkę"},
-		{"how": "craft", "text": "Wywieziony: +10 Uwagi planety. Potrzebny do ulepszeń w warsztacie.", "hint": "zużyj go w warsztacie"},
+	&"glowmoss": {"name": "Glowmoss", "category": "Minerals", "level": 1, "facts": [
+		{"how": "scan", "text": "Rare glowing moss in risky spots.", "hint": "scan it"},
+		{"how": "pickup", "text": "Picking it up raises Awakening.", "hint": "pick it up"},
+		{"how": "craft", "text": "Used for upgrades. Shipping it raises Attention.", "hint": "use it at the workbench"},
 	]},
-	&"crystal_vein": {"name": "Żyła kryształów", "category": "Minerały i próbki", "level": 1, "facts": [
-		{"how": "scan", "text": "Kryształy wyrastające wprost z gruntu łąki.", "hint": "zeskanuj je na wyprawie"},
-		{"how": "pickup", "text": "Lekkie: każdy kryształ to 1 miejsce w plecaku.", "hint": "podnieś kryształ"},
-		{"how": "craft", "text": "Z 2 kryształów warsztat robi 3 słupki płotu.", "hint": "zrób coś w warsztacie"},
+	&"crystal_vein": {"name": "Crystal Vein", "category": "Minerals", "level": 1, "facts": [
+		{"how": "scan", "text": "Crystals growing straight from the ground.", "hint": "scan them"},
+		{"how": "pickup", "text": "Light: one slot each.", "hint": "pick one up"},
+		{"how": "craft", "text": "2 crystals make 4 fence posts.", "hint": "craft something"},
 	]},
-	&"misty_spring": {"name": "Mgliste źródło", "category": "Minerały i próbki", "level": 2, "facts": [
-		{"how": "scan", "text": "Źródło zimnej, świecącej wody. Bije tylko na poziomie 2 łąki.", "hint": "znajdź je na poziomie 2"},
-		{"how": "pickup", "text": "Wodę nosi się w plecaku: 1 porcja = 1 miejsce.", "hint": "nabierz wody (E)"},
-		{"how": "sprout", "text": "Tylko ta woda budzi nasiono Mgielnika.", "hint": "podlej nią Mgielnika w bazie"},
+	&"misty_spring": {"name": "Misty Spring", "category": "Minerals", "level": 2, "facts": [
+		{"how": "scan", "text": "A glowing spring on Meadow II.", "hint": "find it on Meadow II"},
+		{"how": "pickup", "text": "Water is carried in the backpack.", "hint": "collect water"},
+		{"how": "sprout", "text": "Only this water wakes a Mistbloom seed.", "hint": "water a Mistbloom"},
 	]},
-	&"mistbloom": {"name": "Mgielnik", "category": "Rośliny", "level": 2, "facts": [
-		{"how": "scan", "text": "Nasiono w twardej łupinie. Zwykła woda go nie budzi.", "hint": "zeskanuj nasiono na poziomie 2"},
-		{"how": "grow", "text": "Obudzony rośnie zwyczajnie i świeci w mgle.", "hint": "wyhoduj go w bazie"},
-		{"how": "harvest", "text": "Mgielny owoc: z niego kuchnia robi Mgielny napar.", "hint": "zbierz go w bazie"},
+	&"mistbloom": {"name": "Mistbloom", "category": "Plants", "level": 2, "facts": [
+		{"how": "scan", "text": "A hard-shelled seed. Plain water won't wake it.", "hint": "scan its seed"},
+		{"how": "grow", "text": "Once awake, it grows and glows in the fog.", "hint": "grow one"},
+		{"how": "harvest", "text": "Mist Fruit makes Mist Brew.", "hint": "harvest one"},
 	]},
 }
 

@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://art/models/nature/rock_stack.glb" id="1_model"]
+
+[sub_resource type="CylinderShape3D" id="Shape_rock"]
+height = 1.0
+radius = 1.0
+
+[node name="RockStack" type="StaticBody3D" groups=["obstacle"]]
+
+[node name="Model" parent="." instance=ExtResource("1_model")]
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("Shape_rock")

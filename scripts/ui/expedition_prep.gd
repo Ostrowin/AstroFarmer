@@ -9,9 +9,9 @@ signal rest
 signal cancelled
 
 const OPTIONS := [
-	{"id": &"seed_snapper", "label": "Nasiona Snappera", "hint": "rzucone (PPM) wyrastają w pułapkę na drapieżnika", "max": 4},
-	{"id": &"seed_boomshroom", "label": "Nasiona Boomshrooma", "hint": "rzucone (PPM) robią puff: ogłuszają wszystko w 4 m", "max": 3},
-	{"id": &"voidberry", "label": "Voidberry (owoc)", "hint": "zjedzony leczy 30 Kondycji", "max": 4},
+	{"id": &"seed_snapper", "label": "Snapper Seeds", "hint": "Throw (RMB): trap", "max": 4},
+	{"id": &"seed_boomshroom", "label": "Boomshroom Seeds", "hint": "Throw (RMB): stun", "max": 3},
+	{"id": &"voidberry", "label": "Voidberry", "hint": "Eat: +30 health", "max": 4},
 ]
 
 var _counts: Dictionary = {}
@@ -45,13 +45,12 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 12)
 	add_child(box)
 
-	box.add_child(_label("Przygotowanie wyprawy", 28))
-	box.add_child(_label("Cel: Dzika łąka. Zbierz nasiona, próbki i kryształy, zeskanuj, co nowe, i wróć na lądowisko, zanim planeta się obudzi.", 16, true))
+	box.add_child(_label("Expedition", 28))
 	var level_row := HBoxContainer.new()
 	level_row.add_theme_constant_override("separation", 10)
-	level_row.add_child(_label("Poziom łąki:", 18))
+	level_row.add_child(_label("Level", 18))
 	for level in [1, 2]:
-		var level_button := _button("Poziom %d" % level, _set_level.bind(level), 16)
+		var level_button := _button("I" if level == 1 else "II", _set_level.bind(level), 16)
 		level_button.toggle_mode = true
 		level_row.add_child(level_button)
 		_level_buttons.append(level_button)
@@ -59,7 +58,6 @@ func _ready() -> void:
 	_level_label = _label("", 14, true)
 	_level_label.modulate = Color(0.8, 0.9, 1.0)
 	box.add_child(_level_label)
-	box.add_child(_label("Pistolet (LPM) jest zawsze w wyposażeniu. Nasiona do rzucania idą do drugiej ręki (PPM).", 16))
 	_planet_label = _label("", 15, true)
 	_planet_label.modulate = Color(1.0, 0.85, 0.6)
 	box.add_child(_planet_label)
@@ -86,11 +84,11 @@ func _ready() -> void:
 	_space_label = _label("", 17)
 	box.add_child(_space_label)
 
-	box.add_child(_label("Kuchnia ekspedycyjna: jedno danie przed wyjściem", 19))
+	box.add_child(_label("Meal", 19))
 	var meals := HFlowContainer.new()
 	meals.add_theme_constant_override("h_separation", 8)
 	meals.add_theme_constant_override("v_separation", 6)
-	var none := _button("Bez dania", _set_meal.bind(&""), 15)
+	var none := _button("None", _set_meal.bind(&""), 15)
 	none.toggle_mode = true
 	meals.add_child(none)
 	_meal_buttons[&""] = none
@@ -103,14 +101,14 @@ func _ready() -> void:
 	_meal_label = _label("", 14, true)
 	_meal_label.modulate = Color(0.8, 1.0, 0.8)
 	box.add_child(_meal_label)
-	box.add_child(_label("Uwaga: przy porażce cały plecak przepada (także wyposażenie). Odkrycia ze skanera zostają zawsze.", 14, true))
+	box.add_child(_label("Failure loses the backpack.", 14, true))
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 12)
-	buttons.add_child(_button("Wyrusz", _on_depart, 20))
-	buttons.add_child(_button("Przeczekaj cykl", func() -> void: rest.emit(), 16))
-	buttons.add_child(_button("Anuluj", func() -> void: cancelled.emit(), 16))
+	buttons.add_child(_button("Go", _on_depart, 20))
+	buttons.add_child(_button("Rest a cycle", func() -> void: rest.emit(), 16))
+	buttons.add_child(_button("Cancel", func() -> void: cancelled.emit(), 16))
 	box.add_child(buttons)
 
 
@@ -183,10 +181,10 @@ func _refresh() -> void:
 		_level_buttons[i].set_pressed_no_signal(level == _level)
 		_level_buttons[i].disabled = level > GameState.max_level()
 	if GameState.max_level() < 2:
-		_level_label.text = "Poziom 2 (mgła, Mgliste źródło, nasiono-zagadka): odkryj %d z %d wpisów bazy danych (masz %d)." % [
+		_level_label.text = "Level II: %d/%d database entries" % [
 			Codex.LEVEL2_REQUIRED, Codex.entry_count(1), Codex.discovered_count(GameState.research, 1)]
 	else:
-		_level_label.text = "Poziom 2: gęsta mgła, Przebudzenie od 10, Mgliste źródło i nasiono Mgielnika." if _level == 2 else "Poziom 1: zwykła łąka."
+		_level_label.text = "Fog · Misty Spring · Mistbloom seed" if _level == 2 else ""
 	if not _meal_available(_meal):
 		_meal = &""
 	for id in _meal_buttons:
@@ -194,15 +192,15 @@ func _refresh() -> void:
 		meal_button.set_pressed_no_signal(id == _meal)
 		meal_button.disabled = not _meal_available(id)
 	if _meal == &"":
-		_meal_label.text = "Dania robi się z upraw: Sałatka (3 Voidberry), Herbatka (kryształ + Voidberry), Ciastka (pyłek + Voidberry), Napar (Mgielny owoc)."
+		_meal_label.text = ""
 	else:
 		var meal := Meals.get_meal(_meal)
-		_meal_label.text = "%s: %s · zużyje %s" % [meal["name"], meal["desc"], Meals.cost_text(meal)]
-	_planet_label.text = "Uwaga planety: %d/100. Rzadkie łupy (Lśniący mech +10, kryształ +1) ją podnoszą, a wtedy najazdy na bazę są częstsze. Niepokój fauny: %d%%, najazd za ok. %s." % [
-		GameState.planet_attention, GameState.raid_pressure, Raid.cycles_text(Raid.cycles_until(GameState.raid_pressure, GameState.planet_attention))]
+		_meal_label.text = "%s · %s" % [meal["desc"], Meals.cost_text(meal)]
+	_planet_label.text = "Attention %d/100 · Raid in %s" % [
+		GameState.planet_attention, Raid.cycles_text(Raid.cycles_until(GameState.raid_pressure, GameState.planet_attention))]
 	for id in _count_labels:
 		(_count_labels[id] as Label).text = "%d / %d" % [_counts.get(id, 0), GameState.get_resource(id)]
-	_space_label.text = "Plecak: %d/%d zajęte przez wyposażenie · na łup zostaje %d" % [_used(), GameState.backpack_capacity(), GameState.backpack_capacity() - _used()]
+	_space_label.text = "Backpack %d/%d" % [_used(), GameState.backpack_capacity()]
 
 
 func _label(text: String, size: int, wrap := false) -> Label:

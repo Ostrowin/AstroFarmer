@@ -13,13 +13,12 @@ func _rebuild() -> void:
 	clear()
 	var research := GameState.research
 	var max_level := GameState.max_level()
-	_box.add_child(label("Baza danych · kompletność %d%%" % Codex.completion(research, max_level), 26))
+	_box.add_child(label("Database %d%%" % Codex.completion(research, max_level), 26))
 	var found := Codex.discovered_count(research, 1)
 	if max_level < 2:
-		_box.add_child(label("Poziom 2 łąki: odkryj %d z %d wpisów poziomu 1 (masz %d). Każdy fakt to inna akcja: skan, hodowla, zbiór, trafienie, obrona..." % [
-			Codex.LEVEL2_REQUIRED, Codex.entry_count(1), found], 15, 760, Color(1.0, 0.85, 0.6)))
+		_box.add_child(label("Meadow II: %d/%d entries" % [found, Codex.LEVEL2_REQUIRED], 15, 760, Color(1.0, 0.85, 0.6)))
 	else:
-		_box.add_child(label("Poziom 2 łąki odblokowany: wybierz go przy drzwiach wyprawy.", 15, 760, Color(0.6, 1.0, 0.6)))
+		_box.add_child(label("Meadow II unlocked", 15, 760, Color(0.6, 1.0, 0.6)))
 
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(770, 520)
@@ -38,7 +37,7 @@ func _rebuild() -> void:
 
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.add_child(button("Zamknij", close))
+	buttons.add_child(button("Close", close))
 	_box.add_child(buttons)
 
 
@@ -47,7 +46,7 @@ func _add_entry(list: VBoxContainer, id: StringName, entry: Dictionary, research
 	var total := Codex.fact_count(id)
 	var stars := "★".repeat(known.size()) + "☆".repeat(total - known.size())
 	if int(entry["level"]) > max_level:
-		list.add_child(label("  ???  · poziom %d łąki" % entry["level"], 17, 0.0, Color(0.6, 0.6, 0.7)))
+		list.add_child(label("  ???  · Meadow II", 17, 0.0, Color(0.6, 0.6, 0.7)))
 		return
 	var title := "%s  %s" % [entry["name"] if not known.is_empty() else "???", stars]
 	list.add_child(label("  " + title, 18, 0.0, Color.WHITE if not known.is_empty() else Color(0.7, 0.7, 0.8)))

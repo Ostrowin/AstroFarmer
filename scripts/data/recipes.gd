@@ -4,23 +4,23 @@ extends RefCounted
 
 const LIST := [
 	{
-		"id": &"fence", "name": "Słupki płotu ×4",
-		"desc": "Każdy słupek zatrzyma 1 Chrupika w promieniu 2 m. Słupki co 1-2 pola łączą się w płot.",
+		"id": &"fence", "name": "Fence Posts ×4",
+		"desc": "Each post stops 1 pest",
 		"cost": {&"crystal": 2}, "gives": {&"fence_post": 4},
 	},
 	{
-		"id": &"can_mk2", "name": "Duża konewka",
-		"desc": "8 porcji wody zamiast 5.",
+		"id": &"can_mk2", "name": "Big Watering Can",
+		"desc": "8 water instead of 5",
 		"cost": {&"crystal": 3}, "upgrade": true,
 	},
 	{
-		"id": &"backpack_mk2", "name": "Większy plecak",
-		"desc": "+3 miejsca w plecaku na wyprawie.",
+		"id": &"backpack_mk2", "name": "Bigger Backpack",
+		"desc": "+3 backpack slots",
 		"cost": {&"crystal": 4, &"sample_glowmoss": 1}, "upgrade": true,
 	},
 	{
-		"id": &"pistol_mk2", "name": "Pistolet Mk2",
-		"desc": "Mocniejsze i szybsze strzały: 15 obrażeń co 0.2 s zamiast 10 co 0.28 s.",
+		"id": &"pistol_mk2", "name": "Pistol Mk2",
+		"desc": "More damage, faster shots",
 		"cost": {&"crystal": 3, &"thorn": 2}, "upgrade": true,
 	},
 ]
@@ -36,7 +36,7 @@ static func get_recipe(id: StringName) -> Dictionary:
 ## "" jeśli można zrobić, inaczej powód.
 static func problem(recipe: Dictionary) -> String:
 	if recipe.get("upgrade", false) and GameState.has_upgrade(recipe["id"]):
-		return "Już masz"
+		return "Owned"
 	var missing: Array[String] = []
 	var cost: Dictionary = recipe["cost"]
 	for id in cost:
@@ -44,7 +44,7 @@ static func problem(recipe: Dictionary) -> String:
 		if lack > 0:
 			missing.append("%d× %s" % [lack, PlantCatalog.item_name(id)])
 	if not missing.is_empty():
-		return "Brakuje: " + ", ".join(missing)
+		return "Missing: " + ", ".join(missing)
 	return ""
 
 

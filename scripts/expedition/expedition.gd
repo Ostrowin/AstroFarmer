@@ -34,13 +34,13 @@ const LOOT := [
 	{"item": &"seed_snapper", "min": 1, "max": 2, "kind": "seed", "plant": &"snapper", "weight": 2.0},
 	{"item": &"seed_crystal_bloom", "min": 1, "max": 1, "kind": "seed", "plant": &"crystal_bloom", "weight": 1.5},
 	{"item": &"seed_boomshroom", "min": 1, "max": 2, "kind": "seed", "plant": &"boomshroom", "weight": 1.5},
-	{"item": &"crystal", "min": 1, "max": 2, "kind": "crystal", "weight": 3.0, "scan": &"crystal_vein", "scan_name": "Żyła kryształów", "color": Color(0.45, 0.95, 1.0)},
-	{"item": &"sample_glowmoss", "min": 1, "max": 1, "kind": "sample", "rare": true, "weight": 1.2, "scan": &"glowmoss", "scan_name": "Lśniący mech", "color": Color(0.85, 1.0, 0.4)},
+	{"item": &"crystal", "min": 1, "max": 2, "kind": "crystal", "weight": 3.0, "scan": &"crystal_vein", "scan_name": "Crystal Vein", "color": Color(0.45, 0.95, 1.0)},
+	{"item": &"sample_glowmoss", "min": 1, "max": 1, "kind": "sample", "rare": true, "weight": 1.2, "scan": &"glowmoss", "scan_name": "Glowmoss", "color": Color(0.85, 1.0, 0.4)},
 ]
 
 const BUFFS := [
-	{"id": "speed", "name": "Turbo-buty", "desc": "+25% szybkości do końca wyprawy"},
-	{"id": "vitality", "name": "Moduł witalności", "desc": "+25 maks. Kondycji do końca wyprawy"},
+	{"id": "speed", "name": "Turbo Boots", "desc": "+25% speed"},
+	{"id": "vitality", "name": "Vitality Module", "desc": "+25 max health"},
 ]
 
 ## Scena po zakończeniu. Puste = zostań (testy nasłuchują sygnału `finished`).
@@ -88,15 +88,14 @@ func _ready() -> void:
 	_inventory.drop_requested.connect(func(id: StringName, amount: int) -> void: interaction.drop_item(id, amount))
 	_hud.bind(interaction)
 	_hud.set_player(_player)
-	_player.died.connect(func() -> void: _finish(false, "Kondycja spadła do zera."))
+	_player.died.connect(func() -> void: _finish(false, "You were knocked out."))
 	run.threshold_reached.connect(_on_threshold)
 	run.changed.connect(_hud.refresh)
 	_hud.refresh()
 	_apply_meal()
 	if run.level >= 2:
-		_hud.notify("Dzika łąka, poziom 2: gęsta mgła. Mgliste źródło bije na zachodzie.")
-	_hud.notify("Dzika łąka. Zbieraj (E), skanuj (Q), uważaj na legowisko na północy.")
-	_hud.notify("Gdy zechcesz wrócić: E przy lądowisku i 5 s na nim.")
+		_hud.notify("Misty Spring: west")
+	_hud.notify("Return to the beacon to leave")
 
 
 func _process(delta: float) -> void:
@@ -109,19 +108,19 @@ func _process(delta: float) -> void:
 	if _storm_time >= 0.0:
 		_storm_time -= delta
 		_player.take_damage(STORM_DAMAGE_PER_SECOND * delta, Vector3.INF, true)
-		alert = "PLANETA SIĘ BRONI! Wracaj na lądowisko: %d s" % ceili(maxf(_storm_time, 0.0))
+		alert = "STORM · %ds" % ceili(maxf(_storm_time, 0.0))
 		if _storm_time <= 0.0:
-			_finish(false, "Burza Przebudzenia: nie zdążyłeś na lądowisko.")
+			_finish(false, "Caught in the storm.")
 			return
 	if _evac_time >= 0.0:
 		var offset := _player.global_position - _beacon.global_position
 		if Vector2(offset.x, offset.z).length() > EVAC_RADIUS:
 			_evac_time = -1.0
-			_hud.notify("Ewakuacja przerwana: wróć na lądowisko")
+			_hud.notify("Evac cancelled")
 			Sfx.play(&"deny")
 		else:
 			_evac_time -= delta
-			alert = "Ewakuacja za %.1f s · zostań na lądowisku" % maxf(_evac_time, 0.0)
+			alert = "Evac %.1fs" % maxf(_evac_time, 0.0)
 			if _evac_time <= 0.0:
 				_finish(true)
 				return
@@ -130,7 +129,7 @@ func _process(delta: float) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST and not _ending and GameState.run:
-		GameState.finish_run(false, "Gra zamknięta w trakcie wyprawy.")
+		GameState.finish_run(false, "Game closed mid-expedition.")
 		GameState.save_game()
 
 
@@ -211,7 +210,7 @@ func _apply_meal() -> void:
 			_awakening_rate = Meals.awakening_rate(run.meal)
 	if not run.buffs.has(meal["name"]):
 		run.buffs.append(meal["name"])
-	_hud.notify("Danie z kuchni: %s (%s)" % [meal["name"], meal["desc"]])
+	_hud.notify(meal["name"])
 
 
 func _roll_loot() -> Dictionary:
@@ -257,7 +256,7 @@ func _on_inventory_closed() -> void:
 
 func _on_creature_killed(_creature: Creature) -> void:
 	run.add_awakening(KILL_AWAKENING)
-	_hud.notify("Drapieżnik padł. Planeta to poczuła: Przebudzenie +%d. Zostawił kolce." % int(KILL_AWAKENING))
+	_hud.notify("Awakening +%d" % int(KILL_AWAKENING))
 
 
 # --- Przebudzenie i pogoda ---------------------------------------------------
@@ -265,17 +264,17 @@ func _on_creature_killed(_creature: Creature) -> void:
 func _on_threshold(threshold: int) -> void:
 	match threshold:
 		25:
-			_hud.notify("Przebudzenie 25: coś się poruszyło w trawie...")
+			pass
 		50:
-			_hud.notify("Przebudzenie 50: pogoda się zmienia, drapieżnik wyszedł z legowiska!")
+			_hud.notify("The predator is awake")
 			Sfx.play(&"alarm")
 			_weather(0.012, 0.8, Color(1.0, 0.85, 0.75), Color(0.75, 0.55, 0.7))
 		75:
-			_hud.notify("Przebudzenie 75: burza gęstnieje, drapieżnik węszy szerzej.")
+			pass
 			_weather(0.02, 0.6, Color(1.0, 0.7, 0.6), Color(0.6, 0.4, 0.55))
 		100:
 			_storm_time = STORM_SECONDS
-			_hud.notify("PRZEBUDZENIE 100! Planeta się broni. Masz %d s na ewakuację." % int(STORM_SECONDS))
+			_hud.notify("The planet strikes back!")
 			Sfx.play(&"alarm")
 			_weather(0.035, 0.45, Color(1.0, 0.4, 0.35), Color(0.55, 0.15, 0.2))
 
@@ -299,7 +298,7 @@ func _start_evac() -> void:
 		return
 	_evac_time = EVAC_SECONDS
 	Sfx.play(&"evac", _beacon.global_position)
-	_hud.notify("Ewakuacja wezwana! Zostań na lądowisku.")
+	_hud.notify("Stay on the pad")
 
 
 func _finish(success: bool, cause := "") -> void:
@@ -310,7 +309,7 @@ func _finish(success: bool, cause := "") -> void:
 	if _inventory and _inventory.visible:
 		_inventory.close()
 	_hud.set_alert("")
-	var text := "Ewakuacja udana!\nWracasz do bazy." if success else "Kapsuła ratunkowa zabiera cię nieprzytomnego...\n" + cause
+	var text := "Evacuated" if success else cause
 	await _hud.fade_out(text)
 	var report := GameState.finish_run(success, cause)
 	GameState.save_game()

@@ -65,28 +65,28 @@ func _cell_problem(point: Vector3, normal: Vector3, collider: Object, from: Vect
 	if collider == null or not (collider is Node and (collider as Node).is_in_group("soil")):
 		return soil_message
 	if normal.y < MAX_SLOPE_NORMAL_Y:
-		return "Za stromo"
+		return "Too steep"
 	if _flat_distance(snap(point), from) > REACH:
-		return "Za daleko"
+		return "Too far"
 	var taken := occupant(cell_of(point))
 	if taken is Plant:
-		return "Pole zajęte: %s" % (taken as Plant).display_name()
+		return "Occupied"
 	if taken is FencePost:
-		return "Pole zajęte: słupek płotu"
+		return "Occupied"
 	return ""
 
 
 ## Zwraca "" jeśli można posadzić, w przeciwnym razie powód (do pokazania graczowi).
 func placement_problem(data: PlantData, point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
 	if GameState.get_resource(data.seed_item()) <= 0:
-		return "Brak nasion: %s" % data.display_name
-	return _cell_problem(point, normal, collider, from, "Tu nic nie urośnie: to nie gleba")
+		return "No seeds"
+	return _cell_problem(point, normal, collider, from, "Can't plant here")
 
 
 func post_problem(point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
 	if GameState.get_resource(&"fence_post") <= 0:
-		return "Brak słupków: zrób je w warsztacie (2 kryształy = 4 słupki)"
-	return _cell_problem(point, normal, collider, from, "Płot stawia się na gruncie")
+		return "No fence posts"
+	return _cell_problem(point, normal, collider, from, "Can't build here")
 
 
 func place_post(point: Vector3) -> FencePost:
@@ -122,14 +122,14 @@ func fertilize(plant: Plant) -> bool:
 ## Nasiono-zagadka na etapie 0 bierze specjalną wodę zamiast zwykłej.
 func water_plant(plant: Plant) -> String:
 	if not plant.is_thirsty():
-		return "Nie potrzebuje wody"
+		return "Not thirsty"
 	if plant.needs_sprout_item():
 		var item := plant.data.sprout_item
 		if not GameState.spend_resource(item, 1):
-			return "%s obudzi tylko %s (poziom 2 łąki)" % [plant.data.display_name, PlantCatalog.item_name(item)]
+			return "Needs Misty Water"
 		GameState.learn(&"misty_spring", "sprout")
 	elif not GameState.spend_resource(&"water", 1):
-		return "Konewka pusta: napełnij w stawie"
+		return "Can is empty"
 	plant.water()
 	_sync()
 	return ""

@@ -17,6 +17,7 @@ func _ready() -> void:
 func _run() -> void:
 	GameState.save_path = TEST_SAVE
 	await _test_grid()
+	await _test_plant_models()
 	_test_migrations()
 	await _test_expedition()
 
@@ -53,6 +54,41 @@ func _test_grid() -> void:
 	await get_tree().process_frame
 
 
+func _test_plant_models() -> void:
+	for id in PlantVisuals.MODELS:
+		var data := PlantCatalog.get_plant(id)
+		var stages_ok := true
+		for stage in data.stages:
+			var model := PlantVisuals.build(data, stage)
+			stages_ok = stages_ok and model.get_node_or_null("Stage") != null and model.get_child_count() == 1
+			model.free()
+		_check(stages_ok, "%s: model z Blendera dla każdego etapu" % id)
+	var snapper := PlantVisuals.build(PlantCatalog.get_plant(&"snapper"), 2)
+	var jaw := snapper.find_child("JawTop", true, false) as Node3D
+	_check(jaw != null and is_equal_approx(jaw.rotation.x, PlantVisuals.JAW_OPEN), "Snapper: paszcza otwarta")
+	snapper.free()
+	var bloom_data := PlantCatalog.get_plant(&"crystal_bloom")
+	var golden := PlantVisuals.build(bloom_data, 2, &"golden")
+	var meshes := golden.find_children("*", "MeshInstance3D", true, false)
+	_check(not meshes.is_empty() and (meshes[0] as MeshInstance3D).get_surface_override_material(0) != null, "mutacja złota przemalowuje materiały")
+	golden.free()
+	var plant := Plant.new()
+	plant.setup(bloom_data, 2)
+	add_child(plant)
+	await get_tree().process_frame
+	var tracker := Outline.Tracker.new()
+	tracker.set_target(plant)
+	var outlined := plant.find_children("*", "MeshInstance3D", true, false).filter(func(m: MeshInstance3D) -> bool: return m.material_overlay != null)
+	var soil_clean := plant.find_children("*", "MeshInstance3D", true, false).filter(func(m: MeshInstance3D) -> bool: return m.has_meta("no_outline") and m.material_overlay != null).is_empty()
+	_check(not outlined.is_empty() and soil_clean, "obwódka na roślinie (bez krążka gleby)")
+	tracker.set_target(null)
+	_check(plant.find_children("*", "MeshInstance3D", true, false).all(func(m: MeshInstance3D) -> bool: return m.material_overlay == null), "obwódka znika")
+	_check(not plant.get("_glow").is_empty(), "kryształy Crystal Blooma pulsują")
+	_check(plant.get("_stage_node") != null, "roślina kołysze się na wietrze")
+	plant.queue_free()
+	await get_tree().process_frame
+
+
 func _test_migrations() -> void:
 	GameState.from_dict({"upgrades": ["stunner_mk2"], "research": {"thornback": ["scan", "stun"]}})
 	_check(GameState.has_upgrade(&"pistol_mk2"), "stary Ogłuszacz Mk2 = Pistolet Mk2")
@@ -82,10 +118,22 @@ func _test_expedition() -> void:
 	var player := expedition.get_node("Player") as Player
 	var interaction := player.interaction as ExpeditionInteraction
 
+	# Model z animacjami.
+	_check(player.get_node_or_null("Visual/Model") != null, "gracz ma model z Blendera")
+	_check(player.animation_state() == &"Idle", "animacja na start: Idle")
+	var tree := player.get_node("Visual/Model/AnimationTree") as AnimationTree
+	_check(tree != null and tree.active, "AnimationTree działa")
+
 	# Dash i bieg.
 	var start := player.global_position
 	_check(player.dash(Vector3.FORWARD), "dash działa")
 	_check(not player.dash(Vector3.FORWARD), "dash ma czas odnowienia")
+	await _frames(1)
+	_check(player.animation_state() == &"Dash", "animacja dasha")
+	player.play_shoot()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(bool(tree.get("parameters/shoot/active")), "strzał gra na górze ciała")
 	await get_tree().create_timer(0.25).timeout
 	_check(start.distance_to(player.global_position) > 2.0, "dash przesuwa gracza (%.1f m)" % start.distance_to(player.global_position))
 	player.sprinting = true
@@ -94,11 +142,14 @@ func _test_expedition() -> void:
 
 	# Pistolet: obrażenia, budzenie, ucieczka, śmierć i łup.
 	var creature: Creature = level.get_children().filter(func(n: Node) -> bool: return n is Creature)[0]
+	var anim := creature.get("_anim") as AnimationPlayer
+	_check(anim != null and anim.current_animation == &"Sleep", "Thornback z Blendera: śpi (animacja Sleep)")
 	interaction.set("_target", {"collider": creature, "position": creature.global_position + Vector3(0, 0.5, 0)})
 	player.global_position = creature.global_position + Vector3(0, 0, 8)
 	interaction.call("_fire")
 	_check(creature.health == creature.max_health - ExpeditionInteraction.PISTOL_DAMAGE, "pistolet zadaje 10 obrażeń")
 	_check(creature.state == Creature.State.CHASE, "postrzelony Thornback budzi się i atakuje")
+	_check(anim.current_animation == &"Run", "Thornback biegnie (animacja Run)")
 	_check(GameState.knows(&"thornback", "hit"), "baza danych: fakt o trafieniu")
 	creature.take_hit(55.0)
 	_check(creature.state == Creature.State.FLEE, "ranny Thornback ucieka")

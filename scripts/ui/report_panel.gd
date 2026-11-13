@@ -27,12 +27,13 @@ func show_report(title: String, sections: Array) -> void:
 		if lines.is_empty():
 			continue
 		var color: Color = SECTION_COLORS.get(section.get("tone", "info"), Color.WHITE)
-		_box.add_child(label(section.get("title", ""), 20, 0.0, color))
+		if String(section.get("title", "")) != "":
+			_box.add_child(label(section.get("title", ""), 20, 0.0, color))
 		for line in lines:
 			_box.add_child(label("· " + String(line), 16, 640))
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.add_child(button("Dalej [E]", close))
+	buttons.add_child(button("Continue [E]", close))
 	_box.add_child(buttons)
 	open_panel(720, 0)
 	# Wysokość dopasuje się do treści: panel rośnie w dół od środka, więc wyśrodkuj po klatce.

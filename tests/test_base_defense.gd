@@ -36,7 +36,7 @@ func _test_raid_rules() -> void:
 	_check(Raid.pressure_gain(0) == 15 and Raid.pressure_gain(60) == 45, "Niepokój rośnie szybciej przy wysokiej Uwadze")
 	_check(Raid.pest_count(0) == 3 and Raid.pest_count(100) == 8, "więcej szkodników przy wysokiej Uwadze")
 	_check(Raid.cycles_until(Raid.START_PRESSURE, 0) == 3, "pierwszy najazd po 3 cyklach")
-	_check(Raid.cycles_text(1) == "1 cykl" and Raid.cycles_text(3) == "3 cykle" and Raid.cycles_text(5) == "5 cykli", "odmiana: cykl / cykle / cykli")
+	_check(Raid.cycles_text(1) == "1 cycle" and Raid.cycles_text(3) == "3 cycles", "tekst: 1 cycle / 3 cycles")
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
@@ -69,7 +69,7 @@ func _test_raid_rules() -> void:
 	var big := Raid.resolve(sprouts, [], 100, rng)
 	_check(big["destroyed"].size() == 2, "najazd niszczy najwyżej połowę upraw (%d)" % big["destroyed"].size())
 	_check(big["idle"] == 6, "reszta odchodzi bez łupu")
-	_check(String(big["name"]).begins_with("Wielki"), "Uwaga 50+ = wielki rój")
+	_check(String(big["name"]).begins_with("Great"), "Uwaga 50+ = wielki rój")
 
 	var tools_only := [_entry("snapper", 0, 0, 2)]
 	var nothing := Raid.resolve(tools_only, [], 0, rng)
@@ -106,7 +106,7 @@ func _test_workshop() -> void:
 	GameState.new_game()
 	_check(GameState.get_resource(&"seed_boomshroom") == 1, "nowa gra: 1 nasiono Boomshrooma")
 	var fence := Recipes.get_recipe(&"fence")
-	_check(Recipes.problem(fence).begins_with("Brakuje"), "bez kryształów nie zrobisz płotu")
+	_check(Recipes.problem(fence).begins_with("Missing"), "bez kryształów nie zrobisz płotu")
 	GameState.add_resource(&"crystal", 10)
 	GameState.add_resource(&"sample_glowmoss", 1)
 	_check(Recipes.craft(&"fence") and GameState.get_resource(&"fence_post") == 4, "2 kryształy = 4 słupki")
@@ -114,7 +114,7 @@ func _test_workshop() -> void:
 
 	_check(GameState.water_capacity() == 5, "konewka 5 przed ulepszeniem")
 	_check(Recipes.craft(&"can_mk2") and GameState.water_capacity() == 8, "Duża konewka: 8 porcji")
-	_check(not Recipes.craft(&"can_mk2") and Recipes.problem(Recipes.get_recipe(&"can_mk2")) == "Już masz", "ulepszenie tylko raz")
+	_check(not Recipes.craft(&"can_mk2") and Recipes.problem(Recipes.get_recipe(&"can_mk2")) == "Owned", "ulepszenie tylko raz")
 
 	_check(Recipes.craft(&"backpack_mk2"), "Większy plecak zrobiony")
 	var run := GameState.start_run({})
@@ -157,11 +157,11 @@ func _test_farm_raid() -> void:
 
 	# Płot: stawianie i powody odmowy.
 	GameState.add_resource(&"fence_post", 2)
-	_check(farm.post_problem(Vector3(0.3, 0, 0), Vector3.UP, soil, Vector3.ZERO).begins_with("Pole zajęte"), "słupek nie wejdzie na pole rośliny")
+	_check(farm.post_problem(Vector3(0.3, 0, 0), Vector3.UP, soil, Vector3.ZERO) == "Occupied", "słupek nie wejdzie na pole rośliny")
 	_check(farm.post_problem(Vector3(1.2, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "", "słupek na gruncie obok rośliny")
 	var post := farm.place_post(Vector3(1.2, 0, 1.2))
 	_check(post != null and GameState.structures.size() == 1, "słupek postawiony i zapisany")
-	_check(farm.post_problem(Vector3(1.5, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "Pole zajęte: słupek płotu", "słupki nie na sobie")
+	_check(farm.post_problem(Vector3(1.5, 0, 1.2), Vector3.UP, soil, Vector3.ZERO) == "Occupied", "słupki nie na sobie")
 	farm.place_post(Vector3(-0.2, 0, 1.2))
 	_check(farm.get_node("Rails").get_child_count() == 2, "słupki co 2 pola łączą się poprzeczkami")
 	farm.remove_post(post)
@@ -214,8 +214,8 @@ func _test_return_ritual() -> void:
 	await get_tree().create_timer(3.6).timeout
 	_check(report.visible, "po lądowaniu: panel raportu")
 	var text := _panel_text(report)
-	_check(text.contains("Najazd"), "raport ma sekcję najazdu")
-	_check(text.contains("Uwaga planety +10"), "raport tłumaczy wzrost Uwagi")
+	_check(text.contains("Raid!"), "raport ma sekcję najazdu")
+	_check(text.contains("Attention +10 (rare loot)"), "raport tłumaczy wzrost Uwagi")
 	_check((base.get_node("Player") as Player).camera.current, "kamera wraca do gracza")
 	report.close()
 	await get_tree().process_frame

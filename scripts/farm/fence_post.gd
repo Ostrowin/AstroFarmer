@@ -6,6 +6,8 @@ extends StaticBody3D
 
 const WOOD := Color(0.62, 0.42, 0.28)
 const HEIGHT := 1.1
+## Model z Blendera; bez pliku zostaje model z prymitywów.
+const MODEL := preload("res://art/models/buildings/fence_post.glb")
 
 
 func _ready() -> void:
@@ -19,6 +21,9 @@ func _ready() -> void:
 	collision.shape = shape
 	collision.position.y = HEIGHT * 0.5
 	add_child(collision)
+	if MODEL:
+		add_child(MODEL.instantiate())
+		return
 
 	var post := CylinderMesh.new()
 	post.top_radius = 0.09
@@ -44,7 +49,7 @@ func _ready() -> void:
 
 func get_status() -> String:
 	var info: Dictionary = Raid.DEFENDERS[&"fence"]
-	return "Słupek płotu · zatrzyma %d szkodnika w promieniu %d m · [E] zabierz" % [info["capacity"], int(info["radius"])]
+	return "Fence post · stops %d pest within %d m" % [info["capacity"], int(info["radius"])]
 
 
 func _mesh(mesh: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:

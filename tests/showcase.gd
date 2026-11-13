@@ -21,7 +21,7 @@ func _ready() -> void:
 		for stage in data.stages:
 			entries.append({
 				"id": String(id),
-				"x": -1.4 + stage * 1.4, "y": 0.0, "z": 1.0 - row * 1.6,
+				"x": -1.8 + stage * 1.8, "y": 0.0, "z": 1.5 - row * 2.0,
 				"stage": stage, "progress": 0, "watered": stage == 1,
 			})
 		row += 1

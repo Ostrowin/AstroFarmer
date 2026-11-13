@@ -75,13 +75,10 @@ func _ready() -> void:
 
 	if returning:
 		await _landing_ritual()
-		_show_report("Powrót do bazy", _run_sections(report) + _cycle_sections(cycles))
+		_show_report("Back at base", _run_sections(report) + _cycle_sections(cycles))
 	elif GameState.cycle == 0 and _farm.plant_count() == 0:
-		_hud.notify("Nowa gra. Posadź nasiona (1-5, LPM), podlej konewką (6).")
-		_hud.notify("Potem idź do drzwi wyprawy na północy (E).")
-	else:
-		_hud.notify("Wczytano zapis · cykl %d · roślin: %d" % [GameState.cycle, _farm.plant_count()])
-	print("Astro Farmer | Godot %s | cykl %d | roślin %d" % [Engine.get_version_info().string, GameState.cycle, _farm.plant_count()])
+		_hud.notify("Plant seeds, then head to the gate")
+	print("Astro Farmer | Godot %s | cycle %d | plants %d" % [Engine.get_version_info().string, GameState.cycle, _farm.plant_count()])
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -94,7 +91,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_farm.load_from_state()
 		_save()
 		_hud.refresh()
-		_hud.notify("Debug: nowa gra")
+		_hud.notify("Debug: new game")
 
 
 func _notification(what: int) -> void:
@@ -158,7 +155,7 @@ func _depart(loadout: Dictionary, options: Dictionary = {}) -> void:
 	GameState.start_run(loadout, options)
 	_save()
 	_player.capture_mouse()
-	await _hud.fade_out("Lot na Dziką łąkę%s..." % (" (poziom 2)" if GameState.run.level >= 2 else ""))
+	await _hud.fade_out("Wild Meadow%s" % (" II" if GameState.run.level >= 2 else ""))
 	get_tree().change_scene_to_file(EXPEDITION_SCENE)
 
 
@@ -166,14 +163,14 @@ func _rest() -> void:
 	_close_modal(_prep)
 	_busy = true
 	_player.input_enabled = false
-	await _hud.fade_out("Odpoczywasz w bazie...\nMija 1 cykl")
+	await _hud.fade_out("Resting...")
 	_begin_collecting()
 	GameState.advance_cycle()
 	_collecting = false
 	await get_tree().create_timer(0.8).timeout
 	await _hud.fade_in()
 	_busy = false
-	_show_report("Minął cykl", _cycle_sections(1))
+	_show_report("A cycle passed", _cycle_sections(1))
 
 
 ## Rytuał powrotu: kamera na lądowisko, kapsuła opada z nieba, farmer wysiada.
@@ -215,7 +212,7 @@ func _on_cycle_report(lines: Array) -> void:
 				_farm_lines.append(line)
 		return
 	Sfx.play(&"chime")
-	_hud.notify("Minął cykl. Teraz: %d" % GameState.cycle)
+	_hud.notify("Cycle %d" % GameState.cycle)
 	for line in lines:
 		_hud.notify(line)
 
@@ -234,50 +231,44 @@ func _run_sections(report: Dictionary) -> Array:
 	var success: bool = report.get("success", false)
 	if success:
 		var items: Dictionary = report.get("items", {})
-		lines.append("Udana! Przywiozłeś: %s" % (_describe(items) if not items.is_empty() else "nic"))
+		lines.append(_describe(items) if not items.is_empty() else "Nothing brought back")
 	else:
-		lines.append("Kapsuła ratunkowa przywiozła cię nieprzytomnego. %s" % report.get("cause", ""))
+		lines.append("Rescued. %s" % report.get("cause", ""))
 		var lost: Dictionary = report.get("lost", {})
 		if not lost.is_empty():
-			lines.append("Stracony plecak: %s" % _describe(lost))
+			lines.append("Lost: %s" % _describe(lost))
 	var discoveries: Array = report.get("discoveries", [])
 	if not discoveries.is_empty():
-		lines.append("Nowe odkrycia w bazie danych: %d" % discoveries.size())
-	return [{"title": "Wyprawa", "lines": lines, "tone": "good" if success else "bad"}, _planet_section(int(report.get("attention", 0)), success)]
+		lines.append("New entries: %d" % discoveries.size())
+	return [{"title": "Expedition" if success else "Expedition failed", "lines": lines, "tone": "good" if success else "bad"}, _planet_section(int(report.get("attention", 0)), success)]
 
 
 func _cycle_sections(cycles: int) -> Array:
 	var sections: Array = []
 	var farm_lines: Array[String] = _farm_lines.duplicate()
 	if farm_lines.is_empty():
-		farm_lines.append("Bez większych zmian")
-	sections.append({"title": "Farma · minęło cykli: %d (teraz cykl %d)" % [cycles, GameState.cycle], "lines": farm_lines, "tone": "info"})
+		farm_lines.append("No changes")
+	sections.append({"title": "Farm · cycle %d" % GameState.cycle, "lines": farm_lines, "tone": "info"})
 	for raid in _raids:
-		sections.append({"title": "Najazd!", "lines": raid["lines"], "tone": "raid"})
+		sections.append({"title": "Raid!", "lines": raid["lines"], "tone": "raid"})
 	if _raids.is_empty():
-		sections.append({"title": "Okolica", "lines": [_pressure_line()], "tone": "info"})
+		sections.append({"title": "", "lines": [_pressure_line()], "tone": "info"})
 	return sections
 
 
 func _planet_section(delta: int, success: bool) -> Dictionary:
 	var lines: Array[String] = []
-	if delta > 0:
-		lines.append("Uwaga planety +%d: wywiozłeś rzeczy, których planeta pilnuje (teraz %d/100)" % [delta, GameState.planet_attention])
-	elif delta < 0:
-		var why := "skromna wyprawa" if success else "nic nie wywiozłeś"
-		lines.append("Uwaga planety %d: %s, planeta się uspokaja (teraz %d/100)" % [delta, why, GameState.planet_attention])
-	else:
-		lines.append("Uwaga planety bez zmian (%d/100)" % GameState.planet_attention)
+	var reason := "rare loot" if delta > 0 else ("quiet trip" if success else "nothing taken")
+	lines.append("Attention %+d (%s) · %d/100" % [delta, reason, GameState.planet_attention])
 	if GameState.planet_attention >= Raid.ATTENTION_HIGH:
-		lines.append("Wysoka Uwaga: najazdy są częstsze i większe")
+		lines.append("High attention: bigger raids")
 	lines.append(_pressure_line())
-	return {"title": "Planeta", "lines": lines, "tone": "bad" if delta > 0 else "info"}
+	return {"title": "Planet", "lines": lines, "tone": "bad" if delta > 0 else "info"}
 
 
 static func _pressure_line() -> String:
 	var cycles := Raid.cycles_until(GameState.raid_pressure, GameState.planet_attention)
-	return "Niepokój fauny %d%%: najazd za ok. %s. Obrona: dojrzałe Snappery, Boomshroomy, płot." % [
-		GameState.raid_pressure, Raid.cycles_text(cycles)]
+	return "Next raid in %s" % Raid.cycles_text(cycles)
 
 
 static func _describe(items: Dictionary) -> String:
@@ -290,4 +281,4 @@ static func _describe(items: Dictionary) -> String:
 func _save() -> void:
 	var error := GameState.save_game()
 	if error != OK:
-		push_warning("Nie udało się zapisać gry: %s" % error_string(error))
+		push_warning("Could not save the game: %s" % error_string(error))

@@ -7,7 +7,7 @@ const GROW_TIME := 1.0
 const RADIUS := 4.0
 const STUN_SECONDS := 3.0
 const PLAYER_RADIUS := 2.0
-const SIZE := 1.6
+const SIZE := 1.0
 
 var _model: Node3D
 var _data: PlantData

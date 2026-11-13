@@ -260,3 +260,14 @@ Niezależna recenzja: 3 rundy, ocena 6 → 8/10, 31 uwag potwierdzonych jako roz
 - ~~**R3-8** Czy pogoda na progach 50 i 75 zabiera Kondycję?~~ Rozstrzygnięte w M2: nie, to tylko klimat. Kondycję zabiera dopiero burza na progu 100.
 - **R3-9** Czy limit ±30 to sztywna zasada, czy wartość startowa do strojenia?
 - **R3-10** Kryterium sukcesu MVP powinno obejmować testy etapów M2 i M3 z ToDo oraz 6 pytań z sekcji 17.2.
+
+---
+
+## Proces: najpierw szkic, potem wdrożenie (od 2026-11-12)
+
+Przed dodaniem do gry czegokolwiek, co widać (roślina, stworzenie, budynek, biom, efekt, element UI), powstaje szkic do akceptacji:
+1. **Szkic:** rysunek 2D (VectorCraft, PhotoCraft) albo szybka bryła w Blenderze z renderem z kilku stron, w skali obok gracza.
+2. **Akceptacja** albo poprawki.
+3. **Wdrożenie:** model, animacje, kod, testy.
+
+Dzięki temu styl zostaje spójny (cartoon, trochę strasznie, trochę uroczo), a poprawki są tanie, bo robimy je przed modelem. Lista pomysłów czekających na szkic jest w [Pomysly_rozszerzen.md](Pomysly_rozszerzen.md), sekcja "Do naszkicowania".

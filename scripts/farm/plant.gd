@@ -30,6 +30,17 @@ var _soil: MeshInstance3D
 var _drop: MeshInstance3D
 var _time := 0.0
 var _snap_cooldown := 0.0
+## Małe animacje: kołysanie, pulsujące świecenie, falujący kapelusz, krążące krople.
+var _phase := 0.0
+var _stage_node: Node3D
+var _head: Node3D
+var _jaw_top: Node3D
+var _jaw_bottom: Node3D
+var _cap: Node3D
+var _orbs: Node3D
+var _orbs_base_y := 0.0
+## [materiał (kopia tej rośliny), bazowa jasność]
+var _glow: Array = []
 
 
 func setup(plant_data: PlantData, start_stage := 0, start_progress := 0, is_watered := false) -> void:
@@ -44,11 +55,11 @@ func _ready() -> void:
 	collision_layer = COLLISION_LAYER_PLANTS
 	collision_mask = 0
 	var shape := CylinderShape3D.new()
-	shape.radius = 0.35
-	shape.height = 1.0
+	shape.radius = 0.4
+	shape.height = 1.2
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
-	collision.position.y = 0.5
+	collision.position.y = 0.6
 	add_child(collision)
 
 	_soil = MeshInstance3D.new()
@@ -59,6 +70,7 @@ func _ready() -> void:
 	soil_mesh.radial_segments = 10
 	_soil.mesh = soil_mesh
 	_soil.position.y = 0.02
+	_soil.set_meta("no_outline", true)
 	add_child(_soil)
 
 	_drop = MeshInstance3D.new()
@@ -69,6 +81,7 @@ func _ready() -> void:
 	drop_mesh.rings = 4
 	_drop.mesh = drop_mesh
 	_drop.material_override = PlantVisuals.material(Color(0.3, 0.7, 1.0), 1.0)
+	_drop.set_meta("no_outline", true)
 	add_child(_drop)
 
 	_rebuild_model()
@@ -79,10 +92,33 @@ func _process(delta: float) -> void:
 	_time += delta
 	if _drop.visible:
 		_drop.position.y = 1.05 + sin(_time * 3.0) * 0.06
+	_animate(delta)
 	if data.shape == PlantData.Shape.SNAPPER and is_ripe():
 		_update_snapper(delta)
 	elif data.shape == PlantData.Shape.MUSHROOM and is_ripe():
 		_update_boomshroom(delta)
+
+
+## Kołysanie na wietrze (każda roślina we własnym rytmie) i animacje gatunków.
+func _animate(delta: float) -> void:
+	var t := _time + _phase
+	if _stage_node:
+		var amp := 0.035 if is_ripe() else 0.06
+		_stage_node.rotation.x = sin(t * 1.3) * amp
+		_stage_node.rotation.z = cos(t * 1.05) * amp * 0.7
+	for entry: Array in _glow:
+		(entry[0] as BaseMaterial3D).emission_energy_multiplier = float(entry[1]) * (0.75 + 0.35 * sin(t * 2.2))
+	if _cap:
+		_cap.rotation.z = sin(t * 1.7) * 0.06
+		_cap.rotation.x = cos(t * 1.4) * 0.04
+	if _orbs:
+		_orbs.rotate_y(delta * 0.9)
+		_orbs.position.y = _orbs_base_y + sin(t * 1.6) * 0.04
+	# Paszcza Snappera "oddycha", kiedy nie kłapie.
+	if _jaw_top and _jaw_bottom and _snap_cooldown < SNAP_COOLDOWN - 0.65:
+		var open := PlantVisuals.JAW_OPEN + sin(t * 2.4) * 0.07
+		_jaw_top.rotation.x = open
+		_jaw_bottom.rotation.x = -open
 
 
 # --- Stan --------------------------------------------------------------------
@@ -96,7 +132,7 @@ func is_thirsty() -> bool:
 
 
 ## Tekst do podpowiedzi, gdy gracz celuje w roślinę.
-## Nazwa z mutacją, np. "Złota Voidberry".
+## Nazwa z mutacją, np. "Golden Voidberry".
 func display_name() -> String:
 	if mutation == &"":
 		return data.display_name
@@ -110,23 +146,14 @@ func needs_sprout_item() -> bool:
 
 func status_text() -> String:
 	if is_ripe():
-		var ripe := "%s: gotowa do zbioru" % display_name()
-		if mutation != &"":
-			ripe += " (mutacja: %s)" % PlantVisuals.MUTATIONS[mutation]["desc"]
-		if Raid.DEFENDERS.has(data.id):
-			ripe += " · broni farmy (zasięg %d m)" % int(Raid.DEFENDERS[data.id]["radius"])
-		return ripe
-	var parts := ["%s · etap %d/%d" % [display_name(), stage + 1, data.stages]]
+		return "%s · ready" % display_name()
+	var parts := ["%s %d/%d" % [display_name(), stage + 1, data.stages]]
 	if bitten:
-		parts.append("obgryziona przez Chrupiki")
+		parts.append("bitten")
 	if is_thirsty() and needs_sprout_item():
-		parts.append("śpi: obudzi go tylko woda z Mglistego źródła")
+		parts.append("needs Misty Water")
 	elif is_thirsty():
-		parts.append("potrzebuje wody")
-	elif data.needs_water:
-		parts.append("podlana")
-	if data.cycles_per_stage > 1:
-		parts.append("rośnie wolno (%d/%d cykli)" % [progress, data.cycles_per_stage])
+		parts.append("thirsty")
 	return " · ".join(parts)
 
 
@@ -147,8 +174,8 @@ func advance_cycle() -> String:
 		return ""
 	if data.needs_water and not watered:
 		if needs_sprout_item():
-			return "%s śpi: potrzebuje wody z Mglistego źródła" % data.display_name
-		return "%s nie rośnie: brak wody" % data.display_name
+			return "%s: needs Misty Water" % data.display_name
+		return "%s: thirsty" % data.display_name
 	watered = false
 	var report := _grow_step()
 	_update_status_visuals()
@@ -191,8 +218,8 @@ func _grow_step() -> String:
 	if not is_ripe():
 		return ""
 	if mutation != &"":
-		return "Mutacja! %s (%s) gotowa do zbioru!" % [display_name(), PlantVisuals.MUTATIONS[mutation]["desc"]]
-	return "%s: gotowa do zbioru!" % data.display_name
+		return "Mutation! %s (%s)" % [display_name(), PlantVisuals.MUTATIONS[mutation]["desc"]]
+	return "%s ready" % data.display_name
 
 
 func to_dict() -> Dictionary:
@@ -219,6 +246,33 @@ func _rebuild_model() -> void:
 		_model.queue_free()
 	_model = PlantVisuals.build(data, stage, mutation)
 	add_child(_model)
+	if _phase == 0.0:
+		_phase = randf() * TAU
+	_stage_node = _model.get_node_or_null("Stage") as Node3D
+	_head = _model.find_child("Head", true, false) as Node3D
+	_jaw_top = _model.find_child("JawTop", true, false) as Node3D
+	_jaw_bottom = _model.find_child("JawBottom", true, false) as Node3D
+	_cap = _model.find_child("Cap", true, false) as Node3D
+	_orbs = _model.find_child("Orbs", true, false) as Node3D
+	_orbs_base_y = _orbs.position.y if _orbs else 0.0
+	_glow = _collect_glow(_model)
+
+
+## Świecące materiały modelu jako kopie tylko dla tej rośliny (pulsują we własnym rytmie).
+static func _collect_glow(model: Node) -> Array:
+	var result: Array = []
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		for i in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.get_active_material(i) as BaseMaterial3D
+			if source == null or not source.emission_enabled:
+				continue
+			var copy := source.duplicate() as BaseMaterial3D
+			mesh_instance.set_surface_override_material(i, copy)
+			result.append([copy, copy.emission_energy_multiplier])
+	return result
 
 
 func _update_status_visuals() -> void:
@@ -232,7 +286,7 @@ func _update_status_visuals() -> void:
 ## Dojrzały Snapper śledzi gracza głową i kłapie, gdy ten podejdzie za blisko.
 func _update_snapper(delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
-	var head := _model.get_node_or_null("Head") as Node3D
+	var head := _head
 	if player == null or head == null:
 		return
 	var distance := player.global_position.distance_to(global_position)
@@ -260,7 +314,7 @@ func _update_boomshroom(delta: float) -> void:
 func puff() -> void:
 	Sfx.play(&"boom", global_position)
 	Effects.burst(get_parent(), global_position + Vector3(0, 0.8, 0), data.accent_color.lightened(0.3), 30)
-	var cap := _model.get_node_or_null("Cap") as Node3D
+	var cap := _cap
 	if cap == null:
 		return
 	var tween := create_tween()
@@ -270,8 +324,8 @@ func puff() -> void:
 
 func _snap() -> void:
 	_snap_cooldown = SNAP_COOLDOWN
-	var top := _model.get_node_or_null("Head/JawTop") as Node3D
-	var bottom := _model.get_node_or_null("Head/JawBottom") as Node3D
+	var top := _jaw_top
+	var bottom := _jaw_bottom
 	if top == null or bottom == null:
 		return
 	Sfx.play(&"snap", global_position)

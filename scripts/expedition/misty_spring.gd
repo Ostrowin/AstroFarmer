@@ -4,6 +4,8 @@ extends StaticBody3D
 ## Tylko ta woda budzi nasiono Mgielnika w bazie.
 
 const WATER := Color(0.65, 0.9, 1.0)
+## Model z Blendera (kamienie, woda, trzciny); mgła zostaje z cząsteczek.
+const MODEL := preload("res://art/models/nature/misty_spring.glb")
 
 
 func _ready() -> void:
@@ -17,7 +19,14 @@ func _ready() -> void:
 	collision.shape = shape
 	collision.position.y = 0.2
 	add_child(collision)
+	if MODEL:
+		add_child(MODEL.instantiate())
+	else:
+		_build_primitive()
+	_build_effects()
 
+
+func _build_primitive() -> void:
 	var pool := CylinderMesh.new()
 	pool.top_radius = 1.5
 	pool.bottom_radius = 1.5
@@ -34,9 +43,12 @@ func _ready() -> void:
 		var angle := TAU * i / 7.0
 		_mesh(stone, Vector3(cos(angle) * 1.75, 0.12, sin(angle) * 1.75), Color(0.5, 0.52, 0.62)).scale = Vector3.ONE * (0.8 + 0.3 * sin(i * 2.3))
 
+
+func _build_effects() -> void:
+
 	var light := OmniLight3D.new()
 	light.light_color = WATER
-	light.light_energy = 2.0
+	light.light_energy = 0.7 if MODEL else 2.0
 	light.omni_range = 7.0
 	light.position.y = 1.0
 	add_child(light)
@@ -70,7 +82,7 @@ func _ready() -> void:
 
 
 func get_scan_info() -> Dictionary:
-	return {"id": &"misty_spring", "name": "Mgliste źródło"}
+	return {"id": &"misty_spring", "name": "Misty Spring"}
 
 
 func _mesh(mesh: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:

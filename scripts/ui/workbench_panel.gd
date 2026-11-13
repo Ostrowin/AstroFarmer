@@ -12,14 +12,13 @@ func open() -> void:
 
 func _rebuild() -> void:
 	clear()
-	_box.add_child(label("Warsztat", 28))
-	_box.add_child(label("Kryształy i próbki z wypraw zamieniasz tu na płot i trwałe ulepszenia.", 16, 660, Color(0.85, 0.85, 0.95)))
+	_box.add_child(label("Workbench", 28))
 	for recipe: Dictionary in Recipes.LIST:
 		_box.add_child(_row(recipe))
-	_box.add_child(label("W magazynie: %s" % _stock_text(), 15, 660, Color(0.8, 0.95, 1.0)))
+	_box.add_child(label(_stock_text(), 15, 660, Color(0.8, 0.95, 1.0)))
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.add_child(button("Zamknij", close))
+	buttons.add_child(button("Close", close))
 	_box.add_child(buttons)
 
 
@@ -33,9 +32,9 @@ func _row(recipe: Dictionary) -> Control:
 	text.add_child(label(recipe["name"] + ("  ✓" if owned else ""), 19))
 	text.add_child(label(recipe["desc"], 14, 480, Color(0.8, 0.8, 0.9)))
 	var cost_color := Color(0.6, 1.0, 0.6) if problem == "" else Color(1.0, 0.6, 0.55)
-	text.add_child(label("Koszt: %s" % Recipes.cost_text(recipe) if not owned else "Zrobione", 14, 480, cost_color if not owned else Color(0.7, 0.7, 0.8)))
+	text.add_child(label(Recipes.cost_text(recipe) if not owned else "Owned", 14, 480, cost_color if not owned else Color(0.7, 0.7, 0.8)))
 	row.add_child(text)
-	var make := button("Zrób", _craft.bind(recipe["id"]))
+	var make := button("Craft", _craft.bind(recipe["id"]))
 	make.disabled = problem != ""
 	make.tooltip_text = problem
 	row.add_child(make)

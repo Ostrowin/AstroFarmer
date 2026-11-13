@@ -40,6 +40,7 @@ var selected := 0
 var _target := {}
 var _shot_cooldown := 0.0
 var _last_prompt := ""
+var _outline := Outline.Tracker.new()
 
 @onready var _player: Player = get_parent()
 
@@ -100,14 +101,14 @@ func slot_count() -> int:
 
 
 func slot_title(index: int) -> String:
-	return "Pistolet" + (" Mk2" if GameState.has_upgrade(&"pistol_mk2") else "") if SLOTS[index]["kind"] == "pistol" else "Voidberry (zjedz)"
+	return "Pistol" + (" Mk2" if GameState.has_upgrade(&"pistol_mk2") else "") if SLOTS[index]["kind"] == "pistol" else "Voidberry"
 
 
 func slot_detail(index: int) -> String:
 	var slot: Dictionary = SLOTS[index]
 	if slot["kind"] == "pistol":
-		return "%d obrażeń · LPM" % int(_pistol_damage())
-	return "w plecaku: %d" % _run_count(slot["item"])
+		return "LMB"
+	return "×%d" % _run_count(slot["item"])
 
 
 func slot_color(index: int) -> Color:
@@ -118,8 +119,8 @@ func slot_color(index: int) -> Color:
 func offhand_text() -> String:
 	var run := GameState.run
 	if run == null or run.offhand == &"":
-		return "PPM · pusta ręka\n(nasiona do rzucania: Tab)"
-	return "PPM · %s ×%d\nR: zmień" % [THROWABLE_NAMES.get(run.offhand, PlantCatalog.item_name(run.offhand)), run.count(run.offhand)]
+		return "RMB\n—"
+	return "RMB %s\n×%d" % [THROWABLE_NAMES.get(run.offhand, PlantCatalog.item_name(run.offhand)), run.count(run.offhand)]
 
 
 func offhand_color() -> Color:
@@ -138,58 +139,49 @@ func _update_target() -> void:
 	_target = _player.get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Object = _target.get("collider")
 	var scan_hint := _scan_hint(collider)
-	var hint := (" · " + scan_hint) if scan_hint != "" else ""
+	var hint := ("  " + scan_hint) if scan_hint != "" else ""
+	var highlight: Node = null
+	var run := GameState.run
+	var has_space := run != null and run.free_space() > 0
 
 	if collider is Creature or collider is Critter:
-		var parts: Array[String] = [String(collider.call("get_scan_info")["name"])]
-		if collider is Critter and (collider as Critter).is_stunned():
-			parts.append("ogłuszony")
-		if SLOTS[selected]["kind"] == "pistol" and _distance_to((collider as Node3D).global_position) <= PISTOL_RANGE:
-			parts.append("[LPM] Strzelaj")
-		_set_prompt(" · ".join(parts) + hint, true)
-		return
-	if collider is MistySpring:
-		var spring_text := "Mgliste źródło"
-		if _in_reach(_target["position"], EVAC_REACH):
-			spring_text = "[E] Nabierz wody z Mglistego źródła (+1 do plecaka)" if GameState.run and GameState.run.free_space() > 0 else "Plecak pełny"
-		_set_prompt(spring_text + hint, true)
-		return
-	if collider is Pickup:
+		_set_prompt(String(collider.call("get_scan_info")["name"]) + hint, true)
+	elif collider is MistySpring:
+		if _in_reach(_target["position"], EVAC_REACH) and has_space:
+			_set_prompt("[E] Collect water" + hint, true)
+			highlight = collider as Node
+		else:
+			_set_prompt(("Backpack full" if not has_space else "") + hint, has_space)
+	elif collider is Pickup:
 		var pickup := collider as Pickup
-		var text := ""
 		if not _in_reach(pickup.global_position):
-			text = "%s · podejdź bliżej" % pickup.display_name()
+			_set_prompt(pickup.display_name() + hint, true)
 		elif pickup.kind == "artifact":
-			text = "[E] Weź ulepszenie: %s" % pickup.display_name()
-		elif GameState.run and GameState.run.free_space() <= 0:
-			_set_prompt("Plecak pełny (Tab: wyrzuć coś): %s" % pickup.display_name() + hint, false)
-			return
+			_set_prompt("[E] %s" % pickup.display_name(), true)
+			highlight = pickup
+		elif not has_space:
+			_set_prompt("Backpack full" + hint, false)
 		else:
-			text = "[E] Podnieś: %s (+%d)%s" % [pickup.display_name(), pickup.amount, " · rzadkie!" if pickup.rare else ""]
-		_set_prompt(text + hint, true)
-		return
-	if collider is WildBush:
+			_set_prompt("[E] %s ×%d%s" % [pickup.display_name(), pickup.amount, hint], true)
+			highlight = pickup
+	elif collider is WildBush:
 		var bush := collider as WildBush
-		var text := "Dziki krzew Voidberry"
-		if _in_reach(bush.global_position):
-			text = "Krzew ogołocony" if bush.eaten else "[E] Zjedz dziki owoc (+%d Kondycji)" % int(WildBush.HEAL)
-		_set_prompt(text + hint, not bush.eaten)
-		return
-	if collider is Node and (collider as Node).is_in_group("evac"):
+		if _in_reach(bush.global_position) and not bush.eaten:
+			_set_prompt("[E] Eat" + hint, true)
+			highlight = bush
+		else:
+			_set_prompt(hint.strip_edges(), true)
+	elif collider is Node and (collider as Node).is_in_group("evac"):
 		if _in_reach(_target["position"], EVAC_REACH):
-			_set_prompt("[E] Wezwij ewakuację (stój na lądowisku 5 s)", true)
+			_set_prompt("[E] Evacuate", true)
+			highlight = collider as Node
 		else:
-			_set_prompt("Lądowisko: punkt ewakuacji", true)
-		return
-	if SLOTS[selected]["kind"] == "food":
-		if _run_count(&"voidberry") <= 0:
-			_set_prompt("Brak Voidberry w plecaku", false)
-		elif _player.health >= _player.max_health:
-			_set_prompt("Kondycja pełna", true)
-		else:
-			_set_prompt("[LPM] Zjedz Voidberry (+%d Kondycji)" % int(FOOD_HEAL), true)
-		return
-	_set_prompt("", true)
+			_set_prompt("", true)
+	elif SLOTS[selected]["kind"] == "food" and _run_count(&"voidberry") > 0 and _player.health < _player.max_health:
+		_set_prompt("[LMB] Eat", true)
+	else:
+		_set_prompt("", true)
+	_outline.set_target(highlight)
 
 
 func _scan_hint(collider: Object) -> String:
@@ -199,7 +191,7 @@ func _scan_hint(collider: Object) -> String:
 	var id: StringName = info["id"]
 	if GameState.knows(id, "scan") if Codex.has_entry(id) else GameState.has_discovery(id):
 		return ""
-	return "[Q] Skanuj" if _distance_to(_target["position"]) <= SCAN_RANGE else "za daleko na skan"
+	return "[Q] Scan" if _distance_to(_target["position"]) <= SCAN_RANGE else ""
 
 
 static func _scan_info(collider: Object) -> Dictionary:
@@ -235,6 +227,7 @@ func _pistol_interval() -> float:
 func _fire() -> void:
 	_shot_cooldown = _pistol_interval()
 	_player.stop_sprint()
+	_player.play_shoot()
 	var camera := _player.camera
 	var muzzle := _player.global_position + Vector3(0, 1.25, 0) + camera.global_basis.x * 0.35
 	var to: Vector3 = _target.get("position", camera.global_position - camera.global_basis.z * PISTOL_RANGE)
@@ -250,8 +243,7 @@ func _fire() -> void:
 	Effects.burst(_world(), to, Color(1, 0.6, 0.3), 6)
 	var id: StringName = collider.call("get_scan_info")["id"]
 	GameState.learn(id, "hit")
-	if collider.call("take_hit", _pistol_damage(), _player.global_position):
-		notify.emit("%s nie żyje" % Codex.entry_name(id))
+	collider.call("take_hit", _pistol_damage(), _player.global_position)
 
 
 func _eat() -> void:
@@ -264,7 +256,7 @@ func _eat() -> void:
 	_player.heal(FOOD_HEAL)
 	GameState.learn(&"voidberry", "eat")
 	Sfx.play(&"eat", _player.global_position)
-	notify.emit("Zjedzono Voidberry (+%d Kondycji)" % int(FOOD_HEAL))
+	notify.emit("+%d health" % int(FOOD_HEAL))
 
 
 ## PPM: rzut tym, co jest w drugiej ręce.
@@ -273,17 +265,18 @@ func _throw() -> void:
 	var collider: Object = _target.get("collider")
 	if run == null or run.offhand == &"":
 		Sfx.play(&"deny")
-		notify.emit("Pusta ręka: włóż nasiono do rzucania (Tab)")
+		notify.emit("Nothing to throw")
 		return
 	if collider == null or _distance_to(_target["position"]) > THROW_RANGE:
 		Sfx.play(&"deny")
-		notify.emit("Za daleko na rzut (max %d m)" % int(THROW_RANGE))
+		notify.emit("Too far")
 		return
 	var item := run.offhand
 	if not run.remove_item(item):
 		Sfx.play(&"deny")
 		return
 	_player.stop_sprint()
+	_player.play_shoot()
 	var landing: Vector3 = _target["position"]
 	var on_creature := collider is Creature or collider is Critter
 	if on_creature:
@@ -300,7 +293,7 @@ func _cycle_offhand() -> void:
 	if run == null:
 		return
 	if run.cycle_offhand() == &"":
-		notify.emit("Brak nasion do rzucania w plecaku")
+		notify.emit("Nothing to throw")
 	hotbar_changed.emit(selected)
 
 
@@ -320,7 +313,7 @@ func _interact() -> void:
 		var added := run.add_item(pickup.item_id, pickup.amount)
 		if added <= 0:
 			Sfx.play(&"deny")
-			notify.emit("Plecak pełny. Wyrzuć coś (Tab) albo wracaj na lądowisko.")
+			notify.emit("Backpack full")
 			return
 		run.ensure_offhand()
 		Sfx.play(&"pickup", pickup.global_position)
@@ -332,12 +325,11 @@ func _interact() -> void:
 			pass
 		elif pickup.rare:
 			run.add_awakening(AWAKENING_RARE)
-			notify.emit("Coś rzadkiego... Przebudzenie rośnie szybciej (+%d)" % int(AWAKENING_RARE))
+			notify.emit("Awakening +%d" % int(AWAKENING_RARE))
 		else:
 			run.add_awakening(AWAKENING_COMMON)
 		if added < pickup.amount:
 			pickup.amount -= added
-			notify.emit("Zmieściło się tylko %d" % added)
 		else:
 			pickup.queue_free()
 		hotbar_changed.emit(selected)
@@ -347,14 +339,14 @@ func _interact() -> void:
 			_player.heal(WildBush.HEAL)
 			GameState.learn(&"voidberry", "eat")
 			Sfx.play(&"eat", bush.global_position)
-			notify.emit("Dziki owoc: +%d Kondycji" % int(WildBush.HEAL))
+			notify.emit("+%d health" % int(WildBush.HEAL))
 	elif collider is MistySpring and _in_reach(_target["position"], EVAC_REACH):
 		if run == null or run.add_item(&"water_misty", 1) <= 0:
 			Sfx.play(&"deny")
-			notify.emit("Plecak pełny")
+			notify.emit("Backpack full")
 			return
 		Sfx.play(&"fill", _target["position"])
-		notify.emit("+1 Woda z Mglistego źródła")
+		notify.emit("+1 Misty Water")
 		GameState.learn(&"misty_spring", "pickup")
 	elif collider is Node and (collider as Node).is_in_group("evac") and _in_reach(_target["position"], EVAC_REACH):
 		evac_requested.emit()
@@ -383,20 +375,19 @@ func _scan() -> void:
 	if info.is_empty():
 		return
 	if _distance_to(_target["position"]) > SCAN_RANGE:
-		notify.emit("Za daleko na skan (max %d m)" % int(SCAN_RANGE))
+		notify.emit("Too far")
 		return
 	var id: StringName = info["id"]
 	var is_new := not GameState.has_discovery(id)
 	if GameState.learn(id, "scan") == "" and not GameState.add_discovery(id):
-		notify.emit("Już w bazie danych: %s" % info["name"])
 		return
 	if GameState.run:
 		GameState.run.discoveries.append(id)
 		GameState.run.changed.emit()
 	Sfx.play(&"scan", _target["position"])
 	Effects.burst(_world(), _target["position"] + Vector3(0, 0.3, 0), Color(0.3, 0.95, 1.0), 16)
-	if is_new:
-		notify.emit("Nowe odkrycie: %s (zostaje nawet po porażce)" % info["name"])
+	if is_new and not Codex.has_entry(id):
+		notify.emit("New: %s" % info["name"])
 
 
 func _apply_buff(buff: Dictionary) -> void:
@@ -408,7 +399,7 @@ func _apply_buff(buff: Dictionary) -> void:
 	if GameState.run:
 		GameState.run.buffs.append(buff.get("name", ""))
 		GameState.run.changed.emit()
-	notify.emit("Ulepszenie wyprawy: %s (%s)" % [buff.get("name", ""), buff.get("desc", "")])
+	notify.emit("%s: %s" % [buff.get("name", ""), buff.get("desc", "")])
 
 
 func _set_prompt(text: String, ok: bool) -> void:

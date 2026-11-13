@@ -6,23 +6,23 @@ extends RefCounted
 
 const LIST := [
 	{
-		"id": &"salad", "name": "Sałatka z Voidberry",
-		"desc": "+25 maks. Kondycji na wyprawę",
+		"id": &"salad", "name": "Voidberry Salad",
+		"desc": "+25 max health",
 		"cost": {&"voidberry": 3}, "effect": "vitality",
 	},
 	{
-		"id": &"tea", "name": "Kryształowa herbatka",
-		"desc": "Przebudzenie rośnie o 25% wolniej",
+		"id": &"tea", "name": "Crystal Tea",
+		"desc": "Awakening -25%",
 		"cost": {&"crystal": 1, &"voidberry": 1}, "effect": "calm", "awakening_rate": 0.75,
 	},
 	{
-		"id": &"cookies", "name": "Pyłkowe ciastka",
-		"desc": "+20% szybkości na wyprawę",
+		"id": &"cookies", "name": "Pollen Cookies",
+		"desc": "+20% speed",
 		"cost": {&"pollen": 1, &"voidberry": 1}, "effect": "speed",
 	},
 	{
-		"id": &"brew", "name": "Mgielny napar",
-		"desc": "Przebudzenie rośnie o połowę wolniej",
+		"id": &"brew", "name": "Mist Brew",
+		"desc": "Awakening -50%",
 		"cost": {&"mist_fruit": 1}, "effect": "calm", "awakening_rate": 0.5,
 	},
 ]

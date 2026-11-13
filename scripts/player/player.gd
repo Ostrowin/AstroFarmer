@@ -34,6 +34,9 @@ var dash_cooldown_left := 0.0
 
 var _dash_left := 0.0
 var _dash_direction := Vector3.ZERO
+## Po strzale postać przez chwilę patrzy tam, gdzie celuje kamera (jak w RoR2).
+var _aim_time := 0.0
+var _animator: PlayerAnimator
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _hurt_cooldown := 0.0
@@ -51,6 +54,14 @@ func _ready() -> void:
 	health = max_health
 	_spring_arm.add_excluded_object(get_rid())
 	capture_mouse()
+	var model := _visual.get_node_or_null("Model")
+	if model:
+		_animator = PlayerAnimator.new()
+		_animator.name = "Animator"
+		add_child(_animator)
+		if not _animator.setup(model):
+			_animator.queue_free()
+			_animator = null
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -100,9 +111,15 @@ func _physics_process(delta: float) -> void:
 		velocity.z = horizontal.z
 	move_and_slide()
 
-	if direction.length_squared() > 0.01:
+	_aim_time = maxf(0.0, _aim_time - delta)
+	if _aim_time > 0.0 and _dash_left <= 0.0:
+		_visual.rotation.y = lerp_angle(_visual.rotation.y, _yaw.rotation.y, clampf(turn_speed * 1.5 * delta, 0.0, 1.0))
+	elif direction.length_squared() > 0.01:
 		var target_yaw := atan2(-direction.x, -direction.z)
 		_visual.rotation.y = lerp_angle(_visual.rotation.y, target_yaw, clampf(turn_speed * delta, 0.0, 1.0))
+	if _animator:
+		_animator.tick(delta, is_on_floor())
+		_animator.update(self)
 
 
 # --- Ruch specjalny ----------------------------------------------------------
@@ -131,6 +148,17 @@ func is_dashing() -> bool:
 ## Strzał i inne akcje bojowe przerywają bieg (jak w RoR2).
 func stop_sprint() -> void:
 	sprinting = false
+
+
+## Animacja strzału na górze ciała + obrót w stronę celowania.
+func play_shoot() -> void:
+	_aim_time = 0.8
+	if _animator:
+		_animator.shoot()
+
+
+func animation_state() -> StringName:
+	return _animator.state if _animator else &""
 
 
 # --- Kondycja ----------------------------------------------------------------

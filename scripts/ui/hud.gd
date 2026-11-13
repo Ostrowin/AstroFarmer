@@ -3,7 +3,9 @@ extends CanvasLayer
 ## Interfejs zbudowany w kodzie: status, magazyn, celownik, podpowiedź,
 ## pasek narzędzi, powiadomienia i zaciemnienie przy przejściu na wyprawę.
 
-const NOTIFY_SECONDS := 3.5
+const NOTIFY_SECONDS := 3.0
+## Najwięcej naraz widocznych powiadomień.
+const MAX_NOTIFICATIONS := 4
 const COLOR_OK := Color(1, 1, 1)
 const COLOR_BAD := Color(1, 0.55, 0.5)
 
@@ -94,7 +96,7 @@ func _ready() -> void:
 	root.add_child(_notifications)
 
 	_click_hint = _make_label(24)
-	_click_hint.text = "Kliknij, aby grać  ·  Esc zwalnia mysz"
+	_click_hint.text = "Click to play"
 	_click_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_click_hint.set_anchors_preset(Control.PRESET_CENTER)
 	_click_hint.offset_left = -400
@@ -137,8 +139,15 @@ var modal := false
 func _process(_delta: float) -> void:
 	_click_hint.visible = not modal and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and _fade.modulate.a < 0.01
 	if _tracked and is_instance_valid(_tracked):
-		var dash := "gotowy" if _tracked.dash_cooldown_left <= 0.0 else "%.1f s" % _tracked.dash_cooldown_left
-		_move_label.text = "Shift: dash %s  ·  Ctrl: bieg%s" % [dash, " (włączony)" if _tracked.sprinting else ""]
+		# Tylko kiedy dash się ładuje; gotowy dash nie potrzebuje napisu.
+		_move_label.text = "Dash %.1fs" % _tracked.dash_cooldown_left if _tracked.dash_cooldown_left > 0.0 else ""
+	# Szczegóły (magazyn / plecak) tylko przy przytrzymanym Tab.
+	_inventory.visible = details_visible()
+
+
+## Czy pokazać listę magazynu: tylko przy przytrzymanym Tab (na wyprawie Tab otwiera plecak).
+func details_visible() -> bool:
+	return InputMap.has_action("inventory") and Input.is_action_pressed("inventory") and not modal
 
 
 ## Pokazuje stan dasha i biegu gracza.
@@ -173,22 +182,19 @@ func refresh() -> void:
 		return
 	for i in _slots.size():
 		var label := _slots[i].get_child(0) as Label
-		label.text = "%d · %s\n%s" % [i + 1, _interaction.slot_title(i), _interaction.slot_detail(i)]
+		label.text = "%d %s\n%s" % [i + 1, _interaction.slot_title(i), _interaction.slot_detail(i)]
 		_slots[i].add_theme_stylebox_override("panel", _slot_style(i == _interaction.selected, _interaction.slot_color(i)))
 
 
 ## Nadpisywane w HUD wyprawy.
 func _status_text() -> String:
-	var attention := GameState.planet_attention
-	var mood := "wysoka!" if attention >= Raid.ATTENTION_HIGH else "spokojnie"
-	var raid_in := Raid.cycles_until(GameState.raid_pressure, attention)
-	return "Astro Farmer · Zielona dolina\nCykl: %d · Baza danych: %d%%\nUwaga planety: %d (%s)\nNiepokój fauny: %d%% · najazd za ~%s" % [
-		GameState.cycle, Codex.completion(GameState.research, GameState.max_level()), attention, mood, GameState.raid_pressure, Raid.cycles_text(raid_in)]
+	var raid_in := Raid.cycles_until(GameState.raid_pressure, GameState.planet_attention)
+	return "Cycle %d\nRaid in %s" % [GameState.cycle, Raid.cycles_text(raid_in)]
 
 
 ## Nadpisywane w HUD wyprawy.
 func _inventory_text() -> String:
-	return "Magazyn\n" + item_lines(GameState.resources, [&"water"])
+	return "Storage\n" + item_lines(GameState.resources, [&"water"])
 
 
 static func item_lines(items: Dictionary, skip: Array = []) -> String:
@@ -198,17 +204,20 @@ static func item_lines(items: Dictionary, skip: Array = []) -> String:
 			continue
 		lines.append("%s: %d" % [PlantCatalog.item_name(id), items[id]])
 	lines.sort()
-	return "\n".join(lines) if not lines.is_empty() else "(pusto)"
+	return "\n".join(lines) if not lines.is_empty() else "(empty)"
 
 
 func _on_research(id: StringName, text: String, count: int) -> void:
-	notify("Baza danych · %s (%d/%d): %s" % [Codex.entry_name(id), count, Codex.fact_count(id), text])
+	if count == 1:
+		notify("New entry: %s" % Codex.entry_name(id))
+	else:
+		notify("%s %d/%d" % [Codex.entry_name(id), count, Codex.fact_count(id)])
 	refresh()
 
 
 func _on_level_unlocked(_biome: StringName, level: int) -> void:
 	Sfx.play(&"chime")
-	notify("Odblokowano poziom %d łąki! Wybierz go przy drzwiach wyprawy." % level)
+	notify("Meadow level %d unlocked" % level)
 
 
 ## Chowa/pokazuje interfejs gry (np. na czas przerywnika z lądowaniem).
@@ -231,7 +240,7 @@ func notify(text: String) -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_notifications.add_child(label)
-	while _notifications.get_child_count() > 6:
+	while _notifications.get_child_count() > MAX_NOTIFICATIONS:
 		_notifications.get_child(0).free()
 	var tween := label.create_tween()
 	tween.tween_interval(NOTIFY_SECONDS)

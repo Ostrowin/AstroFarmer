@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_plant")
 id = &"mistbloom"
-display_name = "Mgielnik"
-description = "Nasiono-zagadka z poziomu 2 łąki. Twarda łupina pęka tylko po podlaniu wodą z Mglistego źródła. Obudzony rośnie zwyczajnie i daje Mgielne owoce."
+display_name = "Mistbloom"
+description = "A puzzle seed. Only Misty Water wakes it."
 shape = 4
 stages = 3
 cycles_per_stage = 1
@@ -14,7 +14,7 @@ needs_water = true
 min_spacing = 1.2
 sprout_item = &"water_misty"
 harvest_item = &"mist_fruit"
-harvest_item_name = "Mgielny owoc"
+harvest_item_name = "Mist Fruit"
 harvest_amount = Vector2i(1, 2)
 seeds_per_harvest = Vector2i(1, 1)
 is_tool = false

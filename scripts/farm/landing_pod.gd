@@ -6,10 +6,14 @@ extends StaticBody3D
 const BODY := Color(0.93, 0.93, 0.97)
 const STRIPE := Color(1.0, 0.55, 0.2)
 const WINDOW := Color(0.35, 0.95, 1.0)
+## Model z Blendera: Pad (lądowisko), Capsule (spada z nieba), Hatch (właz w Capsule).
+const MODEL := preload("res://art/models/buildings/landing_pod.glb")
+const HATCH_OPEN := deg_to_rad(100.0)
 
 var _visual: Node3D
 var _flame: MeshInstance3D
 var _light: OmniLight3D
+var _hatch: Node3D
 
 
 func _ready() -> void:
@@ -28,6 +32,8 @@ func _ready() -> void:
 ## Animacja lądowania: kapsuła spada z wysokości, hamuje płomieniem i osiada.
 func land(duration := 2.2) -> void:
 	_visual.position.y = 32.0
+	if _hatch:
+		_hatch.rotation.x = 0.0
 	_flame.visible = true
 	_light.visible = true
 	Sfx.play(&"evac", global_position)
@@ -42,9 +48,34 @@ func land(duration := 2.2) -> void:
 	var squash := create_tween()
 	squash.tween_property(_visual, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	await squash.finished
+	if _hatch:
+		# Właz otwiera się, gdy gracz wysiada (bez czekania na koniec animacji).
+		var open := create_tween()
+		open.tween_property(_hatch, "rotation:x", HATCH_OPEN, 0.5).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 
 func _build() -> void:
+	if MODEL:
+		_build_model()
+	else:
+		_build_primitive()
+	_build_flame()
+
+
+func _build_model() -> void:
+	var model := MODEL.instantiate() as Node3D
+	add_child(model)
+	_visual = Node3D.new()
+	add_child(_visual)
+	var capsule := model.get_node("Capsule") as Node3D
+	model.remove_child(capsule)
+	_visual.add_child(capsule)
+	_hatch = capsule.get_node_or_null("Hatch") as Node3D
+	if _hatch:
+		_hatch.rotation.x = HATCH_OPEN
+
+
+func _build_primitive() -> void:
 	# Lądowisko: płaski krąg z obwódką.
 	var pad := CylinderMesh.new()
 	pad.top_radius = 2.0
@@ -89,6 +120,8 @@ func _build() -> void:
 		var instance := _mesh(_visual, leg, Vector3(cos(angle) * 0.75, 0.38, sin(angle) * 0.75), Color(0.5, 0.5, 0.58))
 		instance.rotation = Vector3(sin(angle) * 0.35, 0, -cos(angle) * 0.35)
 
+
+func _build_flame() -> void:
 	var flame_mesh := CylinderMesh.new()
 	flame_mesh.top_radius = 0.45
 	flame_mesh.bottom_radius = 0.0

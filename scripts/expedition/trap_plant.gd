@@ -7,7 +7,7 @@ const GROW_TIME := 1.5
 const RADIUS := 1.5
 const LIFETIME := 30.0
 const TRAP_SECONDS := 4.0
-const SIZE := 1.4
+const SIZE := 1.0
 
 var _armed := false
 var _done := false
@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 
 func _close_jaws() -> void:
 	Sfx.play(&"snap", global_position)
-	var head := _model.get_node_or_null("Head") as Node3D
+	var head := _model.find_child("Head", true, false) as Node3D
 	if head == null:
 		return
 	var tween := create_tween().set_parallel()

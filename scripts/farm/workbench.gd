@@ -1,6 +1,9 @@
 class_name Workbench
 extends StaticBody3D
-## Stół warsztatowy w bazie (E otwiera okno receptur). Model z prymitywów.
+## Stół warsztatowy w bazie (E otwiera okno receptur).
+## Model z Blendera; bez pliku zostaje model z prymitywów.
+
+const MODEL := preload("res://art/models/buildings/workbench.glb")
 
 const WOOD := Color(0.6, 0.42, 0.3)
 const METAL := Color(0.55, 0.57, 0.65)
@@ -11,12 +14,15 @@ func _ready() -> void:
 	collision_layer = 1
 	collision_mask = 0
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(2.0, 1.0, 1.0)
+	shape.size = Vector3(2.1, 2.15, 1.0)
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
-	collision.position.y = 0.5
+	collision.position.y = 1.07
 	add_child(collision)
 
+	if MODEL:
+		add_child(MODEL.instantiate())
+		return
 	_box(Vector3(2.0, 0.12, 1.0), Vector3(0, 0.92, 0), WOOD)
 	for x in [-0.85, 0.85]:
 		for z in [-0.38, 0.38]:

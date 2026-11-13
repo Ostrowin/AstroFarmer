@@ -8,15 +8,15 @@ signal drop_requested(id: StringName, amount: int)
 
 const COLUMNS := 5
 const DESCRIPTIONS := {
-	&"seed_snapper": "Rzucone (PPM) wyrasta w pułapkę na drapieżnika.",
-	&"seed_boomshroom": "Rzucone (PPM) robi puff i ogłusza wszystko w 4 m.",
-	&"voidberry": "Zjedz (LPM, slot 2): +30 Kondycji.",
-	&"water_misty": "Budzi nasiono Mgielnika w bazie.",
-	&"sample_glowmoss": "Rzadka próbka: warsztat. Wywieziona podnosi Uwagę planety.",
-	&"crystal": "Surowiec warsztatu.",
-	&"thorn": "Z Thornbacka: warsztat (Pistolet Mk2).",
-	&"pollen": "Kuchnia: Pyłkowe ciastka.",
-	&"fertilizer": "W bazie: +1 cykl wzrostu rośliny.",
+	&"seed_snapper": "Throw (RMB): trap",
+	&"seed_boomshroom": "Throw (RMB): stun",
+	&"voidberry": "Eat: +30 health",
+	&"water_misty": "Wakes a Mistbloom seed",
+	&"sample_glowmoss": "Rare · workbench",
+	&"crystal": "Workbench",
+	&"thorn": "Workbench: Pistol Mk2",
+	&"pollen": "Meal: Pollen Cookies",
+	&"fertilizer": "+1 growth cycle",
 }
 
 var _run: RunState
@@ -61,7 +61,7 @@ func _rebuild() -> void:
 	clear()
 	if _run == null:
 		return
-	_box.add_child(label("Plecak %d/%d" % [_run.used_space(), _run.capacity], 26))
+	_box.add_child(label("Backpack %d/%d" % [_run.used_space(), _run.capacity], 26))
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 20)
 	_box.add_child(columns)
@@ -83,17 +83,17 @@ func _rebuild() -> void:
 	var side := VBoxContainer.new()
 	side.add_theme_constant_override("separation", 8)
 	columns.add_child(side)
-	side.add_child(label("Druga ręka (PPM)", 16))
-	var hand_title := "pusta\n(przeciągnij tu nasiono)"
+	side.add_child(label("RMB hand", 16))
+	var hand_title := "empty"
 	var hand_color := Color(0.5, 0.5, 0.6)
 	if _run.offhand != &"":
 		hand_title = "%s\n×%d" % [PlantCatalog.item_name(_run.offhand), _run.count(_run.offhand)]
 		hand_color = Pickup.entry_for(_run.offhand)["color"]
 	side.add_child(_slot("offhand", _run.offhand, _run.count(_run.offhand), hand_title, hand_color))
-	side.add_child(label("Wyrzuć", 16))
-	side.add_child(_slot("trash", &"", 0, "upuść tu cały stos", Color(1.0, 0.45, 0.4)))
+	side.add_child(label("Drop", 16))
+	side.add_child(_slot("trash", &"", 0, "", Color(1.0, 0.45, 0.4)))
 
-	_box.add_child(label("Przeciągnij nasiono na rękę PPM (albo kliknij je dwa razy). PPM na przedmiocie wyrzuca 1 sztukę. Wyrzucone leży na ziemi, można je podnieść. Tab zamyka.", 14, 800, Color(0.8, 0.8, 0.9)))
+	_box.add_child(label("Drag seeds to the hand · RMB drops one", 14, 800, Color(0.8, 0.8, 0.9)))
 
 
 func _slot(slot_kind: String, id: StringName, count: int, title: String, color: Color) -> InventorySlot:

@@ -56,7 +56,9 @@ Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; 
 | `scenes/` | sceny (`levels/` poziomy i biomy, `ui/` interfejs) |
 | `scripts/` | skrypty (`autoload/` globalne singletony, np. `GameState`) |
 | `data/` | dane gry jako zasoby Godota (`plants/`, `creatures/`) |
-| `art/`, `audio/` | grafika i dźwięk |
+| `art/models/` | modele do gry (`.glb`): `player.glb` z animacjami, `plants/<id>.glb` (3 etapy wzrostu w jednym pliku), `creatures/`, `buildings/`, `nature/` |
+| `art/source/` | pliki źródłowe Blendera (`.blend`) i szkice (`sketches/`); Godot je pomija (`.gdignore`) |
+| `audio/` | dźwięk |
 | `tests/` | testy uruchamiane z terminala |
 | `docs/` | raporty z playtestów |
 
@@ -68,7 +70,10 @@ Ruch jak w Risk of Rain 2:
 - Shift: dash (odnowienie 2 s).
 - Esc zwalnia mysz.
 
+Gra jest po angielsku i pokazuje jak najmniej tekstu. Obiekt, z którym można teraz coś zrobić, ma żółtą obwódkę.
+
 **Baza** (sadzenie i budowanie na siatce 1×1 m):
+- Tab (przytrzymaj): lista magazynu.
 - 1-8 / kółko: wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot).
 - LPM: użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek).
 - E: zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy.
@@ -80,3 +85,9 @@ Ruch jak w Risk of Rain 2:
 - Tab: plecak. Przeciągnij nasiono na rękę PPM; PPM na przedmiocie wyrzuca 1 sztukę, przeciągnięcie do kosza wyrzuca stos.
 - E: podnieś / zjedz dziki owoc / nabierz wody z Mglistego źródła / wezwij ewakuację.
 - Q: skanuj.
+
+## Sposób pracy
+
+- Napisy w grze są po angielsku i krótkie. Dokumenty są po polsku.
+- **Najpierw szkic, potem wdrożenie:** każda nowa rzecz widoczna w grze zaczyna się od szkicu do akceptacji (rysunek 2D albo bryła w Blenderze z renderem).
+- Modele: Blender, potem `.glb` w `art/models/`. Źródła `.blend` leżą w `art/source/`.

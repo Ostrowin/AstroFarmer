@@ -6,7 +6,7 @@
 script = ExtResource("1_plant")
 id = &"snapper"
 display_name = "Snapper"
-description = "Roślina-pułapka. Dojrzała kłapie paszczą na wszystko, co podejdzie zbyt blisko. Hodowana na nasiona do obrony."
+description = "A trap plant that snaps at anything nearby."
 shape = 2
 stages = 3
 cycles_per_stage = 1

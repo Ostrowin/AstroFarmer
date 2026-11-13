@@ -24,7 +24,8 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 - [x] Dokumenty (baza wiedzy, podsumowanie, design, pomysły, ToDo) zostają w katalogu głównym, żeby linki między nimi działały. Raporty z playtestów trafiają do `docs/`.
 - [x] Struktura folderów: `scenes/` (+ `levels/`, `ui/`), `scripts/` (+ `autoload/`), `data/plants/`, `data/creatures/`, `art/models/`, `art/textures/`, `audio/music/`, `audio/sfx/`, `tests/`, `docs/`.
 - [x] Fizyka Jolt ustawiona w `project.godot`.
-- [ ] Decyzja o pipeline grafiki: Blender → glTF, albo darmowe paczki low-poly (np. Kenney, Quaternius, licencja CC0) na etap prototypu. Rekomendacja: paczki CC0 do końca MVP, własne modele dopiero przy M4.
+- [x] Pipeline grafiki (2026-11-12): własne modele w Blenderze (przez Blender MCP) → eksport `.glb` do `art/models/`. Źródła `.blend` w `art/source/` (z `.gdignore`, Godot ich nie importuje). Pierwszy model: gracz (farmer w ogrodniczkach i słomianym kapeluszu, szkielet 20 kości, animacje Idle/Run/Sprint/Dash/Shoot/Jump).
+  - Rośliny (2026-11-12): 5 gatunków × 3 etapy w `art/source/plants.blend`, eksport do `art/models/plants/<id>.glb`, dojrzałe 1.1-1.45 m. Animacje w kodzie (`plant.gd`): kołysanie z własnym rytmem, pulsujące świecenie, oddychająca paszcza Snappera, falujący kapelusz Boomshrooma, krążące krople Mgielnika. Mutacje przemalowują materiały modelu. Tekstury i materiały można robić w TextureCraft/MaterialCraft (ArtCraft, CLI w `D:\Programy\Craft`).
 - [x] Autoload `GameState`: cykl, odkrycia, zasoby, Równowaga biomów, Uwaga planety, zapis/wczytanie JSON.
 - [x] Mapa klawiszy: WASD ruch, Spacja skok, Shift sprint, E interakcja, LPM narzędzie, Q skan, F9 następny cykl (debug).
 - [x] Scena startowa `scenes/main.tscn` (dolina, światło, niebo, atrapa postaci, HUD z cyklem).
@@ -47,7 +48,7 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 - [x] Zapis i wczytanie gry (JSON, autozapis po każdej zmianie farmy i przy zamknięciu okna).
 - [x] Bonus: dojrzały Snapper śledzi gracza głową i kłapie, gdy ten podejdzie za blisko.
 - [x] Testy: `tests/test_farm_loop.tscn` (22 sprawdzenia pętli farmy) + podgląd roślin `tests/showcase.tscn`.
-- [ ] Dźwięki są syntezowane w kodzie (`Sfx`). Podmienić na prawdziwe pliki, gdy będą.
+- [ ] Dźwięki są syntezowane w kodzie (`Sfx`). Podmienić na prawdziwe pliki, gdy będą. **Syntetyczne dźwięki irytują autora (2026-11-13): zająć się nimi zaraz po planie grafiki.**
 - [ ] **Playtest M1:** dać zagrać 1 osobie i sprawdzić test etapu (wpis do `docs/playtest-m1.md`).
 
 ## M2. Mini-wyprawa: czy decyzja o ewakuacji daje napięcie?
@@ -131,6 +132,32 @@ Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper
 - [x] Testy: `tests/test_controls.tscn` (35 sprawdzeń).
 - [ ] Ręczny test sterowania: czucie dasha i serii, czytelność plecaka.
 
+## 🎨 Plan grafiki i klimatu (kolejność ustalona 2026-11-12)
+
+Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bieżąco: każda nowa rzecz w grze najpierw dostaje szkic do akceptacji, a dopiero potem model.
+
+- [ ] **1. Dokończenie modeli:**
+  - [x] stworzenia (2026-11-12, `art/source/creatures.blend`, `art/models/creatures/`): Thornback ze szkieletem i animacjami Sleep/Idle/Walk/Run/Attack/Stunned; Pollenbug (skrzydła trzepoczą w kodzie) i Muncher (podskoki w kodzie),
+  - [x] budynki (2026-11-12, `art/source/buildings.blend`, `art/models/buildings/`, szkice w `art/source/sketches/`): chatka (blaszany barak z drewnianym frontem, gankiem, latarnią i anteną), warsztat, drzwi wyprawy (pierścień z portalem i kryształami, konsola), kapsuła z lądowiskiem (właz otwiera się po lądowaniu), słupek płotu, lądowisko ewakuacji z masztem,
+  - [x] natura (2026-11-13, `art/source/nature.blend`, `art/models/nature/`): spiralna sosna, drzewo-grzyb, nowe drzewo-latarnia (świecące bańki pod noc), głaz z mchem i kryształami, stos kamieni, Mgliste źródło, legowisko Thornbacka, staw w bazie, góry z kryształami,
+  - znajdźki,
+  - gracz: hełm astronauty (pomysł autora, 2026-11-13). Słomkowy kapelusz zostaje, np. na hełmie albo hełm otwierany. Najpierw szkic; do ustalenia, czy hełm jest tylko na wyprawie.
+- [ ] **2. Dzień i noc:** pora doby (słońce, księżyc, niebo, mgła). Nocne wyprawy z innymi znajdźkami, stworzeniami i efektami.
+- [ ] **3. Bioluminescencja:** świecące rośliny, grzyby i teren nocą, świetliki, zarodniki w powietrzu, poświata (glow) w środowisku.
+- [ ] **4. Tekstury:** stylizowane, ręcznie malowane (TextureCraft, MaterialCraft), najpierw teren, potem rośliny, gracz i budynki.
+- [ ] **5. Plansza stylu UI** (DesignCraft, FigCraft): menu, paski, skille, ekran komputera, plecak, raport na jednej planszy. Wdrożenie dopiero po akceptacji.
+
+## UI: angielski, mniej tekstu, obwódki (zrobione 2026-11-12)
+
+- [x] Wszystkie napisy w grze po angielsku (nazwy, podpowiedzi, okna, baza danych). Dokumenty zostają po polsku.
+- [x] Mniej tekstu:
+  - HUD bazy to tylko „Cycle N / Raid in N cycles”; magazyn pod przytrzymanym Tab.
+  - Na wyprawie paski Health i Awakening oraz licznik plecaka.
+  - Podpowiedzi typu „[E] Harvest”, najwyżej 4 krótkie powiadomienia naraz.
+  - Dash pokazuje się tylko podczas ładowania.
+- [x] Żółta obwódka (`scripts/fx/outline.gd`) na obiekcie, z którym można teraz coś zrobić: dojrzała albo spragniona roślina, słupek, warsztat, komputer, drzwi, staw, znajdźki, krzewy, źródło, lądowisko.
+- [x] Celownik na ziemi pod rośliną liczy się jako celowanie w roślinę.
+
 ## M4. Żywa planeta v1
 
 **Test etapu:** tester po 2-3 wyprawach potrafi powiedzieć, **dlaczego** dolina się zmieniła, i raz celowo próbuje ją rozchwiać albo ustabilizować dla konkretnej nagrody. Przynajmniej raz rezygnuje z rzadkiego łupu, bo boi się o bazę.
@@ -192,7 +219,15 @@ Pomysły z puli wciągnięte do MVP: `N1`, `E2`, `R3`, uproszczony `E1` (Snapper
 - [ ] Ucieczka mutanta (`R8`)
 - [ ] Dreamfruit (`T5`) · Fotograf-przyrodnik (`E3`)
 - [ ] Muzyka: spokojna w bazie, niepokojąca na wyprawie (baza wiedzy, sekcja 16)
-- [ ] Cykl dnia i nocy + dolina nocą przy wysokiej Równowadze: bioluminescencja i "grające" rośliny (`W2`)
+- [ ] Dolina nocą przy wysokiej Równowadze: "grające" rośliny (`W2`). Sam cykl dnia i nocy oraz bioluminescencja przeszły do planu grafiki (wyżej).
+- [ ] **Śpiewające rośliny** (pomysł użytkownika, 2026-11-12):
+  - **Humming Corn:** kukurydza, która nuci, gdy wieje wiatr albo gdy podejdziesz.
+  - **Chór drzew:** drzewa śpiewające razem pieśni w klimacie pieśni rdzennych Amerykanów.
+  - Rośliny mogą zgrywać się w melodię, kiedy rosną obok siebie (łączy się z `W2` i `R6` "Farma, która gra").
+- [ ] **Maszyny farmy** (pomysł autora, 2026-11-13; każda najpierw szkic):
+  - **Dron nawadniający:** lata nad grządkami i podlewa spragnione rośliny w zasięgu, wraca do stawu po wodę.
+  - **Traktor:** gracz wsiada i jedzie. Orze i sadzi duże połacie naraz (np. pas 3 pól), może też zbierać.
+  - Po odpaleniu traktora zawsze gra skoczna muzyka w stylu "Cotton Eye Joe". Uwaga: sam utwór jest chroniony prawem autorskim, więc w grze trzeba albo kupić licencję, albo zrobić własną melodię w tym klimacie (skrzypce, banjo, hoedown).
 - [ ] Trzeci biom (Pustynia lub Zimowe góry)
 
 ## 🌌 Kiedyś
@@ -227,6 +262,7 @@ Propozycje rozstrzygnięć są w [Design_Zywa_Planeta.md](Design_Zywa_Planeta.md
 ## ⚠️ Pilnować
 
 - [ ] Każdy nowy pomysł: czy wzmacnia ≥2 z 3 filarów? Czy da się go przetestować w małym prototypie?
+- [ ] **Najpierw szkic, potem wdrożenie.** Przed dodaniem czegoś nowego, co widać w grze (roślina, stworzenie, budynek, biom, efekt, UI), robimy szkic do akceptacji: rysunek 2D albo szybką bryłę w Blenderze z renderem. Dopiero po akceptacji model, animacje i kod. Przykłady w [Pomysly_rozszerzen.md](Pomysly_rozszerzen.md), sekcja "Do naszkicowania".
 - [ ] Gracz zawsze widzi, **dlaczego** coś się dzieje (roślina nie rośnie, stworzenie przyszło, biom się zmienił).
 - [ ] Wyższy poziom biomu = nowa zawartość, a nie tylko mocniejsi wrogowie.
 - [ ] Żadnego czekania w czasie rzeczywistym.

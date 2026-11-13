@@ -43,17 +43,17 @@ static func entry_for(id: StringName, amount := 1) -> Dictionary:
 		return entry
 	match id:
 		&"crystal":
-			entry.merge({"kind": "crystal", "color": Color(0.45, 0.95, 1.0), "scan": &"crystal_vein", "scan_name": "Żyła kryształów"}, true)
+			entry.merge({"kind": "crystal", "color": Color(0.45, 0.95, 1.0), "scan": &"crystal_vein", "scan_name": "Crystal Vein"}, true)
 		&"sample_glowmoss":
-			entry.merge({"rare": true, "color": Color(0.85, 1.0, 0.4), "scan": &"glowmoss", "scan_name": "Lśniący mech"}, true)
+			entry.merge({"rare": true, "color": Color(0.85, 1.0, 0.4), "scan": &"glowmoss", "scan_name": "Glowmoss"}, true)
 		&"pollen":
-			entry.merge({"color": Color(1.0, 0.85, 0.25), "scan": &"pollenbug", "scan_name": "Pyłkowiec"}, true)
+			entry.merge({"color": Color(1.0, 0.85, 0.25), "scan": &"pollenbug", "scan_name": "Pollenbug"}, true)
 		&"thorn":
 			entry["color"] = Creature.THORN_COLOR
 		&"fertilizer":
 			entry["color"] = RaidMarks.FERTILIZER_COLOR.lightened(0.3)
 		&"water_misty":
-			entry.merge({"color": MistySpring.WATER, "scan": &"misty_spring", "scan_name": "Mgliste źródło"}, true)
+			entry.merge({"color": MistySpring.WATER, "scan": &"misty_spring", "scan_name": "Misty Spring"}, true)
 		&"voidberry":
 			entry["color"] = Color(0.62, 0.3, 0.95)
 		&"mist_fruit":
@@ -89,7 +89,7 @@ func _process(delta: float) -> void:
 
 func display_name() -> String:
 	if kind == "artifact":
-		return buff.get("name", "Ulepszenie")
+		return buff.get("name", "Upgrade")
 	return PlantCatalog.item_name(item_id)
 
 

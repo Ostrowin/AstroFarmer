@@ -22,6 +22,11 @@ const GRAZE_RANGE := 14.0
 const EAT_SECONDS := 2.0
 const MAX_HEALTH := {Kind.POLLENBUG: 10.0, Kind.CHRUPIK: 20.0}
 const PANIC_SECONDS := 3.0
+## Modele z Blendera; brak pliku = model z brył.
+const MODELS := {
+	Kind.POLLENBUG: preload("res://art/models/creatures/pollenbug.glb"),
+	Kind.CHRUPIK: preload("res://art/models/creatures/muncher.glb"),
+}
 
 var kind: Kind = Kind.CHRUPIK
 ## Środek terenu stworzenia; ustawiane przed dodaniem do sceny.
@@ -63,8 +68,8 @@ func _ready() -> void:
 
 func get_scan_info() -> Dictionary:
 	if kind == Kind.POLLENBUG:
-		return {"id": &"pollenbug", "name": "Pyłkowiec (zapylacz)"}
-	return {"id": &"chrupik", "name": "Chrupik (roślinożerca)"}
+		return {"id": &"pollenbug", "name": "Pollenbug"}
+	return {"id": &"chrupik", "name": "Muncher"}
 
 
 func stun(seconds := 3.0) -> void:
@@ -218,7 +223,7 @@ func _pick_target() -> void:
 func _drop_pollen() -> void:
 	var pickup := Pickup.new()
 	pickup.setup({"kind": "sample", "item": &"pollen", "amount": 1, "scan": &"pollenbug",
-		"scan_name": "Pyłkowiec", "color": Color(1.0, 0.85, 0.25)})
+		"scan_name": "Pollenbug", "color": Color(1.0, 0.85, 0.25)})
 	get_parent().add_child(pickup)
 	pickup.global_position = Vector3(global_position.x + 0.4, 0.0, global_position.z)
 
@@ -239,10 +244,24 @@ func _animate(_delta: float, stunned: bool) -> void:
 func _build_model() -> void:
 	_model = Node3D.new()
 	add_child(_model)
+	var scene: PackedScene = MODELS.get(kind)
+	if scene:
+		var model := scene.instantiate() as Node3D
+		_model.add_child(model)
+		for wing_name in ["WingL", "WingR"]:
+			var wing := model.find_child(wing_name, true, false) as Node3D
+			if wing:
+				_wings.append(wing)
+		_build_stars()
+		return
 	if kind == Kind.POLLENBUG:
 		_build_pollenbug()
 	else:
 		_build_chrupik()
+	_build_stars()
+
+
+func _build_stars() -> void:
 	_stars = Label3D.new()
 	_stars.text = "* * *"
 	_stars.billboard = BaseMaterial3D.BILLBOARD_ENABLED

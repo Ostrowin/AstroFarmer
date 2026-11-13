@@ -82,16 +82,7 @@ func set_player(player: Player) -> void:
 
 func set_awakening(value: float) -> void:
 	_awake_bar.value = value
-	var phase := "spokój"
-	if value >= 100.0:
-		phase = "PLANETA SIĘ BRONI"
-	elif value >= 75.0:
-		phase = "drapieżnik poluje"
-	elif value >= 50.0:
-		phase = "planeta się budzi"
-	elif value >= 25.0:
-		phase = "niepokój"
-	_awake_label.text = "Przebudzenie %d/100 · %s" % [int(value), phase]
+	_awake_label.text = "Awakening %d" % int(value)
 
 
 func set_alert(text: String) -> void:
@@ -101,22 +92,23 @@ func set_alert(text: String) -> void:
 func _on_health_changed(health: float, max_health: float) -> void:
 	_health_bar.max_value = max_health
 	_health_bar.value = health
-	_health_label.text = "Kondycja %d/%d" % [ceili(health), int(max_health)]
+	_health_label.text = "Health %d/%d" % [ceili(health), int(max_health)]
 
 
 func _status_text() -> String:
-	var run := GameState.run
-	var found := run.discoveries.size() if run else 0
-	var buffs := (", ".join(run.buffs) if run and not run.buffs.is_empty() else "brak")
-	var level := " · poziom 2" if run and run.level >= 2 else ""
-	return "Wyprawa · Dzika łąka%s\nNowe odkrycia: %d\nUlepszenia: %s" % [level, found, buffs]
+	return ""
 
 
 func _inventory_text() -> String:
 	var run := GameState.run
 	if run == null:
-		return "Plecak\n(brak wyprawy)"
-	return "Plecak %d/%d\n%s" % [run.used_space(), run.capacity, Hud.item_lines(run.backpack)]
+		return ""
+	return "Backpack %d/%d" % [run.used_space(), run.capacity]
+
+
+## Na wyprawie licznik plecaka jest zawsze widoczny (Tab otwiera pełny plecak).
+func details_visible() -> bool:
+	return not modal
 
 
 func _make_bar(fill: Color) -> ProgressBar:

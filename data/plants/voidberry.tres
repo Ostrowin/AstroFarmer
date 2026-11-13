@@ -6,14 +6,14 @@
 script = ExtResource("1_plant")
 id = &"voidberry"
 display_name = "Voidberry"
-description = "Krzaczek z fioletowymi, lekko świecącymi jagodami. Jadalne. Lubi wodę."
+description = "A bush with glowing, edible berries."
 shape = 0
 stages = 3
 cycles_per_stage = 1
 needs_water = true
 min_spacing = 1.0
 harvest_item = &"voidberry"
-harvest_item_name = "Voidberry (owoc)"
+harvest_item_name = "Voidberry"
 harvest_amount = Vector2i(2, 3)
 seeds_per_harvest = Vector2i(1, 2)
 leaf_color = Color(0.3, 0.7, 0.4, 1)

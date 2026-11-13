@@ -1,16 +1,29 @@
 class_name PlantVisuals
 extends RefCounted
-## Buduje prosty, kreskówkowy model rośliny z prymitywów (prototyp bez assetów).
-## Etap 0 = kiełek, ostatni etap = dojrzała roślina z owocami / kryształami / paszczą.
+## Model rośliny dla danego etapu wzrostu.
+## Gatunki z modelem z Blendera (art/models/plants/<id>.glb, trzy etapy:
+## węzły <id>_stage0..2) ładują go; pozostałe budują się z prymitywów.
+## Etap 0 = kiełek, ostatni etap = dojrzała roślina.
+## Ruchome węzły modelu: Head/JawTop/JawBottom (Snapper), Cap (Boomshroom), Orbs (Mgielnik).
 
 ## Kąt otwarcia szczęk Snappera (radiany): górna +, dolna -.
 const JAW_OPEN := 0.45
 
+const MODELS := {
+	&"voidberry": preload("res://art/models/plants/voidberry.glb"),
+	&"crystal_bloom": preload("res://art/models/plants/crystal_bloom.glb"),
+	&"snapper": preload("res://art/models/plants/snapper.glb"),
+	&"boomshroom": preload("res://art/models/plants/boomshroom.glb"),
+	&"mistbloom": preload("res://art/models/plants/mistbloom.glb"),
+}
+const MODEL_STAGES := 3
+const GIANT_SCALE := 1.4
+
 ## Widoczne mutacje upraw: nazwa, bonus do plonu i wygląd.
 const MUTATIONS := {
-	&"golden": {"name": "Złota", "desc": "+1 plonu", "harvest_bonus": 1, "seed_bonus": 0},
-	&"giant": {"name": "Olbrzymia", "desc": "+2 plonu", "harvest_bonus": 2, "seed_bonus": 0},
-	&"glowing": {"name": "Świecąca", "desc": "+1 nasiono", "harvest_bonus": 0, "seed_bonus": 1},
+	&"golden": {"name": "Golden", "desc": "+1 yield", "harvest_bonus": 1, "seed_bonus": 0},
+	&"giant": {"name": "Giant", "desc": "+2 yield", "harvest_bonus": 2, "seed_bonus": 0},
+	&"glowing": {"name": "Glowing", "desc": "+1 seed", "harvest_bonus": 0, "seed_bonus": 1},
 }
 const GOLD := Color(0.98, 0.8, 0.25)
 
@@ -18,6 +31,65 @@ static var _materials: Dictionary = {}
 
 
 static func build(data: PlantData, stage: int, mutation: StringName = &"") -> Node3D:
+	var scene: PackedScene = MODELS.get(data.id)
+	if scene == null:
+		return _build_primitive(data, stage, mutation)
+	var root := scene.instantiate() as Node3D
+	root.name = "Model"
+	# Etap danych -> etap modelu (modele mają 3 etapy).
+	var model_stage := roundi(float(stage) / float(maxi(1, data.last_stage())) * (MODEL_STAGES - 1))
+	var wanted := "%s_stage%d" % [data.id, model_stage]
+	var keep: Node3D = null
+	for child in root.get_children():
+		if child.name == wanted:
+			keep = child
+		else:
+			root.remove_child(child)
+			child.free()
+	if keep == null:
+		return root
+	keep.name = "Stage"
+	var top := root.find_child("JawTop", true, false) as Node3D
+	var bottom := root.find_child("JawBottom", true, false) as Node3D
+	if top and bottom:
+		top.rotation.x = JAW_OPEN
+		bottom.rotation.x = -JAW_OPEN
+	match mutation:
+		&"golden":
+			_tint_meshes(keep, GOLD, 0.65, 0.0)
+		&"glowing":
+			_tint_meshes(keep, Color.WHITE, 0.0, 0.5)
+			var light := OmniLight3D.new()
+			light.light_color = data.accent_color.lightened(0.3)
+			light.light_energy = 1.2
+			light.omni_range = 3.0
+			light.position.y = 0.8
+			root.add_child(light)
+		&"giant":
+			keep.scale = Vector3.ONE * GIANT_SCALE
+	return root
+
+
+## Kopie materiałów modelu: kolor przesunięty w stronę `tint`, opcjonalne świecenie.
+static func _tint_meshes(node: Node, tint: Color, amount: float, glow: float) -> void:
+	for child in node.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := child as MeshInstance3D
+		for i in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.get_active_material(i) as BaseMaterial3D
+			if source == null:
+				continue
+			var copy := source.duplicate() as BaseMaterial3D
+			if not copy.emission_enabled:
+				copy.albedo_color = copy.albedo_color.lerp(tint, amount)
+			if glow > 0.0:
+				copy.emission_enabled = true
+				copy.emission = copy.albedo_color
+				copy.emission_energy_multiplier = maxf(copy.emission_energy_multiplier, glow) if source.emission_enabled else glow
+			mesh_instance.set_surface_override_material(i, copy)
+
+
+## Zapasowy model z prymitywów (gatunki bez modelu z Blendera).
+static func _build_primitive(data: PlantData, stage: int, mutation: StringName = &"") -> Node3D:
 	var root := Node3D.new()
 	root.name = "Model"
 	var growth := float(stage) / float(maxi(1, data.last_stage()))

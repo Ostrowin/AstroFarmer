@@ -12,6 +12,13 @@ signal killed(creature: Creature)
 enum State { SLEEP, WANDER, CHASE, WINDUP, STUNNED, TRAPPED, FLEE, DEAD }
 
 const FLEE_HEALTH := 0.25
+## Model z Blendera (szkielet + animacje). Brak pliku = model z brył.
+const MODEL := preload("res://art/models/creatures/thornback.glb")
+const ANIMATIONS := {
+	State.SLEEP: &"Sleep", State.WANDER: &"Walk", State.CHASE: &"Run", State.FLEE: &"Run",
+	State.WINDUP: &"Attack", State.STUNNED: &"Stunned", State.TRAPPED: &"Stunned",
+}
+const LOOPED := [&"Idle", &"Sleep", &"Walk", &"Run", &"Stunned"]
 const THORN_COLOR := Color(1.0, 0.55, 0.2)
 
 @export var walk_speed := 2.4
@@ -39,6 +46,7 @@ var _stars: Label3D
 var _health_label: Label3D
 var _fled_once := false
 var _body_materials: Dictionary = {}
+var _anim: AnimationPlayer
 
 
 func _ready() -> void:
@@ -59,7 +67,7 @@ func _ready() -> void:
 
 
 func get_scan_info() -> Dictionary:
-	return {"id": &"thornback", "name": "Thornback (drapieżnik)"}
+	return {"id": &"thornback", "name": "Thornback"}
 
 
 func state_name() -> String:
@@ -204,9 +212,8 @@ func _drop_thorns() -> void:
 ## żeby szybkie serie strzałów nie zostawiły stworzenia białego.
 func _flash() -> void:
 	if _body_materials.is_empty():
-		for child in _body.get_children():
-			if child is MeshInstance3D:
-				_body_materials[child] = (child as MeshInstance3D).material_override
+		for child in _body.find_children("*", "MeshInstance3D", true, false):
+			_body_materials[child] = (child as MeshInstance3D).material_override
 	for mesh: MeshInstance3D in _body_materials:
 		mesh.material_override = PlantVisuals.material(Color(1, 1, 1), 1.5)
 	get_tree().create_timer(0.08).timeout.connect(_restore_materials)
@@ -259,6 +266,13 @@ func _set_state(new_state: State) -> void:
 			eye = Color(1, 1, 0.5)
 	_eye_material.albedo_color = eye
 	_eye_material.emission = eye
+	if _anim:
+		if state == State.DEAD:
+			_anim.pause()
+		else:
+			var clip: StringName = ANIMATIONS.get(state, &"Idle")
+			if _anim.has_animation(clip) and _anim.current_animation != clip:
+				_anim.play(clip, 0.15)
 
 
 static func _flat(v: Vector3) -> Vector3:
@@ -272,6 +286,13 @@ func _animate(delta: float, move: Vector3, speed: float) -> void:
 		var target_yaw := atan2(-move.x, -move.z)
 		_model.rotation.y = lerp_angle(_model.rotation.y, target_yaw, clampf(delta * 8.0, 0.0, 1.0))
 	var moving := speed > 0.1 and move.length_squared() > 0.01
+	if _anim:
+		# Model z Blendera ma własne animacje; tempo biegu dopasowane do prędkości.
+		_anim.speed_scale = clampf(Vector2(velocity.x, velocity.z).length() / (run_speed if state in [State.CHASE, State.FLEE] else walk_speed), 0.6, 1.6) if moving else 1.0
+		if state in [State.STUNNED, State.TRAPPED]:
+			_stars.rotation.y += delta * 4.0
+		_zzz.position.y = 1.5 + fmod(_time * 0.4, 0.5)
+		return
 	match state:
 		State.SLEEP:
 			_body.position.y = sin(_time * 1.5) * 0.03
@@ -291,6 +312,16 @@ func _animate(delta: float, move: Vector3, speed: float) -> void:
 func _build_model() -> void:
 	_model = Node3D.new()
 	add_child(_model)
+	if MODEL:
+		_body = MODEL.instantiate() as Node3D
+		_model.add_child(_body)
+		_anim = _body.find_children("*", "AnimationPlayer", true, false).front() as AnimationPlayer
+		for clip in LOOPED:
+			if _anim and _anim.has_animation(clip):
+				_anim.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		_eye_material = _take_eye_material(_body)
+		_build_labels()
+		return
 	_body = Node3D.new()
 	_model.add_child(_body)
 	var fur := Color(0.36, 0.22, 0.48)
@@ -320,7 +351,27 @@ func _build_model() -> void:
 		for z in [-0.45, 0.45]:
 			_add(_body, _cylinder(0.08, 0.45), Vector3(x, 0.22, z), fur.darkened(0.25))
 	_add(_body, _cone(0.12, 0.6, 5), Vector3(0, 0.7, 0.95), fur, Vector3(-1.2, 0, 0))
+	_build_labels()
 
+
+## Oczy modelu dostają własną kopię materiału (kolor zależy od stanu).
+static func _take_eye_material(model: Node) -> StandardMaterial3D:
+	for node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		for i in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.mesh.surface_get_material(i)
+			if source and source.resource_name == "TB_Eye":
+				var copy := source.duplicate() as StandardMaterial3D
+				copy.emission_enabled = true
+				copy.emission_energy_multiplier = 1.5
+				mesh_instance.set_surface_override_material(i, copy)
+				return copy
+	var fallback := StandardMaterial3D.new()
+	fallback.emission_enabled = true
+	return fallback
+
+
+func _build_labels() -> void:
 	_zzz = Label3D.new()
 	_zzz.text = "z Z z"
 	_zzz.billboard = BaseMaterial3D.BILLBOARD_ENABLED

@@ -102,7 +102,7 @@ func _test_mutations_and_mistbloom() -> void:
 	var plain := farm.plant_seed(voidberry, Vector3(3, 0, 0))
 	plain.stage = voidberry.last_stage()
 	farm._sync()
-	_check(golden.display_name() == "Złota Voidberry", "mutacja w nazwie")
+	_check(golden.display_name() == "Golden Voidberry", "mutacja w nazwie")
 	_check(GameState.farm[0]["mutation"] == "golden", "mutacja zapisana")
 	farm.load_from_state()
 	await get_tree().process_frame
@@ -136,7 +136,7 @@ func _test_mutations_and_mistbloom() -> void:
 	var mist := farm.plant_seed(mistbloom, Vector3(-3, 0, 0))
 	_check(mist.needs_sprout_item(), "Mgielnik śpi w łupinie")
 	var water_before := GameState.get_resource(&"water")
-	_check(farm.water_plant(mist).contains("Mglistego"), "zwykła woda go nie budzi")
+	_check(farm.water_plant(mist) == "Needs Misty Water", "zwykła woda go nie budzi")
 	_check(GameState.get_resource(&"water") == water_before, "konewka nie traci wody na Mgielnika")
 	GameState.add_resource(&"fertilizer", 1)
 	_check(not farm.fertilize(mist), "nawóz nie budzi Mgielnika")
@@ -235,7 +235,7 @@ func _test_codex_panel() -> void:
 	var labels := panel.find_children("*", "Label", true, false)
 	var text := "\n".join(labels.map(func(l: Label) -> String: return l.text))
 	_check(text.contains("Voidberry") and text.contains("???"), "panel bazy danych: znane i nieznane wpisy")
-	_check(text.contains("Poziom 2 łąki"), "panel pokazuje postęp do poziomu 2")
+	_check(text.contains("Meadow II"), "panel pokazuje postęp do poziomu 2")
 	panel.queue_free()
 	await get_tree().process_frame
 

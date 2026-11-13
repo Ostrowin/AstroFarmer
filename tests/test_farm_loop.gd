@@ -37,14 +37,14 @@ func _run() -> void:
 
 	# Reguły sadzenia i powody odmowy.
 	_check(farm.placement_problem(voidberry, spot, Vector3.UP, soil, here) == "", "można sadzić na glebie")
-	_check(farm.placement_problem(voidberry, spot, Vector3.UP, rock, here).begins_with("Tu nic"), "skała to nie gleba")
-	_check(farm.placement_problem(voidberry, spot, Vector3(0.7, 0.7, 0), soil, here) == "Za stromo", "za stromo")
-	_check(farm.placement_problem(voidberry, Vector3(9, 0, 0), Vector3.UP, soil, here) == "Za daleko", "za daleko")
+	_check(farm.placement_problem(voidberry, spot, Vector3.UP, rock, here) == "Can't plant here", "skała to nie gleba")
+	_check(farm.placement_problem(voidberry, spot, Vector3(0.7, 0.7, 0), soil, here) == "Too steep", "za stromo")
+	_check(farm.placement_problem(voidberry, Vector3(9, 0, 0), Vector3.UP, soil, here) == "Too far", "za daleko")
 
 	var plant := farm.plant_seed(voidberry, spot)
 	_check(plant != null, "posadzono Voidberry")
 	_check(state.get_resource(&"seed_voidberry") == 1, "zużyto 1 nasiono")
-	_check(farm.placement_problem(voidberry, spot + Vector3(0.3, 0, 0), Vector3.UP, soil, here).begins_with("Pole zajęte"), "siatka: pole zajęte")
+	_check(farm.placement_problem(voidberry, spot + Vector3(0.3, 0, 0), Vector3.UP, soil, here) == "Occupied", "siatka: pole zajęte")
 	_check(plant.global_position.x == 1.5 and plant.global_position.z == 0.5, "roślina na środku pola siatki")
 	_check(farm.placement_problem(voidberry, spot + Vector3(1.0, 0, 0), Vector3.UP, soil, here) == "", "sąsiednie pole wolne")
 	_check(state.farm.size() == 1, "farma zapisana w GameState")

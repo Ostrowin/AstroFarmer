@@ -1,28 +1,6 @@
 [gd_scene format=3]
 
-[sub_resource type="CylinderMesh" id="Mesh_trunk"]
-top_radius = 0.18
-bottom_radius = 0.28
-height = 2.0
-radial_segments = 6
-
-[sub_resource type="StandardMaterial3D" id="Material_trunk"]
-albedo_color = Color(0.45, 0.3, 0.38, 1)
-
-[sub_resource type="CylinderMesh" id="Mesh_foliage_low"]
-top_radius = 0.0
-bottom_radius = 1.5
-height = 2.6
-radial_segments = 6
-
-[sub_resource type="CylinderMesh" id="Mesh_foliage_high"]
-top_radius = 0.0
-bottom_radius = 1.05
-height = 2.0
-radial_segments = 6
-
-[sub_resource type="StandardMaterial3D" id="Material_foliage"]
-albedo_color = Color(0.2, 0.62, 0.55, 1)
+[ext_resource type="PackedScene" path="res://art/models/nature/tree_pine.glb" id="1_model"]
 
 [sub_resource type="CylinderShape3D" id="Shape_trunk"]
 height = 2.0
@@ -30,21 +8,8 @@ radius = 0.3
 
 [node name="TreeCone" type="StaticBody3D"]
 
-[node name="Trunk" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("Mesh_trunk")
-surface_material_override/0 = SubResource("Material_trunk")
-
-[node name="FoliageLow" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 0)
-mesh = SubResource("Mesh_foliage_low")
-surface_material_override/0 = SubResource("Material_foliage")
-
-[node name="FoliageHigh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 0)
-mesh = SubResource("Mesh_foliage_high")
-surface_material_override/0 = SubResource("Material_foliage")
+[node name="Model" parent="." instance=ExtResource("1_model")]
 
 [node name="Collision" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.2)
 shape = SubResource("Shape_trunk")

@@ -6,7 +6,7 @@
 script = ExtResource("1_plant")
 id = &"boomshroom"
 display_name = "Boomshroom"
-description = "Grzyb obronny. Dojrzały wypuszcza chmurę zarodników z hukiem i odrzuca wszystko, co podejdzie za blisko. W bazie przegania szkodniki w szerokim promieniu, na wyprawie rzucony ogłusza stworzenia."
+description = "A defensive mushroom that bursts into a spore cloud."
 shape = 3
 stages = 3
 cycles_per_stage = 1

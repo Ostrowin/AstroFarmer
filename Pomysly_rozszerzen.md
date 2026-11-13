@@ -231,3 +231,13 @@ Ekran przygotowania pokazuje, skąd w tym cyklu może przyjść zagrożenie (str
 - **Co-op online:** dla solo deva w Godocie to osobny projekt (sieć, synchronizacja świata). Kiedyś, jeśli w ogóle.
 - **Pełna symulacja populacji:** baza wiedzy ostrzega przed nią (7.4). Zostają proste reguły i progi.
 - **Walka pojazdami / Tank:** zgodnie z bazą wiedzy (13.4) tylko późna technologia.
+
+---
+
+## ✏️ Do naszkicowania (zasada: najpierw szkic, potem wdrożenie)
+
+Każda nowa rzecz, którą widać w grze, zaczyna się od szkicu: rysunku 2D albo szybkiej bryły w Blenderze z renderem. Szkic trafia do akceptacji, dopiero potem robimy model, animacje i kod. Pomysły czekające na szkic:
+
+- [ ] **Drzewa nawiedzonego lasu:** pokręcone, ciemne pnie, trochę strasznie, trochę uroczo (pasuje do Grzybowego lasu z M5 albo osobnego biomu).
+- [ ] **Wielki grzyb na skale:** ogromny grzyb wyrastający ze skały, kapelusz świecący od spodu na niebiesko (bioluminescencja, punkt orientacyjny w nocy).
+- [ ] **Las wysokiej trawy, który nuci:** trawa wyższa od farmera, robi „hmmm” w rytmie przypominającym pieśń krasnoludów z Hobbita (Misty Mountains). Łączy się ze śpiewającymi roślinami (Humming Corn, chór drzew) w ToDo.

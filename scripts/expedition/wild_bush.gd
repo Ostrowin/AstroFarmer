@@ -39,5 +39,4 @@ func _rebuild() -> void:
 	if _model:
 		_model.queue_free()
 	_model = PlantVisuals.build(_data, 1 if eaten else _data.last_stage())
-	_model.scale = Vector3.ONE * 1.4
 	add_child(_model)
