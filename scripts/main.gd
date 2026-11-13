@@ -24,6 +24,7 @@ var _interaction: PlayerInteraction
 var _collecting := false
 var _farm_lines: Array[String] = []
 var _raids: Array[Dictionary] = []
+var day_night: DayNight
 
 
 func _ready() -> void:
@@ -36,6 +37,7 @@ func _ready() -> void:
 			GameState.new_game()
 	_farm.load_from_state()
 	_player.global_position = _spawn.global_position
+	_setup_day_night()
 
 	_interaction = _player.interaction as PlayerInteraction
 	_interaction.farm = _farm
@@ -282,3 +284,13 @@ func _save() -> void:
 	var error := GameState.save_game()
 	if error != OK:
 		push_warning("Could not save the game: %s" % error_string(error))
+
+
+## Pora doby w bazie: własna kopia środowiska (zasób sceny jest współdzielony).
+func _setup_day_night() -> void:
+	var world_env := $WorldEnvironment as WorldEnvironment
+	world_env.environment = world_env.environment.duplicate(true)
+	day_night = DayNight.new()
+	day_night.name = "DayNight"
+	add_child(day_night)
+	day_night.setup(world_env.environment, $Sun as DirectionalLight3D)

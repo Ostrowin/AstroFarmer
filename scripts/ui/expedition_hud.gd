@@ -96,7 +96,7 @@ func _on_health_changed(health: float, max_health: float) -> void:
 
 
 func _status_text() -> String:
-	return ""
+	return GameState.clock_text(GameState.time_of_day)
 
 
 func _inventory_text() -> String:

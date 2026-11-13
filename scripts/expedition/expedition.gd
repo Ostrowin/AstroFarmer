@@ -59,6 +59,7 @@ var _storm_time := -1.0
 @onready var _sun: DirectionalLight3D = $Sun
 
 var _environment: Environment
+var day_night: DayNight
 ## Mnożnik tempa Przebudzenia (danie z kuchni).
 var _awakening_rate := 1.0
 var _inventory: InventoryPanel
@@ -71,6 +72,10 @@ func _ready() -> void:
 	var world_env := $WorldEnvironment as WorldEnvironment
 	_environment = world_env.environment.duplicate(true)
 	world_env.environment = _environment
+	day_night = DayNight.new()
+	day_night.name = "DayNight"
+	add_child(day_night)
+	day_night.setup(_environment, _sun)
 	# Uruchomiona bezpośrednio z edytora (F6): wyprawa testowa bez wyposażenia.
 	run = GameState.run if GameState.run else GameState.start_run({})
 	_spawn_world()
@@ -175,8 +180,7 @@ func _spawn_world() -> void:
 
 ## Poziom 2: mgła, Mgliste źródło, nasiono Mgielnika i dodatkowe znajdźki.
 func _apply_level_2() -> void:
-	_environment.fog_density = 0.012
-	_environment.fog_light_color = Color(0.7, 0.8, 0.95)
+	day_night.mist = 1.0
 	var spring := MistySpring.new()
 	spring.position = SPRING_POSITION
 	_level.add_child(spring)
@@ -279,16 +283,9 @@ func _on_threshold(threshold: int) -> void:
 			_weather(0.035, 0.45, Color(1.0, 0.4, 0.35), Color(0.55, 0.15, 0.2))
 
 
+## Pogoda nakłada się na porę doby (DayNight robi płynne przejście).
 func _weather(fog: float, light: float, light_color: Color, fog_color: Color) -> void:
-	var tween := create_tween().set_parallel()
-	tween.tween_property(_environment, "fog_density", fog, 4.0)
-	tween.tween_property(_environment, "fog_light_color", fog_color, 4.0)
-	tween.tween_property(_sun, "light_energy", light, 4.0)
-	tween.tween_property(_sun, "light_color", light_color, 4.0)
-	var sky := _environment.sky.sky_material as ProceduralSkyMaterial
-	if sky:
-		tween.tween_property(sky, "sky_top_color", fog_color.darkened(0.4), 4.0)
-		tween.tween_property(sky, "sky_horizon_color", fog_color, 4.0)
+	day_night.set_weather(fog, light, light_color, fog_color)
 
 
 # --- Koniec wyprawy ----------------------------------------------------------

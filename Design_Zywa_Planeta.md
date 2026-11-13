@@ -263,6 +263,15 @@ Niezależna recenzja: 3 rundy, ocena 6 → 8/10, 31 uwag potwierdzonych jako roz
 
 ---
 
+## Pora doby (ustalone 2026-11-13)
+
+- **Zegar w czasie rzeczywistym:** doba trwa 10 minut i płynie zarówno w bazie, jak i na wyprawie. Noc może zastać gracza w trakcie wyprawy. Cykle farmy (1 wyprawa = 1 cykl) liczą się osobno.
+- Gra zaczyna się rano (około 08:00). Świt około 05:00-07:00, zmierzch około 17:00-19:00.
+- **Noc jest prawie czarna** (decyzja autora: pod przyszłą bioluminescencję). Widać sylwetki gór na tle gwiazd i rzeczy, które same świecą (portal, latarnie, kryształy, lampa chatki, kropki na grzybach w oddali). Teren obok gracza oświetla tylko **latarka na hełmie**, która świeci w kierunku patrzenia.
+- **Nocna wyprawa różni się:** nocne znajdźki (rzadsze i cenniejsze) i nocne stworzenie. Oba czekają na szkic. Thornback na razie bez zmian (będzie przerobiony).
+- Na niebie są dwa księżyce: duży biały i mały fioletowy.
+- Pogoda wyprawy (burza przy wysokim Przebudzeniu) i mgła poziomu 2 nakładają się na porę doby.
+
 ## Proces: najpierw szkic, potem wdrożenie (od 2026-11-12)
 
 Przed dodaniem do gry czegokolwiek, co widać (roślina, stworzenie, budynek, biom, efekt, element UI), powstaje szkic do akceptacji:

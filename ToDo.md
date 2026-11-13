@@ -142,7 +142,12 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
   - [x] natura (2026-11-13, `art/source/nature.blend`, `art/models/nature/`): spiralna sosna, drzewo-grzyb, nowe drzewo-latarnia (świecące bańki pod noc), głaz z mchem i kryształami, stos kamieni, Mgliste źródło, legowisko Thornbacka, staw w bazie, góry z kryształami,
   - [x] znajdźki (2026-11-13, `art/source/pickups.blend`, `art/models/pickups/`): nasiono w łupinie (kolor z rośliny), kępa kryształów, świecący mech, pyłek, kolec Thornbacka, worek nawozu, fiolka mglistej wody, kiść voidberry, owoc Mgielnika, artefakt (klejnot nad cokołem z runami),
   - [x] gracz: hełm astronauty (pomysł autora, wybrany wariant A, 2026-11-13): szklana bańka, słomkowy kapelusz na jej czubku, kołnierz i rurka do plecaka; hełm noszony zawsze. Kopia modelu sprzed hełmu: `art/source/player_before_helmet.blend`.
-- [ ] **2. Dzień i noc:** pora doby (słońce, księżyc, niebo, mgła). Nocne wyprawy z innymi znajdźkami, stworzeniami i efektami.
+- [ ] **2. Dzień i noc** (zasady ustalone 2026-11-13, opis w `Design_Zywa_Planeta.md`, sekcja "Pora doby"):
+  - [x] zegar w czasie rzeczywistym: doba trwa 10 minut, płynie w bazie i na wyprawie, zapisuje się w grze; zegar w HUD; F8 przesuwa czas o 2 godziny (debug),
+  - [x] niebo, słońce po łuku, świt i zmierzch, ciemna noc z gwiazdami i dwoma księżycami (biały i mały fioletowy); burza i mgła poziomu 2 nakładają się na porę doby (`scripts/fx/day_night.gd`),
+  - [x] latarka na hełmie: snop światła tam, gdzie patrzy gracz, włącza się o zmierzchu,
+  - [ ] nocne znajdźki (rzadsze i cenniejsze; najpierw szkic),
+  - [ ] nocne stworzenie (najpierw szkic). Thornback zostaje bez zmian, bo w przyszłości będzie przerobiony i dojdzie dużo nowych stworzeń.
 - [ ] **3. Bioluminescencja:** świecące rośliny, grzyby i teren nocą, świetliki, zarodniki w powietrzu, poświata (glow) w środowisku.
 - [ ] **4. Tekstury:** stylizowane, ręcznie malowane (TextureCraft, MaterialCraft), najpierw teren, potem rośliny, gracz i budynki.
 - [ ] **5. Plansza stylu UI** (DesignCraft, FigCraft): menu, paski, skille, ekran komputera, plecak, raport na jednej planszy. Wdrożenie dopiero po akceptacji.

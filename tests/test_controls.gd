@@ -19,6 +19,7 @@ func _run() -> void:
 	await _test_grid()
 	await _test_plant_models()
 	_test_migrations()
+	_test_clock()
 	await _test_expedition()
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
@@ -124,11 +125,27 @@ func _test_expedition() -> void:
 	var tree := player.get_node("Visual/Model/AnimationTree") as AnimationTree
 	_check(tree != null and tree.active, "AnimationTree działa")
 
+	# Pora doby na wyprawie: noc ciemna, latarka na hełmie; w dzień latarka zgaszona.
+	var day_night := expedition.get("day_night") as DayNight
+	_check(day_night != null, "wyprawa ma porę doby")
+	GameState.time_of_day = 0.0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var sun := expedition.get_node("Sun") as DirectionalLight3D
+	_check(player.flashlight.visible and player.flashlight.light_energy > 4.0, "noc: latarka na hełmie świeci")
+	var env := (expedition.get_node("WorldEnvironment") as WorldEnvironment).environment
+	_check(sun.light_energy < 0.05 and env.ambient_light_sky_contribution < 0.01, "noc: prawie czarno (księżyc %.3f)" % sun.light_energy)
+	GameState.time_of_day = 0.5
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(not player.flashlight.visible and sun.light_energy > 0.5, "dzień: latarka zgaszona, jasno")
+
 	# Dash i bieg.
 	var start := player.global_position
 	_check(player.dash(Vector3.FORWARD), "dash działa")
 	_check(not player.dash(Vector3.FORWARD), "dash ma czas odnowienia")
-	await _frames(1)
+	# Sygnał physics_frame przychodzi przed _physics_process gracza, więc czekamy 2 kroki.
+	await _frames(2)
 	_check(player.animation_state() == &"Dash", "animacja dasha")
 	player.play_shoot()
 	await get_tree().process_frame
@@ -217,6 +234,23 @@ func _test_expedition() -> void:
 	expedition.queue_free()
 	await _frames(2)
 	GameState.finish_run(false)
+
+
+# --- Zegar doby ---------------------------------------------------------------
+
+func _test_clock() -> void:
+	_check(GameState.clock_text(0.5) == "12:00" and GameState.clock_text(0.75) == "18:00", "zegar: 12:00 i 18:00")
+	_check(GameState.night_amount(0.0) == 1.0 and GameState.night_amount(0.5) == 0.0, "noc o północy, dzień w południe")
+	var dusk := GameState.night_amount(0.75)
+	_check(dusk > 0.0 and dusk < 1.0, "zmierzch: płynne przejście")
+	_check(DayNight.palette(0.0, DayNight.DAWN)["energy"] < 0.05 and DayNight.NIGHT_AMBIENT.get_luminance() < 0.01, "noc prawie czarna")
+	GameState.time_of_day = 0.99
+	GameState.advance_time(GameState.DAY_SECONDS * 0.02)
+	_check(GameState.time_of_day < 0.02, "doba zawija się po północy")
+	GameState.time_of_day = 0.9
+	var data := GameState.to_dict()
+	GameState.from_dict(data)
+	_check(is_equal_approx(GameState.time_of_day, 0.9), "pora doby w zapisie gry")
 
 
 # --- Pomocnicze --------------------------------------------------------------

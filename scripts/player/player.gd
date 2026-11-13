@@ -50,8 +50,14 @@ var _hurt_cooldown := 0.0
 @onready var _spring_arm: SpringArm3D = $CameraPivot/CameraPitch/SpringArm3D
 
 
+## Latarka na hełmie: świeci tam, gdzie patrzy gracz; włącza się o zmierzchu.
+const FLASHLIGHT_ENERGY := 5.0
+var flashlight: SpotLight3D
+
+
 func _ready() -> void:
 	health = max_health
+	_build_flashlight()
 	_spring_arm.add_excluded_object(get_rid())
 	capture_mouse()
 	var model := _visual.get_node_or_null("Model")
@@ -62,6 +68,31 @@ func _ready() -> void:
 		if not _animator.setup(model):
 			_animator.queue_free()
 			_animator = null
+
+
+func _build_flashlight() -> void:
+	flashlight = SpotLight3D.new()
+	flashlight.name = "Flashlight"
+	flashlight.position = Vector3(0, 1.75, -0.3)
+	flashlight.rotation.x = deg_to_rad(-10.0)
+	flashlight.light_color = Color(1.0, 0.95, 0.82)
+	flashlight.spot_range = 24.0
+	flashlight.spot_angle = 30.0
+	flashlight.spot_attenuation = 0.6
+	flashlight.spot_angle_attenuation = 1.6
+	flashlight.shadow_enabled = true
+	_visual.add_child(flashlight)
+	_update_flashlight()
+
+
+func _update_flashlight() -> void:
+	var night := GameState.night_amount(GameState.time_of_day)
+	flashlight.visible = night > 0.05
+	flashlight.light_energy = FLASHLIGHT_ENERGY * night
+
+
+func _process(_delta: float) -> void:
+	_update_flashlight()
 
 
 func _unhandled_input(event: InputEvent) -> void:

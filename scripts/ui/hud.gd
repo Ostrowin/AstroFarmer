@@ -143,6 +143,8 @@ func _process(_delta: float) -> void:
 		_move_label.text = "Dash %.1fs" % _tracked.dash_cooldown_left if _tracked.dash_cooldown_left > 0.0 else ""
 	# Szczegóły (magazyn / plecak) tylko przy przytrzymanym Tab.
 	_inventory.visible = details_visible()
+	# Zegar płynie co klatkę; reszta statusu i tak się nie zmienia między odświeżeniami.
+	_status.text = _status_text()
 
 
 ## Czy pokazać listę magazynu: tylko przy przytrzymanym Tab (na wyprawie Tab otwiera plecak).
@@ -189,7 +191,7 @@ func refresh() -> void:
 ## Nadpisywane w HUD wyprawy.
 func _status_text() -> String:
 	var raid_in := Raid.cycles_until(GameState.raid_pressure, GameState.planet_attention)
-	return "Cycle %d\nRaid in %s" % [GameState.cycle, Raid.cycles_text(raid_in)]
+	return "%s\nCycle %d\nRaid in %s" % [GameState.clock_text(GameState.time_of_day), GameState.cycle, Raid.cycles_text(raid_in)]
 
 
 ## Nadpisywane w HUD wyprawy.

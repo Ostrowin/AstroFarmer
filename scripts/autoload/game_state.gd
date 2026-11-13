@@ -69,6 +69,36 @@ var run: RunState = null
 var last_run_report: Dictionary = {}
 ## Cykle do rozliczenia przez farmę po powrocie do bazy.
 var pending_cycles: int = 0
+## Pora doby 0..1 (0 = północ, 0.25 = świt, 0.5 = południe, 0.75 = zmierzch).
+## Płynie w czasie rzeczywistym w bazie i na wyprawie (DayNight), niezależnie od cykli.
+var time_of_day: float = START_TIME
+
+
+## Doba trwa 10 minut czasu rzeczywistego. Gra zaczyna się rano.
+const DAY_SECONDS := 600.0
+const START_TIME := 0.33
+
+
+func advance_time(seconds: float) -> void:
+	time_of_day = fposmod(time_of_day + seconds / DAY_SECONDS, 1.0)
+
+
+## Zegar "HH:MM" dla HUD.
+static func clock_text(t: float) -> String:
+	var minutes := int(fposmod(t, 1.0) * 1440.0)
+	return "%02d:%02d" % [minutes / 60, minutes % 60]
+
+
+## 0 w dzień, 1 w pełnej nocy, płynnie o świcie (0.21-0.29) i o zmierzchu (0.71-0.79).
+static func night_amount(t: float) -> float:
+	t = fposmod(t, 1.0)
+	if t < 0.21 or t > 0.79:
+		return 1.0
+	if t < 0.29:
+		return 1.0 - smoothstep(0.21, 0.29, t)
+	if t > 0.71:
+		return smoothstep(0.71, 0.79, t)
+	return 0.0
 
 
 func _ready() -> void:
@@ -78,6 +108,7 @@ func _ready() -> void:
 ## Czyści cały stan (puste konto, używane też w testach).
 func reset() -> void:
 	cycle = 0
+	time_of_day = START_TIME
 	discoveries.clear()
 	research.clear()
 	resources.clear()
@@ -332,6 +363,7 @@ func to_dict() -> Dictionary:
 		"upgrades": upgrades.keys().map(func(k): return String(k)),
 		"raid_pressure": raid_pressure,
 		"pending_cycles": pending_cycles,
+		"time_of_day": time_of_day,
 	}
 
 
@@ -339,6 +371,7 @@ func from_dict(data: Dictionary) -> void:
 	reset()
 	# JSON zamienia liczby całkowite na float, więc wszędzie rzutujemy na int.
 	cycle = int(data.get("cycle", 0))
+	time_of_day = fposmod(float(data.get("time_of_day", START_TIME)), 1.0)
 	for id in data.get("discoveries", []):
 		discoveries[StringName(id)] = true
 	var saved_research: Dictionary = data.get("research", {})

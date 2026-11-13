@@ -70,6 +70,8 @@ Ruch jak w Risk of Rain 2:
 - Shift: dash (odnowienie 2 s).
 - Esc zwalnia mysz.
 
+Doba trwa 10 minut (zegar w lewym górnym rogu). W nocy jest ciemno, a latarka na hełmie świeci tam, gdzie patrzysz.
+
 Gra jest po angielsku i pokazuje jak najmniej tekstu. Obiekt, z którym można teraz coś zrobić, ma żółtą obwódkę.
 
 **Baza** (sadzenie i budowanie na siatce 1×1 m):
@@ -77,7 +79,7 @@ Gra jest po angielsku i pokazuje jak najmniej tekstu. Obiekt, z którym można t
 - 1-8 / kółko: wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot).
 - LPM: użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek).
 - E: zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy.
-- F9 następny cykl, F10 nowa gra (debug).
+- F8 przesuwa zegar o 2 godziny, F9 następny cykl, F10 nowa gra (debug).
 
 **Wyprawa:**
 - LPM: przedmiot z paska. 1 pistolet (przytrzymaj = seria), 2 zjedz Voidberry.
