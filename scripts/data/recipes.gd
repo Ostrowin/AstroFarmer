@@ -23,6 +23,11 @@ const LIST := [
 		"desc": "More damage, faster shots",
 		"cost": {&"crystal": 3, &"thorn": 2}, "upgrade": true,
 	},
+	{
+		"id": &"lamp_mk2", "name": "Bright Lamp",
+		"desc": "Helmet light reaches further",
+		"cost": {&"lumen_dust": 2, &"glow_spores": 2, &"starfall_shard": 1}, "upgrade": true,
+	},
 ]
 
 

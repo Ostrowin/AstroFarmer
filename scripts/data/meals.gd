@@ -25,6 +25,11 @@ const LIST := [
 		"desc": "Awakening -50%",
 		"cost": {&"mist_fruit": 1}, "effect": "calm", "awakening_rate": 0.5,
 	},
+	{
+		"id": &"moon_tea", "name": "Moon Tea",
+		"desc": "Awakening -40%",
+		"cost": {&"moon_petal": 1, &"voidberry": 1}, "effect": "calm", "awakening_rate": 0.6,
+	},
 ]
 
 

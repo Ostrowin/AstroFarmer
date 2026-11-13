@@ -35,6 +35,9 @@ enum Shape { BUSH, CRYSTAL, SNAPPER, MUSHROOM, MIST }
 ## Roślina-narzędzie (obrona bazy / wyprawa), np. Snapper.
 @export var is_tool: bool = false
 
+## Świeci tylko nocą (Moonpetal): w dzień poświata prawie gaśnie.
+@export var night_glow: bool = false
+
 @export_group("Wygląd")
 @export var leaf_color: Color = Color(0.35, 0.75, 0.35)
 @export var accent_color: Color = Color(0.6, 0.3, 0.9)

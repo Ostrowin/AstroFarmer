@@ -62,9 +62,9 @@ const DUSK := {
 ## Noc prawie czarna: widać tylko sylwetki gór na tle gwiazd, latarkę i to, co samo świeci
 ## (później bioluminescencja). Światło otoczenia nocą nie pochodzi z nieba, tylko z NIGHT_AMBIENT.
 const NIGHT := {
-	"top": Color(0.004, 0.005, 0.02), "horizon": Color(0.018, 0.016, 0.045), "ground": Color(0.005, 0.005, 0.01),
-	"fog": Color(0.004, 0.004, 0.01), "fog_density": 0.02, "ambient": 1.0,
-	"light": Color(0.5, 0.6, 1.0), "energy": 0.012, "glow": 1.3,
+	"top": Color(0.0012, 0.0014, 0.005), "horizon": Color(0.004, 0.0038, 0.01), "ground": Color(0.002, 0.002, 0.004),
+	"fog": Color(0.002, 0.002, 0.005), "fog_density": 0.02, "ambient": 1.0,
+	"light": Color(0.5, 0.6, 1.0), "energy": 0.02, "glow": 1.3,
 }
 const NIGHT_AMBIENT := Color(0.004, 0.005, 0.01)
 

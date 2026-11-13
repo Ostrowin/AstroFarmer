@@ -28,6 +28,7 @@ const ATTENTION_PER_ITEM := {
 	&"sample_glowmoss": 10,
 	&"thorn": 3,
 	&"crystal": 1,
+	&"starfall_shard": 6,
 }
 ## O tyle spada Uwaga po skromnej wyprawie (bez rzadkich rzeczy) albo porażce.
 const ATTENTION_DECAY := 5
@@ -72,6 +73,8 @@ var pending_cycles: int = 0
 ## Pora doby 0..1 (0 = północ, 0.25 = świt, 0.5 = południe, 0.75 = zmierzch).
 ## Płynie w czasie rzeczywistym w bazie i na wyprawie (DayNight), niezależnie od cykli.
 var time_of_day: float = START_TIME
+## Latarka na hełmie włączona (F). Gaśnie tylko na życzenie gracza.
+var flashlight_on := true
 
 
 ## Doba trwa 10 minut czasu rzeczywistego. Gra zaczyna się rano.
@@ -109,6 +112,7 @@ func _ready() -> void:
 func reset() -> void:
 	cycle = 0
 	time_of_day = START_TIME
+	flashlight_on = true
 	discoveries.clear()
 	research.clear()
 	resources.clear()
@@ -364,6 +368,7 @@ func to_dict() -> Dictionary:
 		"raid_pressure": raid_pressure,
 		"pending_cycles": pending_cycles,
 		"time_of_day": time_of_day,
+		"flashlight_on": flashlight_on,
 	}
 
 
@@ -372,6 +377,7 @@ func from_dict(data: Dictionary) -> void:
 	# JSON zamienia liczby całkowite na float, więc wszędzie rzutujemy na int.
 	cycle = int(data.get("cycle", 0))
 	time_of_day = fposmod(float(data.get("time_of_day", START_TIME)), 1.0)
+	flashlight_on = bool(data.get("flashlight_on", true))
 	for id in data.get("discoveries", []):
 		discoveries[StringName(id)] = true
 	var saved_research: Dictionary = data.get("research", {})

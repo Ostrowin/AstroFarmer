@@ -8,24 +8,39 @@ extends CharacterBody3D
 ## Pistolet: trafiony Pyłkowiec spada i gubi pyłek, Chrupik ucieka w panice.
 ## Przy 0 zdrowia giną: Pyłkowiec zostawia pyłek (jeśli go jeszcze miał),
 ## Chrupik nawóz.
+## Nocne (widoczne tylko po zmroku; Pyłkowce wtedy śpią i znikają):
+##   Świetlik-ćma: leci do latarki na hełmie i krąży wokół gracza.
+##     Trafiona spada i gubi Lumen Dust.
+##   Meduzowiec: dryfuje nisko nad łąką, macki parzą z bliska. Zestrzelony
+##     pęka i zostawia Lumen Dust.
 
 signal killed(critter: Critter)
 
-enum Kind { POLLENBUG, CHRUPIK }
+enum Kind { POLLENBUG, CHRUPIK, LUMIMOTH, DRIFTER }
 
-const FLEE_RANGE := {Kind.POLLENBUG: 3.0, Kind.CHRUPIK: 4.5}
-const SPEED := {Kind.POLLENBUG: 2.2, Kind.CHRUPIK: 2.0}
-const FLEE_SPEED := {Kind.POLLENBUG: 5.5, Kind.CHRUPIK: 5.0}
-const ROAM_RADIUS := {Kind.POLLENBUG: 4.0, Kind.CHRUPIK: 5.0}
+const FLEE_RANGE := {Kind.POLLENBUG: 3.0, Kind.CHRUPIK: 4.5, Kind.LUMIMOTH: 0.0, Kind.DRIFTER: 0.0}
+const SPEED := {Kind.POLLENBUG: 2.2, Kind.CHRUPIK: 2.0, Kind.LUMIMOTH: 3.2, Kind.DRIFTER: 0.7}
+const FLEE_SPEED := {Kind.POLLENBUG: 5.5, Kind.CHRUPIK: 5.0, Kind.LUMIMOTH: 3.2, Kind.DRIFTER: 0.7}
+const ROAM_RADIUS := {Kind.POLLENBUG: 4.0, Kind.CHRUPIK: 5.0, Kind.LUMIMOTH: 5.0, Kind.DRIFTER: 6.0}
+const HOVER := {Kind.POLLENBUG: 1.7, Kind.LUMIMOTH: 2.2, Kind.DRIFTER: 2.6}
+## Ćma widzi latarkę z tej odległości i krąży wokół gracza w tym promieniu.
+const MOTH_SIGHT := 16.0
+const MOTH_ORBIT := 1.6
+## Meduzowiec parzy gracza bliżej niż STING_RANGE, raz na STING_COOLDOWN s.
+const STING_RANGE := 1.4
+const STING_DAMAGE := 8.0
+const STING_COOLDOWN := 1.5
 const GRAZE_AWAKENING := 25.0
 const GRAZE_RANGE := 14.0
 const EAT_SECONDS := 2.0
-const MAX_HEALTH := {Kind.POLLENBUG: 10.0, Kind.CHRUPIK: 20.0}
+const MAX_HEALTH := {Kind.POLLENBUG: 10.0, Kind.CHRUPIK: 20.0, Kind.LUMIMOTH: 10.0, Kind.DRIFTER: 30.0}
 const PANIC_SECONDS := 3.0
 ## Modele z Blendera; brak pliku = model z brył.
 const MODELS := {
 	Kind.POLLENBUG: preload("res://art/models/creatures/pollenbug.glb"),
 	Kind.CHRUPIK: preload("res://art/models/creatures/muncher.glb"),
+	Kind.LUMIMOTH: preload("res://art/models/creatures/lumimoth.glb"),
+	Kind.DRIFTER: preload("res://art/models/creatures/drifter.glb"),
 }
 
 var kind: Kind = Kind.CHRUPIK
@@ -46,6 +61,10 @@ var _bush: WildBush
 var _model: Node3D
 var _wings: Array[Node3D] = []
 var _stars: Label3D
+var _sting_cooldown := 0.0
+var _bell: Node3D
+var _tentacles: Node3D
+var _active := true
 
 
 func _ready() -> void:
@@ -55,7 +74,7 @@ func _ready() -> void:
 	if home == Vector3.ZERO:
 		home = global_position
 	var shape := SphereShape3D.new()
-	shape.radius = 0.25 if kind == Kind.POLLENBUG else 0.35
+	shape.radius = {Kind.POLLENBUG: 0.25, Kind.CHRUPIK: 0.35, Kind.LUMIMOTH: 0.35, Kind.DRIFTER: 0.55}[kind]
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
 	collision.position.y = shape.radius
@@ -67,9 +86,43 @@ func _ready() -> void:
 
 
 func get_scan_info() -> Dictionary:
-	if kind == Kind.POLLENBUG:
-		return {"id": &"pollenbug", "name": "Pollenbug"}
+	match kind:
+		Kind.POLLENBUG:
+			return {"id": &"pollenbug", "name": "Pollenbug"}
+		Kind.LUMIMOTH:
+			return {"id": &"lumimoth", "name": "Lumimoth"}
+		Kind.DRIFTER:
+			return {"id": &"drifter", "name": "Drifter"}
 	return {"id": &"chrupik", "name": "Muncher"}
+
+
+## Latające stworzenia (unoszą się, ogłuszone opadają).
+func is_flying() -> bool:
+	return kind != Kind.CHRUPIK
+
+
+## Nocne stworzenia działają tylko po zmroku, Pyłkowce tylko w dzień.
+func is_night_creature() -> bool:
+	return kind == Kind.LUMIMOTH or kind == Kind.DRIFTER
+
+
+func _should_be_active() -> bool:
+	var night := GameState.night_amount(GameState.time_of_day) > 0.5
+	if is_night_creature():
+		return night
+	if kind == Kind.POLLENBUG:
+		return not night
+	return true
+
+
+func _set_active(active: bool) -> void:
+	_active = active
+	visible = active
+	collision_layer = 4 if active else 0
+	if active:
+		add_to_group("critter")
+	else:
+		remove_from_group("critter")
 
 
 func stun(seconds := 3.0) -> void:
@@ -79,6 +132,9 @@ func stun(seconds := 3.0) -> void:
 	if kind == Kind.POLLENBUG and has_pollen:
 		has_pollen = false
 		_drop_pollen.call_deferred()
+	elif kind == Kind.LUMIMOTH and has_pollen:
+		has_pollen = false
+		_drop_dust.call_deferred()
 
 
 func is_stunned() -> bool:
@@ -93,8 +149,10 @@ func take_hit(amount: float, _from := Vector3.INF) -> bool:
 	if health <= 0.0:
 		_die()
 		return true
-	if kind == Kind.POLLENBUG:
+	if kind == Kind.POLLENBUG or kind == Kind.LUMIMOTH:
 		stun(1.5)
+	elif kind == Kind.DRIFTER:
+		pass
 	else:
 		_panic = PANIC_SECONDS
 		_bush = null
@@ -108,13 +166,17 @@ func _die() -> void:
 	collision_layer = 0
 	set_physics_process(false)
 	Sfx.play(&"death", global_position, 0.2)
-	var color := Color(1.0, 0.82, 0.25) if kind == Kind.POLLENBUG else Color(0.55, 0.62, 0.35)
+	var color: Color = {Kind.POLLENBUG: Color(1.0, 0.82, 0.25), Kind.CHRUPIK: Color(0.55, 0.62, 0.35),
+		Kind.LUMIMOTH: Color(0.45, 0.85, 1.0), Kind.DRIFTER: Color(0.7, 0.55, 1.0)}[kind]
 	Effects.burst(get_parent(), global_position + Vector3(0, 0.3, 0), color, 20)
 	if kind == Kind.POLLENBUG and has_pollen:
 		has_pollen = false
 		_drop_pollen.call_deferred()
 	elif kind == Kind.CHRUPIK:
 		_drop_fertilizer.call_deferred()
+	elif kind == Kind.DRIFTER or (kind == Kind.LUMIMOTH and has_pollen):
+		has_pollen = false
+		_drop_dust.call_deferred()
 	killed.emit(self)
 	var tween := create_tween()
 	tween.tween_property(_model, "scale", Vector3.ZERO, 0.3)
@@ -128,15 +190,29 @@ func _drop_fertilizer() -> void:
 	pickup.global_position = Vector3(global_position.x, 0.0, global_position.z)
 
 
+func _drop_dust() -> void:
+	var pickup := Pickup.new()
+	pickup.setup(Pickup.entry_for(&"lumen_dust"))
+	get_parent().add_child(pickup)
+	pickup.global_position = Vector3(global_position.x + 0.3, 0.0, global_position.z)
+
+
 func _physics_process(delta: float) -> void:
 	_time += delta
+	var should := _should_be_active()
+	if should != _active and health > 0.0:
+		_set_active(should)
+	if not _active:
+		return
 	if stunned_time > 0.0:
 		stunned_time -= delta
 		_stars.visible = stunned_time > 0.0
 		velocity.x = 0.0
 		velocity.z = 0.0
-		if kind == Kind.POLLENBUG:
+		if kind == Kind.POLLENBUG or kind == Kind.LUMIMOTH:
 			velocity.y = -3.0 if global_position.y > 0.3 else 0.0
+		elif kind == Kind.DRIFTER:
+			velocity.y = (1.2 - global_position.y) * 2.0
 		else:
 			velocity.y -= _gravity * delta
 		move_and_slide()
@@ -151,7 +227,17 @@ func _physics_process(delta: float) -> void:
 		away = global_position - player.global_position
 		away.y = 0.0
 	_panic = maxf(0.0, _panic - delta)
-	if player and (away.length() < FLEE_RANGE[kind] or _panic > 0.0):
+	_sting_cooldown = maxf(0.0, _sting_cooldown - delta)
+	if kind == Kind.DRIFTER and player:
+		_try_sting(player as Player, away)
+	if kind == Kind.LUMIMOTH and player and _sees_light(player as Player, away):
+		# Krąży wokół głowy gracza (do światła latarki).
+		var orbit := player.global_position + Vector3(cos(_time * 1.6), 0, sin(_time * 1.6)) * MOTH_ORBIT
+		var to_orbit := orbit - global_position
+		to_orbit.y = 0.0
+		desired = to_orbit.normalized() if to_orbit.length() > 0.2 else Vector3.ZERO
+		speed = SPEED[kind] * clampf(to_orbit.length(), 0.5, 1.6)
+	elif player and (away.length() < FLEE_RANGE[kind] or _panic > 0.0):
 		desired = away.normalized()
 		speed = FLEE_SPEED[kind] * (1.3 if _panic > 0.0 else 1.0)
 		_bush = null
@@ -169,8 +255,8 @@ func _physics_process(delta: float) -> void:
 
 	velocity.x = desired.x * speed
 	velocity.z = desired.z * speed
-	if kind == Kind.POLLENBUG:
-		var hover := 1.7 + sin(_time * 1.7) * 0.35
+	if is_flying():
+		var hover: float = HOVER[kind] + sin(_time * (0.8 if kind == Kind.DRIFTER else 1.7)) * 0.35
 		velocity.y = (hover - global_position.y) * 3.0
 	else:
 		velocity.y -= _gravity * delta
@@ -178,6 +264,18 @@ func _physics_process(delta: float) -> void:
 	if desired.length_squared() > 0.01:
 		_model.rotation.y = lerp_angle(_model.rotation.y, atan2(-desired.x, -desired.z), clampf(delta * 8.0, 0.0, 1.0))
 	_animate(delta, false)
+
+
+func _sees_light(player: Player, away: Vector3) -> bool:
+	return player.flashlight != null and player.flashlight.visible and away.length() < MOTH_SIGHT
+
+
+func _try_sting(player: Player, away: Vector3) -> void:
+	if _sting_cooldown > 0.0 or away.length() > STING_RANGE:
+		return
+	_sting_cooldown = STING_COOLDOWN
+	player.take_damage(STING_DAMAGE, global_position)
+	GameState.learn(&"drifter", "sting")
 
 
 ## Chrupik: gdy łąka się budzi, idzie do najbliższego dzikiego krzewu i go objada.
@@ -229,8 +327,16 @@ func _drop_pollen() -> void:
 
 
 func _animate(_delta: float, stunned: bool) -> void:
-	if kind == Kind.POLLENBUG:
-		var flap := 0.2 if stunned else sin(_time * 40.0) * 0.6
+	if kind == Kind.DRIFTER:
+		# Dzwon pulsuje, macki falują.
+		var pulse := sin(_time * 2.0)
+		if _bell:
+			_bell.scale = Vector3(1.0 + pulse * 0.06, 1.0 - pulse * 0.1, 1.0 + pulse * 0.06)
+		if _tentacles:
+			_tentacles.rotation = Vector3(sin(_time * 1.3) * 0.08, _time * 0.2, cos(_time * 1.1) * 0.08)
+		return
+	if kind == Kind.POLLENBUG or kind == Kind.LUMIMOTH:
+		var flap := 0.2 if stunned else sin(_time * (40.0 if kind == Kind.POLLENBUG else 14.0)) * 0.6
 		for i in _wings.size():
 			_wings[i].rotation.z = flap * (1.0 if i == 0 else -1.0)
 		return
@@ -252,6 +358,8 @@ func _build_model() -> void:
 			var wing := model.find_child(wing_name, true, false) as Node3D
 			if wing:
 				_wings.append(wing)
+		_bell = model.find_child("Bell", true, false) as Node3D
+		_tentacles = model.find_child("Tentacles", true, false) as Node3D
 		_build_stars()
 		return
 	if kind == Kind.POLLENBUG:

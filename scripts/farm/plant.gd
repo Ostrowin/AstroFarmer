@@ -106,8 +106,10 @@ func _animate(delta: float) -> void:
 		var amp := 0.035 if is_ripe() else 0.06
 		_stage_node.rotation.x = sin(t * 1.3) * amp
 		_stage_node.rotation.z = cos(t * 1.05) * amp * 0.7
+	# Nocne rośliny (Moonpetal) świecą tylko po zmroku.
+	var night_scale := 0.1 + 0.9 * GameState.night_amount(GameState.time_of_day) if data.night_glow else 1.0
 	for entry: Array in _glow:
-		(entry[0] as BaseMaterial3D).emission_energy_multiplier = float(entry[1]) * (0.75 + 0.35 * sin(t * 2.2))
+		(entry[0] as BaseMaterial3D).emission_energy_multiplier = float(entry[1]) * (0.75 + 0.35 * sin(t * 2.2)) * night_scale
 	if _cap:
 		_cap.rotation.z = sin(t * 1.7) * 0.06
 		_cap.rotation.x = cos(t * 1.4) * 0.04

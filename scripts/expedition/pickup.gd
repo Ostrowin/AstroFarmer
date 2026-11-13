@@ -15,6 +15,8 @@ var color := Color.WHITE
 var buff: Dictionary = {}
 ## Wyrzucone z plecaka: ponowne podniesienie nie podnosi Przebudzenia.
 var dropped := false
+## Widoczne i do podniesienia tylko nocą (nocne znajdźki).
+var night_only := false
 
 ## Modele z Blendera. Brak modelu = bryły z kodu.
 const MODELS := {
@@ -22,7 +24,13 @@ const MODELS := {
 	"crystal": preload("res://art/models/pickups/crystal.glb"),
 	"artifact": preload("res://art/models/pickups/relic.glb"),
 }
+## Modele dla konkretnych przedmiotów (ważniejsze niż model rodzaju).
+const ITEM_MODELS := {
+	&"seed_moonpetal": preload("res://art/models/pickups/moonpetal.glb"),
+}
 const SAMPLE_MODELS := {
+	&"glow_spores": preload("res://art/models/pickups/glowcap.glb"),
+	&"starfall_shard": preload("res://art/models/pickups/starfall.glb"),
 	&"sample_glowmoss": preload("res://art/models/pickups/glowmoss.glb"),
 	&"pollen": preload("res://art/models/pickups/pollen.glb"),
 	&"thorn": preload("res://art/models/pickups/thorn.glb"),
@@ -47,6 +55,7 @@ func setup(entry: Dictionary) -> void:
 	color = entry.get("color", Color.WHITE)
 	buff = entry.get("buff", {})
 	dropped = entry.get("dropped", false)
+	night_only = entry.get("night_only", false)
 
 
 ## Opis znajdźki dla dowolnego przedmiotu z plecaka (np. wyrzuconego).
@@ -75,6 +84,14 @@ static func entry_for(id: StringName, amount := 1) -> Dictionary:
 			entry["color"] = Color(0.62, 0.3, 0.95)
 		&"mist_fruit":
 			entry["color"] = Color(0.6, 0.85, 1.0)
+		&"glow_spores":
+			entry.merge({"color": Color(0.35, 1.0, 0.65), "scan": &"glowcap", "scan_name": "Glowcap"}, true)
+		&"starfall_shard":
+			entry.merge({"rare": true, "color": Color(1.0, 0.6, 0.3), "scan": &"starfall", "scan_name": "Starfall Shard"}, true)
+		&"lumen_dust":
+			entry.merge({"color": Color(0.45, 0.85, 1.0), "scan": &"lumimoth", "scan_name": "Lumimoth"}, true)
+		&"moon_petal":
+			entry["color"] = Color(0.82, 0.72, 1.0)
 	return entry
 
 
@@ -95,11 +112,18 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	if night_only:
+		var awake := GameState.night_amount(GameState.time_of_day) > 0.5
+		if awake != visible:
+			visible = awake
+			collision_layer = 4 if awake else 0
 	match kind:
 		"artifact":
 			_visual.rotation.y += delta * 1.5
 			_visual.position.y = (0.0 if _from_model else 0.25) + sin(_time * 2.0) * 0.1
 		"seed":
+			if ITEM_MODELS.has(item_id):
+				return
 			_visual.position.y = sin(_time * 2.5) * 0.05
 			_visual.rotation.y += delta * 0.6
 
@@ -117,7 +141,9 @@ func get_scan_info() -> Dictionary:
 
 
 func _build_visual() -> void:
-	var scene: PackedScene = SAMPLE_MODELS.get(item_id) if kind == "sample" else MODELS.get(kind)
+	var scene: PackedScene = ITEM_MODELS.get(item_id)
+	if scene == null:
+		scene = SAMPLE_MODELS.get(item_id) if kind == "sample" else MODELS.get(kind)
 	if scene:
 		_build_model(scene)
 		return
@@ -139,7 +165,7 @@ func _build_visual() -> void:
 				_mesh(_sphere(0.13 + 0.03 * (i % 3)), Vector3(cos(angle) * r, 0.1, sin(angle) * r), color, 1.6)
 			var light := OmniLight3D.new()
 			light.light_color = color
-			light.light_energy = 1.2
+			light.light_energy = 0.6 if night_only else 1.2
 			light.omni_range = 3.0
 			light.position.y = 0.6
 			add_child(light)
@@ -168,15 +194,15 @@ func _build_model(scene: PackedScene) -> void:
 			_visual.add_child(gem)
 	else:
 		_visual.add_child(model)
-	if kind == "seed":
+	if kind == "seed" and not ITEM_MODELS.has(item_id):
 		# Jeden model nasiona dla wszystkich roślin; kolor z rośliny.
 		var body := model.get_node_or_null("Body") as MeshInstance3D
 		if body:
 			body.material_override = PlantVisuals.material(color, 0.4)
-	if rare or kind == "artifact" or item_id == &"water_misty":
+	if rare or kind == "artifact" or item_id == &"water_misty" or night_only:
 		var light := OmniLight3D.new()
 		light.light_color = color
-		light.light_energy = 1.2
+		light.light_energy = 0.6 if night_only else 1.2
 		light.omni_range = 3.0
 		light.position.y = 0.6
 		add_child(light)

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"moonpetal"
+display_name = "Moonpetal"
+description = "Found only at night. Glows in the dark."
+shape = 0
+stages = 3
+cycles_per_stage = 1
+needs_water = true
+min_spacing = 1.0
+harvest_item = &"moon_petal"
+harvest_item_name = "Moon Petal"
+harvest_amount = Vector2i(1, 2)
+seeds_per_harvest = Vector2i(1, 2)
+is_tool = false
+night_glow = true
+leaf_color = Color(0.15, 0.32, 0.28, 1)
+accent_color = Color(0.82, 0.72, 1, 1)

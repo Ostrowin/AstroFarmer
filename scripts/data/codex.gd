@@ -69,12 +69,40 @@ const ENTRIES := {
 		{"how": "grow", "text": "Once awake, it grows and glows in the fog.", "hint": "grow one"},
 		{"how": "harvest", "text": "Mist Fruit makes Mist Brew.", "hint": "harvest one"},
 	]},
+	&"moonpetal": {"name": "Moonpetal", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "A flower that opens only at night.", "hint": "scan one at night"},
+		{"how": "grow", "text": "At the base it glows after dark.", "hint": "grow one"},
+		{"how": "harvest", "text": "Moon Petals make Moon Tea.", "hint": "harvest one"},
+	]},
+	&"glowcap": {"name": "Glowcap", "category": "Plants", "level": 1, "facts": [
+		{"how": "scan", "text": "Tiny mushrooms that glow and drift spores at night.", "hint": "scan them at night"},
+		{"how": "pickup", "text": "The spores can be carried home.", "hint": "collect spores"},
+		{"how": "craft", "text": "Spores feed the Bright Lamp.", "hint": "use them at the workbench"},
+	]},
+	&"starfall": {"name": "Starfall Shard", "category": "Minerals", "level": 1, "facts": [
+		{"how": "scan", "text": "A glowing rock that fell from the sky.", "hint": "scan one at night"},
+		{"how": "pickup", "text": "Rare. Taking it raises Awakening.", "hint": "pick one up"},
+		{"how": "craft", "text": "Powers the Bright Lamp. Shipping it raises Attention.", "hint": "use it at the workbench"},
+	]},
+	&"lumimoth": {"name": "Lumimoth", "category": "Creatures", "level": 1, "facts": [
+		{"how": "scan", "text": "A night moth drawn to your helmet light.", "hint": "scan one at night"},
+		{"how": "hit", "text": "Hit, it falls and sheds Lumen Dust.", "hint": "hit one"},
+		{"how": "craft", "text": "Lumen Dust feeds the Bright Lamp.", "hint": "use the dust at the workbench"},
+	]},
+	&"drifter": {"name": "Drifter", "category": "Creatures", "level": 1, "facts": [
+		{"how": "scan", "text": "A floating jelly that lights up the night.", "hint": "scan one at night"},
+		{"how": "sting", "text": "Its tentacles sting. Keep your distance.", "hint": "get too close"},
+		{"how": "hit", "text": "Shot, it pops and drops Lumen Dust.", "hint": "hit one"},
+	]},
 }
 
 ## Jaki wpis odkrywa użycie przedmiotu w warsztacie.
 const CRAFT_SOURCES := {
 	&"crystal": &"crystal_vein",
 	&"sample_glowmoss": &"glowmoss",
+	&"glow_spores": &"glowcap",
+	&"starfall_shard": &"starfall",
+	&"lumen_dust": &"lumimoth",
 }
 
 ## Stare nazwy akcji z wcześniejszych zapisów -> nowe.

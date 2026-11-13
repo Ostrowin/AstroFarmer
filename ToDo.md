@@ -142,13 +142,15 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
   - [x] natura (2026-11-13, `art/source/nature.blend`, `art/models/nature/`): spiralna sosna, drzewo-grzyb, nowe drzewo-latarnia (świecące bańki pod noc), głaz z mchem i kryształami, stos kamieni, Mgliste źródło, legowisko Thornbacka, staw w bazie, góry z kryształami,
   - [x] znajdźki (2026-11-13, `art/source/pickups.blend`, `art/models/pickups/`): nasiono w łupinie (kolor z rośliny), kępa kryształów, świecący mech, pyłek, kolec Thornbacka, worek nawozu, fiolka mglistej wody, kiść voidberry, owoc Mgielnika, artefakt (klejnot nad cokołem z runami),
   - [x] gracz: hełm astronauty (pomysł autora, wybrany wariant A, 2026-11-13): szklana bańka, słomkowy kapelusz na jej czubku, kołnierz i rurka do plecaka; hełm noszony zawsze. Kopia modelu sprzed hełmu: `art/source/player_before_helmet.blend`.
+  - [x] generowane pokrzywione drzewa (2026-11-13): `scripts/fx/tree_generator.gd` (4 gatunki: sękacz, wierzba z pnączami, parasol, straszydło ze świecącymi końcówkami; każde drzewo z innego ziarna). `TreeScatter` rozsiewa je przy starcie poziomu (baza 34 na obrzeżach, łąka 46), omija obiekty i strefy, drzewa mają kolizję pnia. Siatki trafiają do pamięci podręcznej `user://tree_cache/` (zmiana kształtu = podbić `TreeGenerator.VERSION`). Szkice: `art/source/sketches/trees_gen*.png`.
 - [ ] **2. Dzień i noc** (zasady ustalone 2026-11-13, opis w `Design_Zywa_Planeta.md`, sekcja "Pora doby"):
   - [x] zegar w czasie rzeczywistym: doba trwa 10 minut, płynie w bazie i na wyprawie, zapisuje się w grze; zegar w HUD; F8 przesuwa czas o 2 godziny (debug),
   - [x] niebo, słońce po łuku, świt i zmierzch, ciemna noc z gwiazdami i dwoma księżycami (biały i mały fioletowy); burza i mgła poziomu 2 nakładają się na porę doby (`scripts/fx/day_night.gd`),
   - [x] latarka na hełmie: snop światła tam, gdzie patrzy gracz, włącza się o zmierzchu,
-  - [ ] nocne znajdźki (rzadsze i cenniejsze; najpierw szkic),
-  - [ ] nocne stworzenie (najpierw szkic). Thornback zostaje bez zmian, bo w przyszłości będzie przerobiony i dojdzie dużo nowych stworzeń.
-- [ ] **3. Bioluminescencja:** świecące rośliny, grzyby i teren nocą, świetliki, zarodniki w powietrzu, poświata (glow) w środowisku.
+  - [x] nocne znajdźki (2026-11-13, `art/source/night.blend`): Księżycowy kwiat (nasiono Moonpetal; w bazie rośnie i świeci tylko nocą, plon Moon Petal do Moon Tea), Świecące grzybki (Glow Spores), Odłamek spadającej gwiazdy (rzadki, Starfall Shard). 5 na wyprawę, widoczne i do podniesienia tylko nocą,
+  - [x] nocne stworzenia: Świetlik-ćma (leci do latarki i krąży wokół gracza, trafiona gubi Lumen Dust) i Meduzowiec (dryfuje, macki parzą z bliska, zestrzelony daje Lumen Dust). Pyłkowce nocą śpią. Thornback bez zmian (będzie przerobiony),
+  - [x] warsztat: Bright Lamp (2 Lumen Dust, 2 Glow Spores, 1 Starfall Shard) = latarka dalej i szerzej; 5 nowych wpisów w bazie danych.
+- [x] **3. Bioluminescencja** (2026-11-13, `scripts/fx/bioluminescence.gd`, szkice `art/source/sketches/biolum_*.png`): kępy trawy kołyszące się na wietrze ze świecącymi czubkami (w dzień zwykła trawa), plamy świecącego mchu (turkus, zieleń, fiolet), świetliki i zarodniki w powietrzu, drzewa-grzyby świecące od spodu na niebiesko, świecące ślady stóp gracza (gasną po 4 s). Wszystko świeci tylko nocą; baza ma wolny środek z farmą.
 - [ ] **4. Tekstury:** stylizowane, ręcznie malowane (TextureCraft, MaterialCraft), najpierw teren, potem rośliny, gracz i budynki.
 - [ ] **5. Plansza stylu UI** (DesignCraft, FigCraft): menu, paski, skille, ekran komputera, plecak, raport na jednej planszy. Wdrożenie dopiero po akceptacji.
 
@@ -229,6 +231,7 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
   - **Humming Corn:** kukurydza, która nuci, gdy wieje wiatr albo gdy podejdziesz.
   - **Chór drzew:** drzewa śpiewające razem pieśni w klimacie pieśni rdzennych Amerykanów.
   - Rośliny mogą zgrywać się w melodię, kiedy rosną obok siebie (łączy się z `W2` i `R6` "Farma, która gra").
+- [ ] **Horyzont i większa mapa** (uwaga autora, 2026-11-13): mała mapa sprawia, że widać krawędź świata. Do zrobienia: większy teren albo wzgórza, mgła i dalekie góry zasłaniające brzeg.
 - [ ] **Maszyny farmy** (pomysł autora, 2026-11-13; każda najpierw szkic):
   - **Dron nawadniający:** lata nad grządkami i podlewa spragnione rośliny w zasięgu, wraca do stawu po wodę.
   - **Traktor:** gracz wsiada i jedzie. Orze i sadzi duże połacie naraz (np. pas 3 pól), może też zbierać.

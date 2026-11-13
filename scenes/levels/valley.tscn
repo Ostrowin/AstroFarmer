@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/rock_stack.tscn" id="9_rock_stack"]
 [ext_resource type="PackedScene" path="res://art/models/nature/mountain.glb" id="10_mountain"]
 [ext_resource type="PackedScene" path="res://art/models/nature/pond.glb" id="11_pond"]
+[ext_resource type="Script" path="res://scripts/fx/tree_scatter.gd" id="12_scatter"]
+[ext_resource type="Script" path="res://scripts/fx/bioluminescence.gd" id="13_biolum"]
 
 [sub_resource type="PlaneMesh" id="Mesh_ground"]
 size = Vector2(120, 120)
@@ -201,6 +203,25 @@ transform = Transform3D(0.1877, 0, -0.9822, 0, 1, 0, 0.9822, 0, 0.1877, -26, 0, 
 
 [node name="Mushroom5" parent="Trees" instance=ExtResource("2_tree_mushroom")]
 transform = Transform3D(-0.9982, 0, -0.0596, 0, 1, 0, 0.0596, 0, -0.9982, 26, 0, 22)
+
+[node name="TreeScatter" type="Node3D" parent="."]
+script = ExtResource("12_scatter")
+count = 34
+layout_seed = 7
+half_extents = Vector2(37, 37)
+inner_radius = 19.0
+species = {&"gnarled": 3.0, &"umbrella": 3.0, &"willow": 1.5, &"spooky": 0.5}
+
+[node name="Bioluminescence" type="Node3D" parent="."]
+script = ExtResource("13_biolum")
+layout_seed = 11
+half_extents = Vector2(37, 37)
+grass_clumps = 200
+blades = 6000
+moss_patches = 14
+fireflies = 200
+spores = 300
+inner_radius = 11.0
 
 [node name="Mountains" type="Node3D" parent="."]
 

@@ -68,6 +68,7 @@ Ruch jak w Risk of Rain 2:
 - WASD ruch, Spacja skok, mysz kamera.
 - Ctrl włącza bieg. Bieg trwa, dopóki się ruszasz i nie strzelasz.
 - Shift: dash (odnowienie 2 s).
+- F gasi i zapala latarkę na hełmie (świeci tylko po zmroku).
 - Esc zwalnia mysz.
 
 Doba trwa 10 minut (zegar w lewym górnym rogu). W nocy jest ciemno, a latarka na hełmie świeci tam, gdzie patrzysz.

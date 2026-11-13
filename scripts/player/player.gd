@@ -50,8 +50,13 @@ var _hurt_cooldown := 0.0
 @onready var _spring_arm: SpringArm3D = $CameraPivot/CameraPitch/SpringArm3D
 
 
-## Latarka na hełmie: świeci tam, gdzie patrzy gracz; włącza się o zmierzchu.
+## Latarka na hełmie: świeci tam, gdzie patrzy kamera (płynnie, bez kołysania
+## w biegu); włącza się o zmierzchu, F gasi ją i zapala.
 const FLASHLIGHT_ENERGY := 5.0
+## Jak szybko snop dogania kierunek kamery (większe = ostrzej).
+const FLASHLIGHT_FOLLOW := 9.0
+## Warstwa renderowania modelu gracza: latarka nie rzuca jego cienia (migał w biegu).
+const PLAYER_LAYER := 2
 var flashlight: SpotLight3D
 
 
@@ -73,25 +78,55 @@ func _ready() -> void:
 func _build_flashlight() -> void:
 	flashlight = SpotLight3D.new()
 	flashlight.name = "Flashlight"
-	flashlight.position = Vector3(0, 1.75, -0.3)
-	flashlight.rotation.x = deg_to_rad(-10.0)
 	flashlight.light_color = Color(1.0, 0.95, 0.82)
 	flashlight.spot_range = 24.0
 	flashlight.spot_angle = 30.0
 	flashlight.spot_attenuation = 0.6
 	flashlight.spot_angle_attenuation = 1.6
 	flashlight.shadow_enabled = true
-	_visual.add_child(flashlight)
+	# Model gracza na osobnej warstwie i bez cienia od latarki (inaczej kapelusz i ręce
+	# rzucają skaczące cienie w biegu).
+	for node in _visual.find_children("*", "VisualInstance3D", true, false):
+		(node as VisualInstance3D).layers = 1 | (1 << (PLAYER_LAYER - 1))
+	flashlight.set("shadow_caster_mask", 0xFFFFF & ~(1 << (PLAYER_LAYER - 1)))
+	add_child(flashlight)
+	flashlight.position = _flashlight_anchor()
+	flashlight.basis = _flashlight_aim()
 	_update_flashlight()
 
 
+## Punkt przed hełmem (nie zależy od animacji ani obrotu modelu).
+func _flashlight_anchor() -> Vector3:
+	var forward := -_yaw.global_basis.z
+	forward.y = 0.0
+	return Vector3(0, 1.75, 0) + forward.normalized() * 0.35
+
+
+## Kierunek kamery, lekko w dół (pod nogi i przed siebie).
+func _flashlight_aim() -> Basis:
+	var pitch := clampf(_pitch.rotation.x * 0.6 - deg_to_rad(14.0), deg_to_rad(-45.0), deg_to_rad(10.0))
+	return Basis.from_euler(Vector3(pitch, _yaw.rotation.y, 0.0))
+
+
 func _update_flashlight() -> void:
+	var bright := GameState.has_upgrade(&"lamp_mk2")
+	flashlight.spot_range = 36.0 if bright else 24.0
+	flashlight.spot_angle = 36.0 if bright else 30.0
 	var night := GameState.night_amount(GameState.time_of_day)
-	flashlight.visible = night > 0.05
+	flashlight.visible = night > 0.05 and GameState.flashlight_on
 	flashlight.light_energy = FLASHLIGHT_ENERGY * night
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_update_flashlight()
+	var k := clampf(FLASHLIGHT_FOLLOW * delta, 0.0, 1.0)
+	flashlight.position = flashlight.position.lerp(_flashlight_anchor(), k)
+	flashlight.basis = Basis(flashlight.basis.get_rotation_quaternion().slerp(_flashlight_aim().get_rotation_quaternion(), k))
+
+
+func toggle_flashlight() -> void:
+	GameState.flashlight_on = not GameState.flashlight_on
+	Sfx.play(&"snap", global_position)
 	_update_flashlight()
 
 
@@ -102,6 +137,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_pitch.rotation.x = clampf(
 			_pitch.rotation.x - motion.relative.y * mouse_sensitivity,
 			deg_to_rad(min_pitch_deg), deg_to_rad(max_pitch_deg))
+	elif event.is_action_pressed("flashlight"):
+		toggle_flashlight()
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseButton and event.pressed and not is_mouse_captured():

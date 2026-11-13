@@ -15,6 +15,7 @@ const MODELS := {
 	&"snapper": preload("res://art/models/plants/snapper.glb"),
 	&"boomshroom": preload("res://art/models/plants/boomshroom.glb"),
 	&"mistbloom": preload("res://art/models/plants/mistbloom.glb"),
+	&"moonpetal": preload("res://art/models/plants/moonpetal.glb"),
 }
 const MODEL_STAGES := 3
 const GIANT_SCALE := 1.4

@@ -25,10 +25,12 @@ func _run() -> void:
 	await _frames(3)
 
 	var level := exp1.get_node("Level")
-	var pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup)
+	var pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and not (n as Pickup).night_only)
+	var night_pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).night_only)
 	var bushes := level.get_children().filter(func(n: Node) -> bool: return n is WildBush)
 	var creatures := level.get_children().filter(func(n: Node) -> bool: return n is Creature)
 	_check(pickups.size() == 12, "11 znajdziek + 1 ulepszenie (jest %d)" % pickups.size())
+	_check(night_pickups.size() == 5, "5 nocnych znajdziek (jest %d)" % night_pickups.size())
 	_check(bushes.size() == 4, "4 dzikie krzewy")
 	_check(creatures.size() == 1, "1 drapieżnik")
 	var creature := creatures[0] as Creature

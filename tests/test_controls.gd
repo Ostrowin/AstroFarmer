@@ -133,6 +133,12 @@ func _test_expedition() -> void:
 	await get_tree().process_frame
 	var sun := expedition.get_node("Sun") as DirectionalLight3D
 	_check(player.flashlight.visible and player.flashlight.light_energy > 4.0, "noc: latarka na hełmie świeci")
+	player.toggle_flashlight()
+	await get_tree().process_frame
+	_check(not player.flashlight.visible and not GameState.flashlight_on, "F gasi latarkę")
+	player.toggle_flashlight()
+	await get_tree().process_frame
+	_check(player.flashlight.visible, "F zapala latarkę")
 	var env := (expedition.get_node("WorldEnvironment") as WorldEnvironment).environment
 	_check(sun.light_energy < 0.05 and env.ambient_light_sky_contribution < 0.01, "noc: prawie czarno (księżyc %.3f)" % sun.light_energy)
 	GameState.time_of_day = 0.5
@@ -231,9 +237,79 @@ func _test_expedition() -> void:
 	interaction.call("_interact")
 	_check(run.count(&"crystal") == 2 and run.awakening - awake < 0.5, "podniesione z powrotem, bez wzrostu Przebudzenia")
 
+	await _test_night(level, player)
+
 	expedition.queue_free()
 	await _frames(2)
 	GameState.finish_run(false)
+
+
+# --- Noc na wyprawie ----------------------------------------------------------
+
+func _test_night(level: Node, player: Player) -> void:
+	var night_pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).night_only)
+	var moths := level.get_children().filter(func(n: Node) -> bool: return n is Critter and (n as Critter).kind == Critter.Kind.LUMIMOTH)
+	var drifters := level.get_children().filter(func(n: Node) -> bool: return n is Critter and (n as Critter).kind == Critter.Kind.DRIFTER)
+	var bugs := level.get_children().filter(func(n: Node) -> bool: return n is Critter and (n as Critter).kind == Critter.Kind.POLLENBUG and (n as Critter).health > 0.0)
+	_check(not moths.is_empty() and not drifters.is_empty(), "na łące są ćmy i meduzowce")
+	GameState.time_of_day = 0.5
+	await _frames(2)
+	await get_tree().process_frame
+	_check(night_pickups.all(func(p: Pickup) -> bool: return not p.visible and p.collision_layer == 0), "dzień: nocnych znajdziek nie widać")
+	_check(moths.all(func(c: Critter) -> bool: return not c.visible), "dzień: ćmy śpią")
+	GameState.time_of_day = 0.0
+	await _frames(2)
+	await get_tree().process_frame
+	_check(night_pickups.all(func(p: Pickup) -> bool: return p.visible and p.collision_layer == 4), "noc: nocne znajdźki świecą i da się je podnieść")
+	_check(moths.all(func(c: Critter) -> bool: return c.visible and c.is_in_group("critter")), "noc: ćmy latają")
+	_check(bugs.all(func(c: Critter) -> bool: return not c.visible), "noc: Pyłkowce śpią")
+
+	# Ćma leci do latarki.
+	var moth := moths[0] as Critter
+	moth.global_position = player.global_position + Vector3(8, 2, 0)
+	var before := moth.global_position.distance_to(player.global_position)
+	await get_tree().create_timer(1.0).timeout
+	_check(moth.global_position.distance_to(player.global_position) < before - 1.0, "ćma leci do latarki")
+	var pickups_before := _count(level, "Pickup")
+	moth.take_hit(5.0)
+	await _frames(3)
+	_check(moth.is_stunned() and _count(level, "Pickup") == pickups_before + 1, "trafiona ćma spada i gubi Lumen Dust")
+
+	# Meduzowiec parzy z bliska.
+	var drifter := drifters[0] as Critter
+	var health := player.health
+	drifter.global_position = player.global_position + Vector3(0.5, 2.0, 0)
+	await _frames(3)
+	_check(player.health < health and GameState.knows(&"drifter", "sting"), "meduzowiec parzy z bliska")
+
+	# Lepsza latarka z warsztatu.
+	for id in [&"lumen_dust", &"glow_spores"]:
+		GameState.add_resource(id, 2)
+	GameState.add_resource(&"starfall_shard", 1)
+	_check(Recipes.craft(&"lamp_mk2"), "Bright Lamp z nocnych materiałów")
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(player.flashlight.spot_range > 30.0, "Bright Lamp świeci dalej")
+	_check(Codex.ENTRIES.has(&"moonpetal") and Codex.ENTRIES.has(&"lumimoth") and Codex.ENTRIES.has(&"drifter"), "baza danych zna nocne gatunki")
+	# Bioluminescencja: świeci nocą, gaśnie w dzień, ślady stóp za graczem.
+	var bio := level.get_node_or_null("Bioluminescence") as Bioluminescence
+	_check(bio != null and bio.get_node("Grass").multimesh.instance_count > 1000, "łąka: świecąca trawa")
+	GameState.time_of_day = 0.0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(bio.night > 0.9, "noc: trawa, mech i świetliki świecą")
+	var start := player.global_position
+	for i in 6:
+		player.global_position = start + Vector3(0, 0, -0.7 * (i + 1))
+		await get_tree().process_frame
+		await get_tree().physics_frame
+	_check(bio.visible_steps() >= 3, "noc: świecące ślady stóp (%d)" % bio.visible_steps())
+	GameState.time_of_day = 0.5
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(bio.night < 0.01, "dzień: bioluminescencja gaśnie")
+	var moon := PlantCatalog.get_plant(&"moonpetal")
+	_check(moon != null and moon.night_glow and PlantVisuals.MODELS.has(&"moonpetal"), "Moonpetal: roślina z modelem, świeci nocą")
 
 
 # --- Zegar doby ---------------------------------------------------------------
@@ -258,7 +334,7 @@ func _test_clock() -> void:
 static func _count(parent: Node, class_label: String) -> int:
 	var total := 0
 	for child in parent.get_children():
-		if (class_label == "Pickup" and child is Pickup) or (class_label == "TrapPlant" and child is TrapPlant):
+		if (class_label == "Pickup" and child is Pickup and not child.is_queued_for_deletion()) or (class_label == "TrapPlant" and child is TrapPlant):
 			total += 1
 	return total
 

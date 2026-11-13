@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/rock_stack.tscn" id="9_rock_stack"]
 [ext_resource type="PackedScene" path="res://art/models/nature/mountain.glb" id="10_mountain"]
 [ext_resource type="PackedScene" path="res://art/models/nature/den.glb" id="11_den"]
+[ext_resource type="Script" path="res://scripts/fx/tree_scatter.gd" id="12_scatter"]
+[ext_resource type="Script" path="res://scripts/fx/bioluminescence.gd" id="13_biolum"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_meadow"]
 sky_top_color = Color(0.25, 0.32, 0.68, 1)
@@ -224,6 +226,19 @@ transform = Transform3D(0.9498, 0, 0.3128, 0, 1, 0, -0.3128, 0, 0.9498, -22, 0, 
 
 [node name="Mushroom4" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
 transform = Transform3D(0.1877, 0, -0.9822, 0, 1, 0, 0.9822, 0, 0.1877, 10, 0, -15)
+
+[node name="TreeScatter" type="Node3D" parent="Level"]
+script = ExtResource("12_scatter")
+count = 46
+layout_seed = 21
+half_extents = Vector2(42, 42)
+keep_clear = Array[Vector3]([Vector3(0, 34, 7), Vector3(0, -31, 7), Vector3(-27, 0, 5), Vector3(-24, -7, 4), Vector3(15, 8, 5), Vector3(0, 18, 3), Vector3(0, 0, 3), Vector3(0, -15, 3)])
+species = {&"gnarled": 2.0, &"umbrella": 1.5, &"willow": 2.0, &"spooky": 2.0}
+
+[node name="Bioluminescence" type="Node3D" parent="Level"]
+script = ExtResource("13_biolum")
+layout_seed = 5
+keep_clear = Array[Vector3]([Vector3(0, 34, 4), Vector3(-27, 0, 3)])
 
 [node name="Mushroom5" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
 transform = Transform3D(-0.9982, 0, -0.0596, 0, 1, 0, 0.0596, 0, -0.9982, -12, 0, -32)

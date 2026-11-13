@@ -9,6 +9,7 @@ const PLANTS := {
 	&"snapper": preload("res://data/plants/snapper.tres"),
 	&"boomshroom": preload("res://data/plants/boomshroom.tres"),
 	&"mistbloom": preload("res://data/plants/mistbloom.tres"),
+	&"moonpetal": preload("res://data/plants/moonpetal.tres"),
 }
 
 
@@ -28,6 +29,9 @@ const OTHER_ITEMS := {
 	&"pollen": "Pollen",
 	&"water_misty": "Misty Water",
 	&"thorn": "Thornback Spike",
+	&"glow_spores": "Glow Spores",
+	&"starfall_shard": "Starfall Shard",
+	&"lumen_dust": "Lumen Dust",
 }
 
 

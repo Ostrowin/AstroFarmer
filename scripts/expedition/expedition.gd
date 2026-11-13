@@ -27,6 +27,21 @@ const CRITTERS := [
 	[Critter.Kind.POLLENBUG, Vector3(-18, 0, -12), 1],
 	[Critter.Kind.POLLENBUG, Vector3(20, 0, -4), 1],
 	[Critter.Kind.CHRUPIK, Vector3(15, 0, 8), 3],
+	# Nocne: widoczne tylko po zmroku.
+	[Critter.Kind.LUMIMOTH, Vector3(-10, 0, 12), 2],
+	[Critter.Kind.LUMIMOTH, Vector3(14, 0, -10), 2],
+	[Critter.Kind.LUMIMOTH, Vector3(-20, 0, -14), 1],
+	[Critter.Kind.DRIFTER, Vector3(8, 0, 22), 1],
+	[Critter.Kind.DRIFTER, Vector3(-22, 0, 6), 1],
+	[Critter.Kind.DRIFTER, Vector3(20, 0, -22), 1],
+]
+
+## Nocne znajdźki: leżą na łące cały czas, ale widać je i można je podnieść tylko nocą.
+const NIGHT_PICKUP_COUNT := 5
+const NIGHT_LOOT := [
+	{"item": &"seed_moonpetal", "weight": 2.0},
+	{"item": &"glow_spores", "weight": 3.0},
+	{"item": &"starfall_shard", "weight": 1.0},
 ]
 
 const LOOT := [
@@ -149,6 +164,14 @@ func _spawn_world() -> void:
 		pickup.position = (spots[i] as Node3D).position
 		_level.add_child(pickup)
 
+	# Nocne znajdźki na wolnych miejscach (z przesunięciem, żeby nie stały na dziennych).
+	for i in mini(NIGHT_PICKUP_COUNT, spots.size()):
+		var spot := spots[(PICKUP_COUNT + i) % spots.size()] as Node3D
+		var night_pickup := Pickup.new()
+		night_pickup.setup(_roll_night_loot())
+		night_pickup.position = spot.position + Vector3(-2.0, 0, 2.0)
+		_level.add_child(night_pickup)
+
 	var artifact_spots := $Level/ArtifactSpots.get_children()
 	if not artifact_spots.is_empty():
 		var buff: Dictionary = BUFFS.pick_random()
@@ -215,6 +238,22 @@ func _apply_meal() -> void:
 	if not run.buffs.has(meal["name"]):
 		run.buffs.append(meal["name"])
 	_hud.notify(meal["name"])
+
+
+func _roll_night_loot() -> Dictionary:
+	var total := 0.0
+	for entry: Dictionary in NIGHT_LOOT:
+		total += float(entry["weight"])
+	var roll := randf() * total
+	var chosen: Dictionary = NIGHT_LOOT[0]
+	for entry: Dictionary in NIGHT_LOOT:
+		roll -= float(entry["weight"])
+		if roll <= 0.0:
+			chosen = entry
+			break
+	var result := Pickup.entry_for(chosen["item"], 1)
+	result["night_only"] = true
+	return result
 
 
 func _roll_loot() -> Dictionary:
