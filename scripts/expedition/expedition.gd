@@ -15,7 +15,7 @@ const STORM_DAMAGE_PER_SECOND := 1.0
 const KILL_AWAKENING := 8.0
 const EVAC_SECONDS := 5.0
 const EVAC_RADIUS := 4.5
-const PICKUP_COUNT := 11
+const PICKUP_COUNT := 15
 ## Poziom 2: więcej znajdziek, Przebudzenie od 10, Mgliste źródło i Mgielnik.
 const LEVEL2_EXTRA_PICKUPS := 2
 const LEVEL2_START_AWAKENING := 10.0
@@ -37,7 +37,7 @@ const CRITTERS := [
 ]
 
 ## Nocne znajdźki: leżą na łące cały czas, ale widać je i można je podnieść tylko nocą.
-const NIGHT_PICKUP_COUNT := 5
+const NIGHT_PICKUP_COUNT := 7
 const NIGHT_LOOT := [
 	{"item": &"seed_moonpetal", "weight": 2.0},
 	{"item": &"glow_spores", "weight": 3.0},
@@ -91,6 +91,7 @@ func _ready() -> void:
 	day_night.name = "DayNight"
 	add_child(day_night)
 	day_night.setup(_environment, _sun)
+	Sfx.set_ambience(&"meadow")
 	# Uruchomiona bezpośrednio z edytora (F6): wyprawa testowa bez wyposażenia.
 	run = GameState.run if GameState.run else GameState.start_run({})
 	_spawn_world()

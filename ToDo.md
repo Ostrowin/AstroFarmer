@@ -48,7 +48,20 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 - [x] Zapis i wczytanie gry (JSON, autozapis po każdej zmianie farmy i przy zamknięciu okna).
 - [x] Bonus: dojrzały Snapper śledzi gracza głową i kłapie, gdy ten podejdzie za blisko.
 - [x] Testy: `tests/test_farm_loop.tscn` (22 sprawdzenia pętli farmy) + podgląd roślin `tests/showcase.tscn`.
-- [ ] Dźwięki są syntezowane w kodzie (`Sfx`). Podmienić na prawdziwe pliki, gdy będą. **Syntetyczne dźwięki irytują autora (2026-11-13): zająć się nimi zaraz po planie grafiki.**
+- [x] Prawdziwe dźwięki zamiast syntezy (2026-11-14). Paczki CC0 (Kenney, OpenGameArt; spis w `audio/LICENSES.md`), składane skryptem `tools/audio/build_sounds.py` do `audio/sfx/<zdarzenie>/<a|b|c>/`.
+    - Każde zdarzenie ma 2-3 kandydatów po kilka wersji; gra losuje wersję i lekko zmienia wysokość. Wybór w `audio/sfx/picks.json`.
+    - Nowe: kroki (trawa, grządka, bieg), klik latarki, klik i najechanie na przyciski, tła dnia i nocy dla bazy i łąki (przenikają się z zegarem).
+    - Szyny głośności SFX, Ambient, Music.
+    - [ ] **Autor: przesłuchać `tests/sound_board.tscn` i wybrać kandydatów** (Use, potem Save). Moje typy są ustawione na ślepo, po nazwach i analizie plików.
+    - [ ] Suwaki głośności (SFX / tło / muzyka) w menu.
+    - [ ] Wiatr jako osobna warstwa tła (brak dobrego nagrania CC0).
+    - [x] Muzyka menu: **„Star Rodeo”** (epicka orkiestra + country, ok. 80 s), skomponowana w SoundCraft na próbkach VSCO 2 CE (`tools/audio/star_rodeo.py`, sesja do edycji: `D:/Audio/Sessions/StarRodeo/star_rodeo.scraft`). W grze muzyka cichnie.
+    - [x] Muzyka bossa na później: **„Boss Rodeo”** (electro + country, e-moll, 132 BPM, ok. 95 s): przesterowany galopujący bas, stopa na ćwierćnuty, fiddle i lead grają hoedown, w breaku „train beat” i harfa jako banjo, okrzyki robo-kowboja „yee-haw” (synteza formantowa, `tools/audio/fx_synth.py`). Skrypt: `tools/audio/boss_rodeo.py`, sesja: `D:/Audio/Sessions/BossRodeo/boss_rodeo.scraft`. Plik: `audio/music/boss_rodeo.ogg` (jeszcze nigdzie niepodpięty).
+    - [x] Druga muzyka bossa: **„Rodeo Rave”** (agresywny hard rave + country, f-moll, 150 BPM, ok. 82 s; własny utwór w klimacie Little Big, nie kopia): przesterowana stopa hardstyle strojona pod akordy, przesterowany bas na offbeatach (w drugim dropie „rolling”), piszczący lead, fiddle i banjo w hoedownie, chór HEY!/HA!/HOO! strojony do f-moll, YEE-HAW przed dropami, nagły koniec. Skrypt: `tools/audio/rodeo_rave.py` (wspólne składanie: `tools/audio/sc_song.py`), sesja: `D:/Audio/Sessions/RodeoRave/rodeo_rave.scraft`. Plik: `audio/music/rodeo_rave.ogg`.
+    - [x] Trzecia muzyka bossa: **„Stampede”** (twarda elektronika z akcentami country, c-moll, 152 BPM, ok. 86 s). Brzmienie dostrojone pomiarami do utworu-odniesienia „Hardcore American Cowboy” (Little Big; tylko proporcje: pasma, subbas, głośność, gęstość dołu; bez melodii): stopa z czystym subem na ok. 49 Hz przez cały beat i przesterem tylko w górnej warstwie, bas z czystym subem i brudną warstwą na każdej szesnastce, jasna góra, prawie stała energia, -10 LUFS. Skrypt: `tools/audio/stampede.py`, sesja: `D:/Audio/Sessions/Stampede/stampede.scraft`.
+    - [ ] Podmiana okrzyku: nagrać własne „iiihaaa” i wstawić jako `D:/Audio/Sessions/BossRodeo/fx/yeehaw.wav` (plus `_low`, `_short`), potem `python tools/audio/boss_rodeo.py`.
+    - [ ] Autor: przesłuchać „Star Rodeo” i powiedzieć, co zmienić (tempo, instrumenty, długość, czy grać też w bazie).
+    - [ ] Eksport gry: dodać `audio/sfx/*.json` do filtra plików nie-zasobów w ustawieniach eksportu (inaczej wybór dźwięków nie trafi do builda).
 - [ ] **Playtest M1:** dać zagrać 1 osobie i sprawdzić test etapu (wpis do `docs/playtest-m1.md`).
 
 ## M2. Mini-wyprawa: czy decyzja o ewakuacji daje napięcie?
@@ -163,9 +176,10 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
     - Przepis: Blender (w tle) łączy części i robi czyste UV na materiał, TextureCraft wypala mapy i maluje warstwami (kolor bazowy z szumem, ciemne wnęki, jasne krawędzie; na kamieniach bez krawędzi, bo low-poly robi z nich siatkę), Blender składa model z teksturami. Materiały świecące zostają bez zmian. Podgląd 3D w TextureCraft wywraca serwer, więc wyniki ogląda się w Godocie.
 - [ ] **5. Styl UI** (plansze w FigCraft, 2026-11-14; wybrany styl A "Field Notebook": kremowe karty z brązową ramką, twardy cień jak naklejka, pomarańczowe akcenty, font Lato w `art/fonts/`; plansze `art/source/sketches/ui_style_*.png`, pliki `art/source/ui/*.figcraft`):
   - [x] HUD bazy i wyprawy (`scripts/ui/notebook_theme.gd`): karta z zegarem i cyklem, podpowiedź z klawiszem w znaczku, powiadomienia na kartach, kwadratowe sloty z kolorową ikoną i ilością (nazwa wybranego nad paskiem), paski zdrowia i Przebudzenia, druga ręka, licznik plecaka,
-  - [ ] prawdziwe ikony przedmiotów w slotach (teraz kolorowe kółka),
-  - [ ] menu główne z logo (nowy ekran startowy),
-  - [ ] komputer (baza danych) jako ekran z zakładkami, warsztat jako drzewko ulepszeń, plecak, przygotowanie wyprawy, raport.
+  - [x] ikony przedmiotów (`art/ui/icons/`, renderowane w Godocie z modeli znajdziek skryptem `tests/_make_icons.tscn`; nowy przedmiot = dopisać go tam i uruchomić w oknie): w pasku narzędzi i w plecaku,
+  - [x] menu główne (`scenes/menu.tscn`, ekran startowy): nocna dolina z bioluminescencją w tle, logo, Continue / New Game (przy zapisie trzeba kliknąć dwa razy) / Quit,
+  - [x] okna w stylu notesu (wspólny motyw `NotebookTheme.theme()`): baza danych, warsztat, przygotowanie wyprawy, raport, plecak; wysokość okien według treści,
+  - [x] baza danych jako ekran komputera (zakładki Plants / Creatures / Minerals, lista z ikonami i kropkami postępu, karta wpisu z faktami i podpowiedziami) i warsztat jako drzewko ulepszeń (karty z ikoną i stanem Craft / Owned / Missing, linie pokazują kolejność rozwoju, bez blokowania) (2026-11-14).
   - Montserrat (nagłówki z planszy) nie jest dostępny jako plik; w grze nagłówki są pogrubionym Lato. Montserrat można dołożyć później (darmowa licencja OFL).
 
 ## UI: angielski, mniej tekstu, obwódki (zrobione 2026-11-12)
@@ -245,7 +259,11 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
   - **Humming Corn:** kukurydza, która nuci, gdy wieje wiatr albo gdy podejdziesz.
   - **Chór drzew:** drzewa śpiewające razem pieśni w klimacie pieśni rdzennych Amerykanów.
   - Rośliny mogą zgrywać się w melodię, kiedy rosną obok siebie (łączy się z `W2` i `R6` "Farma, która gra").
-- [ ] **Horyzont i większa mapa** (uwaga autora, 2026-11-13): mała mapa sprawia, że widać krawędź świata. Do zrobienia: większy teren albo wzgórza, mgła i dalekie góry zasłaniające brzeg.
+- [x] **Horyzont i większa mapa** (uwaga autora, 2026-11-13; zrobione 2026-11-14): krawędzi świata już nie widać.
+    - `TerrainRing` (`scripts/fx/terrain_ring.gd`): płaski środek (y = 0, cała rozgrywka), wokół wzgórza do grzbietu i dalsze pagórki do 260 m, które giną we mgle. Kolizję mają tylko zbocza przy granicy; płaski środek ma dalej własną podłogę `Ground` (grządki).
+    - Łąka: obszar gry z ±45 m do ±64 m, grzbiet 92 m. Więcej znajdziek (15 dziennych, 7 nocnych, 26 miejsc), 6 krzewów, 5 miejsc na artefakt, więcej skał, drzew i trawy.
+    - Baza: ściany z ±40 m na ±46 m, grzbiet 70 m.
+    - Na zboczach rosną generowane drzewa (`TreeScatter` z `terrain` i `ring_inner`), kryształowe góry odsunięte na wzgórza i powiększone.
 - [ ] **Maszyny farmy** (pomysł autora, 2026-11-13; każda najpierw szkic):
   - **Dron nawadniający:** lata nad grządkami i podlewa spragnione rośliny w zasięgu, wraca do stawu po wodę.
   - **Traktor:** gracz wsiada i jedzie. Orze i sadzi duże połacie naraz (np. pas 3 pól), może też zbierać.

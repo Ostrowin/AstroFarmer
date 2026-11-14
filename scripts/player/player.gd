@@ -41,6 +41,12 @@ var _animator: PlayerAnimator
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _hurt_cooldown := 0.0
 
+## Kroki: co ile metrów odgłos kroku (chód / bieg).
+const STEP_WALK := 1.7
+const STEP_RUN := 2.4
+var _step_distance := 0.0
+var _was_on_floor := true
+
 ## PlayerInteraction w bazie, ExpeditionInteraction na wyprawie.
 @onready var interaction: Node = $Interaction
 @onready var camera: Camera3D = $CameraPivot/CameraPitch/SpringArm3D/Camera3D
@@ -126,7 +132,7 @@ func _process(delta: float) -> void:
 
 func toggle_flashlight() -> void:
 	GameState.flashlight_on = not GameState.flashlight_on
-	Sfx.play(&"snap", global_position)
+	Sfx.play(&"flashlight", global_position)
 	_update_flashlight()
 
 
@@ -178,6 +184,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = horizontal.x
 		velocity.z = horizontal.z
 	move_and_slide()
+	_update_steps(delta)
 
 	_aim_time = maxf(0.0, _aim_time - delta)
 	if _aim_time > 0.0 and _dash_left <= 0.0:
@@ -188,6 +195,43 @@ func _physics_process(delta: float) -> void:
 	if _animator:
 		_animator.tick(delta, is_on_floor())
 		_animator.update(self)
+
+
+# --- Kroki -------------------------------------------------------------------
+
+func _update_steps(delta: float) -> void:
+	var on_floor := is_on_floor()
+	if on_floor and not _was_on_floor:
+		_step()
+	_was_on_floor = on_floor
+	if not on_floor or _dash_left > 0.0:
+		return
+	var speed := Vector2(velocity.x, velocity.z).length()
+	if speed < 0.6:
+		# Po zatrzymaniu pierwszy krok pada szybko.
+		_step_distance = STEP_WALK * 0.6
+		return
+	_step_distance += speed * delta
+	if _step_distance >= (STEP_RUN if sprinting else STEP_WALK):
+		_step_distance = 0.0
+		_step()
+
+
+func _step() -> void:
+	var id := &"step_run" if sprinting else (&"step_soil" if on_tilled_soil() else &"step_grass")
+	Sfx.play(id, global_position)
+
+
+## Czy gracz stoi na zaoranej grządce (węzły w grupie "tilled").
+func on_tilled_soil() -> bool:
+	for node in get_tree().get_nodes_in_group("tilled"):
+		var mesh := node as MeshInstance3D
+		if mesh == null:
+			continue
+		var box := mesh.global_transform * mesh.get_aabb()
+		if global_position.x >= box.position.x and global_position.x <= box.end.x 				and global_position.z >= box.position.z and global_position.z <= box.end.z:
+			return true
+	return false
 
 
 # --- Ruch specjalny ----------------------------------------------------------

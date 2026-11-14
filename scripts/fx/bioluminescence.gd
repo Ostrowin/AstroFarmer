@@ -362,7 +362,7 @@ func _collect_blockers() -> void:
 		return
 	for node in level.get_children():
 		var body := node as StaticBody3D
-		if body == null or body.name in ["Ground", "Bounds"] or body.name.begins_with("Rock") or body.name.begins_with("Mushroom") or body.name.begins_with("Cone"):
+		if body == null or body.name in ["Ground", "Bounds"] or body.is_in_group("terrain") or body.name.begins_with("Rock") or body.name.begins_with("Mushroom") or body.name.begins_with("Cone"):
 			continue
 		var local := to_local(body.global_position)
 		_blockers.append(Vector3(local.x, local.z, 4.5))

@@ -104,6 +104,19 @@ func slot_detail(index: int) -> String:
 	return "%d/%d" % [GameState.get_resource(&"water"), GameState.water_capacity()]
 
 
+## Id przedmiotu do ikony slotu (pusty = kółko w kolorze slotu).
+func slot_icon(index: int) -> StringName:
+	var slot: Dictionary = SLOTS[index]
+	match slot["kind"]:
+		"seed":
+			return PlantCatalog.get_plant(slot["plant"]).seed_item()
+		"fertilizer":
+			return &"fertilizer"
+		"fence":
+			return &"fence_post"
+	return &""
+
+
 func slot_color(index: int) -> Color:
 	var slot: Dictionary = SLOTS[index]
 	match slot["kind"]:

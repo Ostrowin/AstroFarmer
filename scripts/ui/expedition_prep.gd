@@ -33,13 +33,7 @@ func _ready() -> void:
 	offset_right = 390
 	offset_top = -420
 	offset_bottom = 420
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.14, 0.94)
-	style.set_corner_radius_all(14)
-	style.set_border_width_all(2)
-	style.border_color = Color(0.3, 0.95, 1, 0.8)
-	style.set_content_margin_all(24)
-	add_theme_stylebox_override("panel", style)
+	theme = NotebookTheme.theme()
 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
@@ -56,10 +50,10 @@ func _ready() -> void:
 		_level_buttons.append(level_button)
 	box.add_child(level_row)
 	_level_label = _label("", 14, true)
-	_level_label.modulate = Color(0.8, 0.9, 1.0)
+	_level_label.label_settings = NotebookTheme.label_settings(14, NotebookTheme.MUTED, false)
 	box.add_child(_level_label)
 	_planet_label = _label("", 15, true)
-	_planet_label.modulate = Color(1.0, 0.85, 0.6)
+	_planet_label.label_settings = NotebookTheme.label_settings(15, Color("b85a14"))
 	box.add_child(_planet_label)
 
 	for option: Dictionary in OPTIONS:
@@ -69,7 +63,7 @@ func _ready() -> void:
 		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		text.add_child(_label(option["label"], 19))
 		var hint := _label(option["hint"], 14)
-		hint.modulate = Color(0.8, 0.8, 0.9)
+		hint.label_settings = NotebookTheme.label_settings(14, NotebookTheme.MUTED, false)
 		text.add_child(hint)
 		row.add_child(text)
 		row.add_child(_button("-", _change.bind(option["id"], -1)))
@@ -99,7 +93,7 @@ func _ready() -> void:
 		_meal_buttons[meal["id"]] = meal_button
 	box.add_child(meals)
 	_meal_label = _label("", 14, true)
-	_meal_label.modulate = Color(0.8, 1.0, 0.8)
+	_meal_label.label_settings = NotebookTheme.label_settings(14, Color("2e7d4f"))
 	box.add_child(_meal_label)
 	box.add_child(_label("Failure loses the backpack.", 14, true))
 
@@ -128,6 +122,14 @@ func open() -> void:
 	_refresh()
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_center.call_deferred()
+
+
+## Wysokość według treści, wyśrodkowane na ekranie.
+func _center() -> void:
+	var height := get_combined_minimum_size().y
+	offset_top = -height * 0.5
+	offset_bottom = height * 0.5
 
 
 func _change(id: StringName, delta: int) -> void:
@@ -182,7 +184,7 @@ func _refresh() -> void:
 		_level_buttons[i].disabled = level > GameState.max_level()
 	if GameState.max_level() < 2:
 		_level_label.text = "Level II: %d/%d database entries" % [
-			Codex.LEVEL2_REQUIRED, Codex.entry_count(1), Codex.discovered_count(GameState.research, 1)]
+			Codex.discovered_count(GameState.research, 1), Codex.LEVEL2_REQUIRED]
 	else:
 		_level_label.text = "Fog · Misty Spring · Mistbloom seed" if _level == 2 else ""
 	if not _meal_available(_meal):
@@ -206,7 +208,7 @@ func _refresh() -> void:
 func _label(text: String, size: int, wrap := false) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", size)
+	label.label_settings = NotebookTheme.label_settings(size, NotebookTheme.TEXT, size >= 18)
 	if wrap:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size = Vector2(700, 0)

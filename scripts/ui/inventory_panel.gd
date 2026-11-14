@@ -75,7 +75,8 @@ func _rebuild() -> void:
 	ids.sort_custom(func(a: StringName, b: StringName) -> bool: return PlantCatalog.item_name(a) < PlantCatalog.item_name(b))
 	for id: StringName in ids:
 		var slot := _slot("item", id, _run.count(id), "%s\n×%d" % [PlantCatalog.item_name(id), _run.count(id)], Pickup.entry_for(id)["color"])
-		slot.tooltip_text = DESCRIPTIONS.get(id, "")
+		var desc: String = DESCRIPTIONS.get(id, "")
+		slot.tooltip_text = PlantCatalog.item_name(id) + ("\n" + desc if desc != "" else "")
 		grid.add_child(slot)
 	for i in maxi(0, COLUMNS * 2 - ids.size()):
 		grid.add_child(_slot("item", &"", 0, "", Color(0.3, 0.3, 0.4)))
@@ -101,9 +102,3 @@ func _slot(slot_kind: String, id: StringName, count: int, title: String, color: 
 	slot.panel = self
 	slot.setup(slot_kind, id, count, title, color)
 	return slot
-
-
-func _center() -> void:
-	var height := get_combined_minimum_size().y
-	offset_top = -height * 0.5
-	offset_bottom = height * 0.5

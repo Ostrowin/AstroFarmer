@@ -1,0 +1,906 @@
+{
+ "plant": {
+  "a": {
+   "note": "soft thud",
+   "sources": [
+    "impact-sounds/Audio/impactSoft_medium_000.ogg",
+    "impact-sounds/Audio/impactSoft_medium_001.ogg",
+    "impact-sounds/Audio/impactSoft_medium_002.ogg",
+    "impact-sounds/Audio/impactSoft_medium_003.ogg",
+    "impact-sounds/Audio/impactSoft_medium_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "wet soil",
+   "sources": [
+    "oga/mud/mud_05.ogg",
+    "oga/mud/mud_06.ogg",
+    "oga/mud/mud_08.ogg",
+    "oga/mud/mud_10.ogg",
+    "oga/mud/mud_11.ogg",
+    "oga/mud/mud_12.ogg"
+   ]
+  },
+  "c": {
+   "note": "grass rustle",
+   "sources": [
+    "impact-sounds/Audio/footstep_grass_000.ogg",
+    "impact-sounds/Audio/footstep_grass_001.ogg",
+    "impact-sounds/Audio/footstep_grass_002.ogg",
+    "impact-sounds/Audio/footstep_grass_003.ogg",
+    "impact-sounds/Audio/footstep_grass_004.ogg"
+   ]
+  }
+ },
+ "harvest": {
+  "a": {
+   "note": "plop",
+   "sources": [
+    "oga/sfx100/plop_01.ogg",
+    "oga/sfx100/plop_02.ogg",
+    "oga/water/bubble_01.ogg",
+    "oga/water/bubble_02.ogg",
+    "oga/water/bubble_03.ogg"
+   ]
+  },
+  "b": {
+   "note": "pluck",
+   "sources": [
+    "interface-sounds/Audio/pluck_001.ogg",
+    "interface-sounds/Audio/pluck_002.ogg"
+   ]
+  },
+  "c": {
+   "note": "wood item",
+   "sources": [
+    "oga/rpg/item_wood_01.ogg",
+    "oga/rpg/item_wood_02.ogg",
+    "oga/rpg/item_wood_03.ogg"
+   ]
+  }
+ },
+ "water": {
+  "a": {
+   "note": "pour",
+   "sources": [
+    "oga/water/loop_water_01.ogg",
+    "oga/water/loop_water_02.ogg"
+   ]
+  },
+  "b": {
+   "note": "splash small",
+   "sources": [
+    "oga/sfx100/splash_01.ogg",
+    "oga/sfx100/splash_02.ogg"
+   ]
+  },
+  "c": {
+   "note": "splash",
+   "sources": [
+    "oga/water/splash_02.ogg",
+    "oga/water/splash_03.ogg",
+    "oga/water/splash_05.ogg",
+    "oga/water/splash_06.ogg"
+   ]
+  }
+ },
+ "fill": {
+  "a": {
+   "note": "bubbles",
+   "sources": [
+    "oga/water/loop_bubbles_02.ogg",
+    "oga/water/loop_bubbles_1.ogg"
+   ]
+  },
+  "b": {
+   "note": "bubble",
+   "sources": [
+    "oga/water/bubble_01.ogg",
+    "oga/water/bubble_02.ogg",
+    "oga/water/bubble_03.ogg"
+   ]
+  },
+  "c": {
+   "note": "stream",
+   "sources": [
+    "oga/sfx100b/sfx100v2_loop_water_01.ogg",
+    "oga/sfx100b/sfx100v2_loop_water_02.ogg",
+    "oga/sfx100b/sfx100v2_loop_water_03.ogg"
+   ]
+  }
+ },
+ "craft": {
+  "a": {
+   "note": "tools",
+   "sources": [
+    "oga/sfx100/tools_01.ogg",
+    "oga/sfx100/tools_02.ogg",
+    "oga/sfx100/tools_03.ogg",
+    "oga/sfx100/tools_04.ogg",
+    "oga/sfx100/tools_05.ogg"
+   ]
+  },
+  "b": {
+   "note": "metal clank",
+   "sources": [
+    "oga/rpg/metal_01.ogg",
+    "oga/rpg/metal_02.ogg",
+    "oga/rpg/metal_03.ogg"
+   ]
+  },
+  "c": {
+   "note": "metal hit",
+   "sources": [
+    "impact-sounds/Audio/impactMetal_medium_000.ogg",
+    "impact-sounds/Audio/impactMetal_medium_001.ogg",
+    "impact-sounds/Audio/impactMetal_medium_002.ogg",
+    "impact-sounds/Audio/impactMetal_medium_003.ogg",
+    "impact-sounds/Audio/impactMetal_medium_004.ogg"
+   ]
+  }
+ },
+ "chime": {
+  "a": {
+   "note": "confirm",
+   "sources": [
+    "interface-sounds/Audio/confirmation_001.ogg",
+    "interface-sounds/Audio/confirmation_002.ogg",
+    "interface-sounds/Audio/confirmation_003.ogg",
+    "interface-sounds/Audio/confirmation_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "bell",
+   "sources": [
+    "oga/sfx100/bell_01.ogg",
+    "oga/sfx100/bell_02.ogg",
+    "oga/sfx100/bell_03.ogg"
+   ]
+  },
+  "c": {
+   "note": "three tone",
+   "sources": [
+    "digital-audio/Audio/threeTone1.ogg",
+    "digital-audio/Audio/threeTone2.ogg",
+    "digital-audio/Audio/twoTone1.ogg",
+    "digital-audio/Audio/twoTone2.ogg"
+   ]
+  }
+ },
+ "land": {
+  "a": {
+   "note": "metal impact",
+   "sources": [
+    "sci-fi-sounds/Audio/impactMetal_000.ogg",
+    "sci-fi-sounds/Audio/impactMetal_001.ogg",
+    "sci-fi-sounds/Audio/impactMetal_002.ogg",
+    "sci-fi-sounds/Audio/impactMetal_003.ogg",
+    "sci-fi-sounds/Audio/impactMetal_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "low boom",
+   "sources": [
+    "sci-fi-sounds/Audio/lowFrequency_explosion_000.ogg",
+    "sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg"
+   ]
+  },
+  "c": {
+   "note": "engine down",
+   "sources": [
+    "sci-fi-sounds/Audio/spaceEngineLow_000.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLow_001.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLow_002.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLow_003.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLow_004.ogg"
+   ]
+  }
+ },
+ "step_grass": {
+  "a": {
+   "note": "grass",
+   "sources": [
+    "impact-sounds/Audio/footstep_grass_000.ogg",
+    "impact-sounds/Audio/footstep_grass_001.ogg",
+    "impact-sounds/Audio/footstep_grass_002.ogg",
+    "impact-sounds/Audio/footstep_grass_003.ogg",
+    "impact-sounds/Audio/footstep_grass_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "dirt steps",
+   "sources": [
+    "rpg-audio/Audio/footstep00.ogg",
+    "rpg-audio/Audio/footstep01.ogg",
+    "rpg-audio/Audio/footstep02.ogg",
+    "rpg-audio/Audio/footstep03.ogg",
+    "rpg-audio/Audio/footstep04.ogg",
+    "rpg-audio/Audio/footstep05.ogg"
+   ]
+  },
+  "c": {
+   "note": "soft steps",
+   "sources": [
+    "oga/sfx100b/sfx100v2_footstep_01.ogg",
+    "oga/sfx100b/sfx100v2_footstep_02.ogg"
+   ]
+  }
+ },
+ "step_soil": {
+  "a": {
+   "note": "dirt steps",
+   "sources": [
+    "rpg-audio/Audio/footstep00.ogg",
+    "rpg-audio/Audio/footstep01.ogg",
+    "rpg-audio/Audio/footstep02.ogg",
+    "rpg-audio/Audio/footstep03.ogg",
+    "rpg-audio/Audio/footstep04.ogg",
+    "rpg-audio/Audio/footstep05.ogg"
+   ]
+  },
+  "b": {
+   "note": "carpet (soft)",
+   "sources": [
+    "impact-sounds/Audio/footstep_carpet_000.ogg",
+    "impact-sounds/Audio/footstep_carpet_001.ogg",
+    "impact-sounds/Audio/footstep_carpet_002.ogg",
+    "impact-sounds/Audio/footstep_carpet_003.ogg",
+    "impact-sounds/Audio/footstep_carpet_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "wet",
+   "sources": [
+    "oga/sfx100b/sfx100v2_footstep_wet_01.ogg",
+    "oga/sfx100b/sfx100v2_footstep_wet_02.ogg",
+    "oga/sfx100b/sfx100v2_footstep_wet_03.ogg"
+   ]
+  }
+ },
+ "step_run": {
+  "a": {
+   "note": "grass loud",
+   "sources": [
+    "impact-sounds/Audio/footstep_grass_000.ogg",
+    "impact-sounds/Audio/footstep_grass_001.ogg",
+    "impact-sounds/Audio/footstep_grass_002.ogg",
+    "impact-sounds/Audio/footstep_grass_003.ogg",
+    "impact-sounds/Audio/footstep_grass_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "dirt fast",
+   "sources": [
+    "rpg-audio/Audio/footstep00.ogg",
+    "rpg-audio/Audio/footstep01.ogg",
+    "rpg-audio/Audio/footstep02.ogg",
+    "rpg-audio/Audio/footstep03.ogg",
+    "rpg-audio/Audio/footstep04.ogg",
+    "rpg-audio/Audio/footstep05.ogg"
+   ]
+  },
+  "c": {
+   "note": "snow crunch",
+   "sources": [
+    "impact-sounds/Audio/footstep_snow_000.ogg",
+    "impact-sounds/Audio/footstep_snow_001.ogg",
+    "impact-sounds/Audio/footstep_snow_002.ogg",
+    "impact-sounds/Audio/footstep_snow_003.ogg",
+    "impact-sounds/Audio/footstep_snow_004.ogg"
+   ]
+  }
+ },
+ "dash": {
+  "a": {
+   "note": "air whoosh",
+   "sources": [
+    "oga/sfx100b/sfx100v2_air_02.ogg",
+    "oga/sfx100b/sfx100v2_air_03.ogg"
+   ]
+  },
+  "b": {
+   "note": "phase jump",
+   "sources": [
+    "digital-audio/Audio/phaseJump1.ogg",
+    "digital-audio/Audio/phaseJump2.ogg",
+    "digital-audio/Audio/phaseJump3.ogg",
+    "digital-audio/Audio/phaseJump4.ogg",
+    "digital-audio/Audio/phaseJump5.ogg"
+   ]
+  },
+  "c": {
+   "note": "blade swish",
+   "sources": [
+    "oga/rpg/blade_01.ogg",
+    "oga/rpg/blade_02.ogg",
+    "oga/rpg/blade_03.ogg"
+   ]
+  }
+ },
+ "hurt": {
+  "a": {
+   "note": "grunt",
+   "sources": [
+    "oga/creature2/human_01.ogg",
+    "oga/creature2/human_03.ogg",
+    "oga/creature2/human_05.ogg",
+    "oga/creature2/human_07.ogg"
+   ]
+  },
+  "b": {
+   "note": "punch",
+   "sources": [
+    "impact-sounds/Audio/impactPunch_heavy_000.ogg",
+    "impact-sounds/Audio/impactPunch_heavy_001.ogg",
+    "impact-sounds/Audio/impactPunch_heavy_002.ogg",
+    "impact-sounds/Audio/impactPunch_heavy_003.ogg",
+    "impact-sounds/Audio/impactPunch_heavy_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "creature hurt",
+   "sources": [
+    "oga/creature1/hurt_03.ogg",
+    "oga/creature1/hurt_04.ogg",
+    "oga/creature1/hurt_05.ogg"
+   ]
+  }
+ },
+ "eat": {
+  "a": {
+   "note": "munch",
+   "sources": [
+    "oga/creature1/eat_01.ogg",
+    "oga/creature1/eat_02.ogg",
+    "oga/creature1/eat_03.ogg",
+    "oga/creature1/eat_04.ogg"
+   ]
+  },
+  "b": {
+   "note": "slime",
+   "sources": [
+    "oga/water/slime_01.ogg",
+    "oga/water/slime_02.ogg",
+    "oga/water/slime_03.ogg",
+    "oga/water/slime_04.ogg"
+   ]
+  },
+  "c": {
+   "note": "cloth",
+   "sources": [
+    "rpg-audio/Audio/cloth1.ogg",
+    "rpg-audio/Audio/cloth2.ogg",
+    "rpg-audio/Audio/cloth3.ogg",
+    "rpg-audio/Audio/cloth4.ogg",
+    "rpg-audio/Audio/clothBelt.ogg",
+    "rpg-audio/Audio/clothBelt2.ogg"
+   ]
+  }
+ },
+ "pickup": {
+  "a": {
+   "note": "gem",
+   "sources": [
+    "oga/rpg/item_gem_01.ogg",
+    "oga/rpg/item_gem_02.ogg",
+    "oga/rpg/item_gem_03.ogg"
+   ]
+  },
+  "b": {
+   "note": "leather",
+   "sources": [
+    "rpg-audio/Audio/handleSmallLeather.ogg",
+    "rpg-audio/Audio/handleSmallLeather2.ogg",
+    "rpg-audio/Audio/beltHandle1.ogg",
+    "rpg-audio/Audio/beltHandle2.ogg"
+   ]
+  },
+  "c": {
+   "note": "ui select",
+   "sources": [
+    "interface-sounds/Audio/select_001.ogg",
+    "interface-sounds/Audio/select_002.ogg",
+    "interface-sounds/Audio/select_003.ogg",
+    "interface-sounds/Audio/select_004.ogg"
+   ]
+  }
+ },
+ "throw": {
+  "a": {
+   "note": "swish",
+   "sources": [
+    "oga/rpg/blade_01.ogg",
+    "oga/rpg/blade_02.ogg",
+    "oga/rpg/blade_03.ogg"
+   ]
+  },
+  "b": {
+   "note": "air",
+   "sources": [
+    "oga/sfx100b/sfx100v2_air_02.ogg",
+    "oga/sfx100b/sfx100v2_air_03.ogg"
+   ]
+  },
+  "c": {
+   "note": "cloth",
+   "sources": [
+    "rpg-audio/Audio/cloth1.ogg",
+    "rpg-audio/Audio/cloth2.ogg",
+    "rpg-audio/Audio/cloth3.ogg",
+    "rpg-audio/Audio/cloth4.ogg",
+    "rpg-audio/Audio/clothBelt.ogg",
+    "rpg-audio/Audio/clothBelt2.ogg"
+   ]
+  }
+ },
+ "shot": {
+  "a": {
+   "note": "laser small",
+   "sources": [
+    "sci-fi-sounds/Audio/laserSmall_000.ogg",
+    "sci-fi-sounds/Audio/laserSmall_001.ogg",
+    "sci-fi-sounds/Audio/laserSmall_002.ogg",
+    "sci-fi-sounds/Audio/laserSmall_003.ogg",
+    "sci-fi-sounds/Audio/laserSmall_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "laser retro",
+   "sources": [
+    "sci-fi-sounds/Audio/laserRetro_000.ogg",
+    "sci-fi-sounds/Audio/laserRetro_001.ogg",
+    "sci-fi-sounds/Audio/laserRetro_002.ogg",
+    "sci-fi-sounds/Audio/laserRetro_003.ogg",
+    "sci-fi-sounds/Audio/laserRetro_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "zap laser",
+   "sources": [
+    "digital-audio/Audio/laser1.ogg",
+    "digital-audio/Audio/laser2.ogg",
+    "digital-audio/Audio/laser3.ogg",
+    "digital-audio/Audio/laser4.ogg",
+    "digital-audio/Audio/laser5.ogg"
+   ]
+  }
+ },
+ "scan": {
+  "a": {
+   "note": "computer",
+   "sources": [
+    "sci-fi-sounds/Audio/computerNoise_000.ogg",
+    "sci-fi-sounds/Audio/computerNoise_001.ogg",
+    "sci-fi-sounds/Audio/computerNoise_002.ogg",
+    "sci-fi-sounds/Audio/computerNoise_003.ogg"
+   ]
+  },
+  "b": {
+   "note": "force field",
+   "sources": [
+    "sci-fi-sounds/Audio/forceField_000.ogg",
+    "sci-fi-sounds/Audio/forceField_001.ogg",
+    "sci-fi-sounds/Audio/forceField_002.ogg",
+    "sci-fi-sounds/Audio/forceField_003.ogg",
+    "sci-fi-sounds/Audio/forceField_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "phaser up",
+   "sources": [
+    "digital-audio/Audio/phaserUp1.ogg",
+    "digital-audio/Audio/phaserUp2.ogg",
+    "digital-audio/Audio/phaserUp3.ogg",
+    "digital-audio/Audio/phaserUp4.ogg",
+    "digital-audio/Audio/phaserUp5.ogg",
+    "digital-audio/Audio/phaserUp6.ogg"
+   ]
+  }
+ },
+ "flashlight": {
+  "a": {
+   "note": "switch",
+   "sources": [
+    "interface-sounds/Audio/switch_001.ogg",
+    "interface-sounds/Audio/switch_002.ogg",
+    "interface-sounds/Audio/switch_003.ogg",
+    "interface-sounds/Audio/switch_004.ogg",
+    "interface-sounds/Audio/switch_005.ogg",
+    "interface-sounds/Audio/switch_006.ogg"
+   ]
+  },
+  "b": {
+   "note": "toggle",
+   "sources": [
+    "interface-sounds/Audio/toggle_001.ogg",
+    "interface-sounds/Audio/toggle_002.ogg",
+    "interface-sounds/Audio/toggle_003.ogg",
+    "interface-sounds/Audio/toggle_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "metal click",
+   "sources": [
+    "rpg-audio/Audio/metalClick.ogg",
+    "rpg-audio/Audio/metalLatch.ogg"
+   ]
+  }
+ },
+ "ui_click": {
+  "a": {
+   "note": "click",
+   "sources": [
+    "ui-audio/Audio/click1.ogg",
+    "ui-audio/Audio/click2.ogg",
+    "ui-audio/Audio/click3.ogg",
+    "ui-audio/Audio/click4.ogg",
+    "ui-audio/Audio/click5.ogg"
+   ]
+  },
+  "b": {
+   "note": "interface click",
+   "sources": [
+    "interface-sounds/Audio/click_001.ogg",
+    "interface-sounds/Audio/click_002.ogg",
+    "interface-sounds/Audio/click_003.ogg",
+    "interface-sounds/Audio/click_004.ogg",
+    "interface-sounds/Audio/click_005.ogg"
+   ]
+  },
+  "c": {
+   "note": "select",
+   "sources": [
+    "interface-sounds/Audio/select_001.ogg",
+    "interface-sounds/Audio/select_002.ogg",
+    "interface-sounds/Audio/select_003.ogg",
+    "interface-sounds/Audio/select_004.ogg"
+   ]
+  }
+ },
+ "ui_hover": {
+  "a": {
+   "note": "rollover",
+   "sources": [
+    "ui-audio/Audio/rollover1.ogg",
+    "ui-audio/Audio/rollover2.ogg",
+    "ui-audio/Audio/rollover3.ogg",
+    "ui-audio/Audio/rollover4.ogg",
+    "ui-audio/Audio/rollover5.ogg",
+    "ui-audio/Audio/rollover6.ogg"
+   ]
+  },
+  "b": {
+   "note": "tick",
+   "sources": [
+    "interface-sounds/Audio/tick_001.ogg",
+    "interface-sounds/Audio/tick_002.ogg",
+    "interface-sounds/Audio/tick_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "scroll",
+   "sources": [
+    "interface-sounds/Audio/scroll_001.ogg",
+    "interface-sounds/Audio/scroll_002.ogg",
+    "interface-sounds/Audio/scroll_003.ogg",
+    "interface-sounds/Audio/scroll_004.ogg",
+    "interface-sounds/Audio/scroll_005.ogg"
+   ]
+  }
+ },
+ "deny": {
+  "a": {
+   "note": "error",
+   "sources": [
+    "interface-sounds/Audio/error_001.ogg",
+    "interface-sounds/Audio/error_002.ogg",
+    "interface-sounds/Audio/error_003.ogg",
+    "interface-sounds/Audio/error_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "back",
+   "sources": [
+    "interface-sounds/Audio/back_001.ogg",
+    "interface-sounds/Audio/back_002.ogg",
+    "interface-sounds/Audio/back_003.ogg",
+    "interface-sounds/Audio/back_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "glitch",
+   "sources": [
+    "interface-sounds/Audio/glitch_001.ogg",
+    "interface-sounds/Audio/glitch_002.ogg",
+    "interface-sounds/Audio/glitch_003.ogg",
+    "interface-sounds/Audio/glitch_004.ogg"
+   ]
+  }
+ },
+ "roar": {
+  "a": {
+   "note": "roar",
+   "sources": [
+    "oga/creature2/roar_04.ogg",
+    "oga/creature2/roar_05.ogg",
+    "oga/creature2/roar_06.ogg",
+    "oga/creature1/roar_02.ogg"
+   ]
+  },
+  "b": {
+   "note": "deep roar",
+   "sources": [
+    "oga/roar/monster_roar.wav"
+   ]
+  },
+  "c": {
+   "note": "snarl",
+   "sources": [
+    "oga/snarls/monster-snarls_0.ogg",
+    "oga/snarls/monster-snarls-2_0.ogg"
+   ]
+  }
+ },
+ "bite": {
+  "a": {
+   "note": "attack",
+   "sources": [
+    "oga/creature2/attack_01.ogg",
+    "oga/creature2/attack_03.ogg",
+    "oga/creature2/attack_05.ogg"
+   ]
+  },
+  "b": {
+   "note": "snarl attack",
+   "sources": [
+    "oga/snarls/monster-snarl-attack.ogg"
+   ]
+  },
+  "c": {
+   "note": "wood snap",
+   "sources": [
+    "impact-sounds/Audio/impactWood_heavy_000.ogg",
+    "impact-sounds/Audio/impactWood_heavy_001.ogg",
+    "impact-sounds/Audio/impactWood_heavy_002.ogg",
+    "impact-sounds/Audio/impactWood_heavy_003.ogg",
+    "impact-sounds/Audio/impactWood_heavy_004.ogg"
+   ]
+  }
+ },
+ "stun": {
+  "a": {
+   "note": "force field",
+   "sources": [
+    "sci-fi-sounds/Audio/forceField_000.ogg",
+    "sci-fi-sounds/Audio/forceField_001.ogg",
+    "sci-fi-sounds/Audio/forceField_002.ogg",
+    "sci-fi-sounds/Audio/forceField_003.ogg",
+    "sci-fi-sounds/Audio/forceField_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "phaser down",
+   "sources": [
+    "digital-audio/Audio/phaserDown1.ogg",
+    "digital-audio/Audio/phaserDown2.ogg",
+    "digital-audio/Audio/phaserDown3.ogg"
+   ]
+  },
+  "c": {
+   "note": "weird",
+   "sources": [
+    "oga/creature1/weird_01.ogg",
+    "oga/creature1/weird_02.ogg",
+    "oga/creature1/weird_03.ogg"
+   ]
+  }
+ },
+ "death": {
+  "a": {
+   "note": "die",
+   "sources": [
+    "oga/creature2/die_01.ogg",
+    "oga/creature2/die_02.ogg",
+    "oga/creature2/die_03.ogg",
+    "oga/creature2/die_04.ogg"
+   ]
+  },
+  "b": {
+   "note": "rpg die",
+   "sources": [
+    "oga/rpg/creature_die_01.ogg",
+    "oga/rpg/creature_hurt_01.ogg",
+    "oga/rpg/creature_hurt_02.ogg"
+   ]
+  },
+  "c": {
+   "note": "hurt",
+   "sources": [
+    "oga/creature1/hurt_01.ogg",
+    "oga/creature1/hurt_02.ogg"
+   ]
+  }
+ },
+ "snap": {
+  "a": {
+   "note": "jaws",
+   "sources": [
+    "oga/creature2/attack_01.ogg",
+    "oga/creature2/attack_05.ogg",
+    "impact-sounds/Audio/impactWood_light_000.ogg",
+    "impact-sounds/Audio/impactWood_light_001.ogg",
+    "impact-sounds/Audio/impactWood_light_002.ogg"
+   ]
+  },
+  "b": {
+   "note": "wood",
+   "sources": [
+    "impact-sounds/Audio/impactWood_medium_000.ogg",
+    "impact-sounds/Audio/impactWood_medium_001.ogg",
+    "impact-sounds/Audio/impactWood_medium_002.ogg",
+    "impact-sounds/Audio/impactWood_medium_003.ogg",
+    "impact-sounds/Audio/impactWood_medium_004.ogg"
+   ]
+  },
+  "c": {
+   "note": "plank",
+   "sources": [
+    "impact-sounds/Audio/impactPlank_medium_000.ogg",
+    "impact-sounds/Audio/impactPlank_medium_001.ogg",
+    "impact-sounds/Audio/impactPlank_medium_002.ogg",
+    "impact-sounds/Audio/impactPlank_medium_003.ogg",
+    "impact-sounds/Audio/impactPlank_medium_004.ogg"
+   ]
+  }
+ },
+ "boom": {
+  "a": {
+   "note": "explosion",
+   "sources": [
+    "sci-fi-sounds/Audio/explosionCrunch_000.ogg",
+    "sci-fi-sounds/Audio/explosionCrunch_001.ogg",
+    "sci-fi-sounds/Audio/explosionCrunch_002.ogg",
+    "sci-fi-sounds/Audio/explosionCrunch_003.ogg",
+    "sci-fi-sounds/Audio/explosionCrunch_004.ogg"
+   ]
+  },
+  "b": {
+   "note": "low explosion",
+   "sources": [
+    "sci-fi-sounds/Audio/lowFrequency_explosion_000.ogg",
+    "sci-fi-sounds/Audio/lowFrequency_explosion_001.ogg"
+   ]
+  },
+  "c": {
+   "note": "big",
+   "sources": [
+    "oga/sfx100/explosion.ogg"
+   ]
+  }
+ },
+ "alarm": {
+  "a": {
+   "note": "alarm 1",
+   "sources": [
+    "oga/loops/alarm_01.ogg"
+   ]
+  },
+  "b": {
+   "note": "alarm 3",
+   "sources": [
+    "oga/loops/alarm_03.ogg"
+   ]
+  },
+  "c": {
+   "note": "alarm 2",
+   "sources": [
+    "oga/loops/alarm_02.ogg"
+   ]
+  }
+ },
+ "evac": {
+  "a": {
+   "note": "thruster",
+   "sources": [
+    "sci-fi-sounds/Audio/thrusterFire_000.ogg",
+    "sci-fi-sounds/Audio/thrusterFire_001.ogg",
+    "sci-fi-sounds/Audio/thrusterFire_002.ogg"
+   ]
+  },
+  "b": {
+   "note": "power up",
+   "sources": [
+    "digital-audio/Audio/powerUp1.ogg",
+    "digital-audio/Audio/powerUp10.ogg",
+    "digital-audio/Audio/powerUp11.ogg",
+    "digital-audio/Audio/powerUp12.ogg",
+    "digital-audio/Audio/powerUp2.ogg",
+    "digital-audio/Audio/powerUp3.ogg"
+   ]
+  },
+  "c": {
+   "note": "engine",
+   "sources": [
+    "sci-fi-sounds/Audio/spaceEngineLarge_000.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLarge_001.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLarge_002.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLarge_003.ogg",
+    "sci-fi-sounds/Audio/spaceEngineLarge_004.ogg"
+   ]
+  }
+ },
+ "amb_valley_day": {
+  "a": {
+   "note": "forest birds",
+   "sources": [
+    "oga/ambience/Forest_Ambience.mp3"
+   ]
+  },
+  "b": {
+   "note": "birds and wind",
+   "sources": [
+    "oga/ambience/Birds_and_Wind_Ambient.ogg"
+   ]
+  },
+  "c": {
+   "note": "alien birds",
+   "sources": [
+    "oga/ambience/Forest_Ambience.mp3"
+   ]
+  }
+ },
+ "amb_valley_night": {
+  "a": {
+   "note": "crickets",
+   "sources": [
+    "oga/crickets/crickets_1.mp3"
+   ]
+  },
+  "b": {
+   "note": "deep crickets",
+   "sources": [
+    "oga/crickets/crickets_1.mp3"
+   ]
+  }
+ },
+ "amb_meadow_day": {
+  "a": {
+   "note": "alien birds",
+   "sources": [
+    "oga/ambience/Forest_Ambience.mp3"
+   ]
+  },
+  "b": {
+   "note": "forest birds",
+   "sources": [
+    "oga/ambience/Forest_Ambience.mp3"
+   ]
+  },
+  "c": {
+   "note": "birds and wind",
+   "sources": [
+    "oga/ambience/Birds_and_Wind_Ambient.ogg"
+   ]
+  }
+ },
+ "amb_meadow_night": {
+  "a": {
+   "note": "deep crickets",
+   "sources": [
+    "oga/crickets/crickets_1.mp3"
+   ]
+  },
+  "b": {
+   "note": "crickets",
+   "sources": [
+    "oga/crickets/crickets_1.mp3"
+   ]
+  },
+  "c": {
+   "note": "slow alien",
+   "sources": [
+    "oga/crickets/crickets_1.mp3"
+   ]
+  }
+ }
+}

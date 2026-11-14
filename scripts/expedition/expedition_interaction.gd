@@ -111,6 +111,10 @@ func slot_detail(index: int) -> String:
 	return "×%d" % _run_count(slot["item"])
 
 
+func slot_icon(index: int) -> StringName:
+	return &"" if SLOTS[index]["kind"] == "pistol" else SLOTS[index]["item"]
+
+
 func slot_color(index: int) -> Color:
 	return Color(1, 0.9, 0.4) if SLOTS[index]["kind"] == "pistol" else Color(0.62, 0.3, 0.95)
 

@@ -242,7 +242,13 @@ func refresh() -> void:
 	for i in _slots.size():
 		var holder := _slots[i].get_child(0)
 		var selected: bool = i == _interaction.selected
-		(holder.get_node("Icon") as Panel).add_theme_stylebox_override("panel", _icon_style(_interaction.slot_color(i)))
+		# Ikona przedmiotu, jeśli jest; inaczej kółko w kolorze slotu.
+		var icon_id: StringName = _interaction.slot_icon(i) if _interaction.has_method("slot_icon") else &""
+		var texture := NotebookTheme.icon(icon_id)
+		(holder.get_node("Tex") as TextureRect).texture = texture
+		var circle := holder.get_node("Icon") as Panel
+		circle.visible = texture == null
+		circle.add_theme_stylebox_override("panel", _icon_style(_interaction.slot_color(i)))
 		(holder.get_node("Count") as Label).text = _interaction.slot_detail(i)
 		_slots[i].add_theme_stylebox_override("panel", _slot_style(selected, _interaction.slot_color(i)))
 		if selected:
@@ -385,6 +391,17 @@ func _make_slot(index: int) -> PanelContainer:
 	icon.offset_bottom = 9
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(icon)
+	var tex := TextureRect.new()
+	tex.name = "Tex"
+	tex.set_anchors_preset(Control.PRESET_CENTER)
+	tex.offset_left = -24
+	tex.offset_right = 24
+	tex.offset_top = -28
+	tex.offset_bottom = 20
+	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(tex)
 	var count := Label.new()
 	count.name = "Count"
 	count.label_settings = NotebookTheme.label_settings(14)

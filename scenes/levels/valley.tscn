@@ -13,11 +13,9 @@
 [ext_resource type="PackedScene" path="res://art/models/nature/pond.glb" id="11_pond"]
 [ext_resource type="Script" path="res://scripts/fx/tree_scatter.gd" id="12_scatter"]
 [ext_resource type="Script" path="res://scripts/fx/bioluminescence.gd" id="13_biolum"]
+[ext_resource type="Script" path="res://scripts/fx/terrain_ring.gd" id="15_terrain"]
 [ext_resource type="Material" path="res://art/materials/ground_valley.tres" id="14_ground"]
 [ext_resource type="Material" path="res://art/materials/tilled.tres" id="15_tilled"]
-
-[sub_resource type="PlaneMesh" id="Mesh_ground"]
-size = Vector2(120, 120)
 
 [sub_resource type="BoxShape3D" id="Shape_ground"]
 size = Vector3(120, 1, 120)
@@ -46,24 +44,30 @@ radius = 2.5
 size = Vector3(0.15, 2, 0.15)
 
 [sub_resource type="BoxShape3D" id="Shape_wall_x"]
-size = Vector3(80, 10, 1)
+size = Vector3(100, 10, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_wall_z"]
-size = Vector3(1, 10, 80)
+size = Vector3(1, 10, 100)
 
 [node name="Valley" type="Node3D"]
 
 [node name="Ground" type="StaticBody3D" parent="." groups=["soil"]]
 
-[node name="Mesh" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("Mesh_ground")
-surface_material_override/0 = ExtResource("14_ground")
-
 [node name="Collision" type="CollisionShape3D" parent="Ground"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 shape = SubResource("Shape_ground")
 
-[node name="TilledPatch" type="MeshInstance3D" parent="."]
+[node name="Hills" type="Node3D" parent="."]
+script = ExtResource("15_terrain")
+flat_half = 42.0
+ridge = 70.0
+ridge_height = 14.0
+collision_extent = 60.0
+layout_seed = 3
+material = ExtResource("14_ground")
+snap_children_of = NodePath("../Mountains")
+
+[node name="TilledPatch" type="MeshInstance3D" parent="." groups=["tilled"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -1)
 mesh = SubResource("Mesh_tilled")
 surface_material_override/0 = ExtResource("15_tilled")
@@ -202,59 +206,70 @@ transform = Transform3D(-0.9982, 0, -0.0596, 0, 1, 0, 0.0596, 0, -0.9982, 26, 0,
 
 [node name="TreeScatter" type="Node3D" parent="."]
 script = ExtResource("12_scatter")
-count = 34
+count = 42
 layout_seed = 7
-half_extents = Vector2(37, 37)
+half_extents = Vector2(41, 41)
 inner_radius = 19.0
 species = {&"gnarled": 3.0, &"umbrella": 3.0, &"willow": 1.5, &"spooky": 0.5}
 
 [node name="Bioluminescence" type="Node3D" parent="."]
 script = ExtResource("13_biolum")
 layout_seed = 11
-half_extents = Vector2(37, 37)
-grass_clumps = 200
-blades = 6000
-moss_patches = 14
-fireflies = 200
-spores = 300
+half_extents = Vector2(42, 42)
+grass_clumps = 260
+blades = 7800
+moss_patches = 18
+fireflies = 260
+spores = 390
 inner_radius = 11.0
+
+[node name="HillTrees" type="Node3D" parent="."]
+script = ExtResource("12_scatter")
+count = 50
+layout_seed = 17
+half_extents = Vector2(86, 86)
+ring_inner = 47.0
+species = {&"gnarled": 2.0, &"umbrella": 2.0, &"willow": 1.5, &"spooky": 1.5}
+spacing = 6.5
+terrain = NodePath("../Hills")
+no_collision = true
 
 [node name="Mountains" type="Node3D" parent="."]
 
 [node name="Mountain1" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-0.3482, 0, -1.0191, 0, 1, 0, 1.0191, 0, -0.3482, 0.0, 0, -75.0)
+transform = Transform3D(-0.4701, 0.0, -1.3758, 0.0, 1.35, 0.0, 1.3758, 0.0, -0.4701, 0.0, 0.0, -97.5)
 
 [node name="Mountain2" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-0.6693, 0, 0.5177, 0, 0.7647, 0, -0.5177, 0, -0.6693, -58.0, 0, -52.0)
+transform = Transform3D(-0.9036, 0.0, 0.6989, 0.0, 1.0323, 0.0, -0.6989, 0.0, -0.9036, -75.4, 0.0, -67.6)
 
 [node name="Mountain3" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(0.7705, 0, 0.5083, 0, 0.8824, 0, -0.5083, 0, 0.7705, 62.0, 0, -45.0)
+transform = Transform3D(1.0402, 0.0, 0.6862, 0.0, 1.1912, 0.0, -0.6862, 0.0, 1.0402, 80.6, 0.0, -58.5)
 
 [node name="Mountain4" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(0.1933, 0, -0.7446, 0, 0.5882, 0, 0.7446, 0, 0.1933, -72.0, 0, 20.0)
+transform = Transform3D(0.261, 0.0, -1.0052, 0.0, 0.7941, 0.0, 1.0052, 0.0, 0.261, -93.6, 0.0, 26.0)
 
 [node name="Mountain5" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-0.8438, 0, 0.0636, 0, 0.7059, 0, -0.0636, 0, -0.8438, 68.0, 0, 38.0)
+transform = Transform3D(-1.1391, 0.0, 0.0859, 0.0, 0.953, 0.0, -0.0859, 0.0, -1.1391, 88.4, 0.0, 49.4)
 
 [node name="Mountain6" parent="Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(0.3935, 0, 0.9193, 0, 0.5294, 0, -0.9193, 0, 0.3935, 10.0, 0, 78.0)
+transform = Transform3D(0.5312, 0.0, 1.2411, 0.0, 0.7147, 0.0, -1.2411, 0.0, 0.5312, 13.0, 0.0, 101.4)
 
 [node name="Bounds" type="StaticBody3D" parent="."]
 
 [node name="North" type="CollisionShape3D" parent="Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -46)
 shape = SubResource("Shape_wall_x")
 
 [node name="South" type="CollisionShape3D" parent="Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 46)
 shape = SubResource("Shape_wall_x")
 
 [node name="West" type="CollisionShape3D" parent="Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 5, 0)
 shape = SubResource("Shape_wall_z")
 
 [node name="East" type="CollisionShape3D" parent="Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 5, 0)
 shape = SubResource("Shape_wall_z")
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]

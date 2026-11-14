@@ -11,7 +11,7 @@ Roguelite TPP o farmerze-odkrywcy na nieprzyjaznej, obcej planecie. Godot 4.7, G
 
 ## Uruchomienie
 
-Otwórz `project.godot` w Godot 4.7 i naciśnij F5. Albo z terminala:
+Otwórz `project.godot` w Godot 4.7 i naciśnij F5 (gra startuje od menu: Continue / New Game). Albo z terminala:
 
 ```bash
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64.exe" --path .
@@ -43,6 +43,24 @@ Otwórz `project.godot` w Godot 4.7 i naciśnij F5. Albo z terminala:
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_controls.tscn
 ```
 
+Odsłuchownia dźwięków (klik = odsłuch, Use = wybór, Save zapisuje `audio/sfx/picks.json`):
+
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64.exe" --path . res://tests/sound_board.tscn
+```
+
+Muzykę menu („Star Rodeo”) składa skrypt z SoundCraft i biblioteki VSCO 2 CE (`D:/Audio/VSCO-2-CE`); po zmianie nut w skrypcie:
+
+```bash
+python tools/audio/star_rodeo.py
+```
+
+Test dźwięku:
+
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_audio.tscn
+```
+
 Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; Tab przełącza kamerę):
 
 ```bash
@@ -57,10 +75,11 @@ Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; 
 | `scripts/` | skrypty (`autoload/` globalne singletony, np. `GameState`) |
 | `data/` | dane gry jako zasoby Godota (`plants/`, `creatures/`) |
 | `art/fonts/` | fonty gry (Lato, licencja OFL w `OFL-lato.txt`) |
-| `art/materials/` | materiały i shadery (teren: `ground_valley.tres`, `ground_meadow.tres`, pole `tilled.tres`) |
+| `art/materials/` | materiały i shadery (teren: `ground_valley.tres`, `ground_meadow.tres`, pole `tilled.tres`; wzgórza wokół poziomów buduje `scripts/fx/terrain_ring.gd`) |
 | `art/models/` | modele do gry (`.glb`): `player.glb` z animacjami, `plants/<id>.glb` (3 etapy wzrostu w jednym pliku), `creatures/`, `buildings/`, `nature/` |
 | `art/source/` | pliki źródłowe Blendera (`.blend`) i szkice (`sketches/`); Godot je pomija (`.gdignore`) |
-| `audio/` | dźwięk |
+| `audio/` | dźwięk: `sfx/<zdarzenie>/<a\|b\|c>/` (kandydaci, wybór w `sfx/picks.json`), `music/`, źródła i licencje w `LICENSES.md` |
+| `tools/` | skrypty pomocnicze poza grą (`audio/build_sounds.py` składa dźwięki z paczek CC0) |
 | `tests/` | testy uruchamiane z terminala |
 | `docs/` | raporty z playtestów |
 

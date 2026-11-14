@@ -14,13 +14,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_CENTER)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.14, 0.94)
-	style.set_corner_radius_all(14)
-	style.set_border_width_all(2)
-	style.border_color = Color(0.3, 0.95, 1, 0.8)
-	style.set_content_margin_all(24)
-	add_theme_stylebox_override("panel", style)
+	theme = NotebookTheme.theme()
 	_box = VBoxContainer.new()
 	_box.add_theme_constant_override("separation", 10)
 	add_child(_box)
@@ -41,6 +35,13 @@ func open_panel(width: float, height: float) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
+## Wysokość według treści, wyśrodkowane na ekranie.
+func _center() -> void:
+	var height := get_combined_minimum_size().y
+	offset_top = -height * 0.5
+	offset_bottom = height * 0.5
+
+
 func close() -> void:
 	if not visible:
 		return
@@ -53,11 +54,11 @@ func clear() -> void:
 		child.queue_free()
 
 
+## Tytuły (od 18 px) pogrubione; kolor przechodzi przez NotebookTheme.ink (czytelny na kremowym tle).
 func label(text: String, size: int, wrap_width := 0.0, color := Color.WHITE) -> Label:
 	var result := Label.new()
 	result.text = text
-	result.add_theme_font_size_override("font_size", size)
-	result.modulate = color
+	result.label_settings = NotebookTheme.label_settings(size, NotebookTheme.ink(color), size >= 18)
 	if wrap_width > 0.0:
 		result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		result.custom_minimum_size = Vector2(wrap_width, 0)

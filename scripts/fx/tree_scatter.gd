@@ -19,11 +19,21 @@ extends Node3D
 @export var species: Dictionary = {&"gnarled": 3.0, &"umbrella": 2.0, &"willow": 2.0, &"spooky": 1.0}
 ## Najmniejsza odległość między drzewami.
 @export var spacing := 5.5
+## Bez drzew wewnątrz kwadratu o tej połowie boku (drzewa tylko na obrzeżach, np. na wzgórzach).
+@export var ring_inner := 0.0
+## Teren (TerrainRing), na którym stoją drzewa; puste = płasko, y = 0.
+@export var terrain: NodePath
+## Bez kolizji (drzewa poza zasięgiem gracza, np. na wzgórzach za ścianą).
+@export var no_collision := false
+
+var _terrain: TerrainRing
 
 var _blockers: Array[Vector3] = []
 
 
 func _ready() -> void:
+	if not terrain.is_empty():
+		_terrain = get_node_or_null(terrain) as TerrainRing
 	_collect_blockers()
 	var spots := _pick_spots()
 	for i in spots.size():
@@ -39,6 +49,9 @@ func _ready() -> void:
 		var tree := TreeGenerator.build_cached(spot["species"], spot["seed"])
 		tree.scale = Vector3.ONE * float(spot["scale"])
 		body.add_child(tree)
+		add_child(body)
+		if no_collision:
+			continue
 		var shape := CylinderShape3D.new()
 		shape.radius = 0.4
 		shape.height = 2.5
@@ -46,7 +59,6 @@ func _ready() -> void:
 		collision.shape = shape
 		collision.position.y = 1.25
 		body.add_child(collision)
-		add_child(body)
 
 
 ## Lista drzew do posadzenia: {position, species, seed, yaw, scale}.
@@ -65,6 +77,11 @@ func _pick_spots() -> Array[Dictionary]:
 		var p := Vector3(rng.randf_range(-half_extents.x, half_extents.x), 0, rng.randf_range(-half_extents.y, half_extents.y))
 		if Vector2(p.x, p.z).length() < inner_radius or not _free(p, placed):
 			continue
+		if ring_inner > 0.0 and maxf(absf(p.x), absf(p.z)) < ring_inner:
+			continue
+		if _terrain:
+			# Trochę w głąb, żeby na zboczu nie wisiał żaden bok pnia.
+			p.y = _terrain.height_at(p.x, p.z) - 0.4
 		var pick := rng.randf() * total
 		var chosen: StringName = names[0]
 		for n in names:
@@ -101,7 +118,7 @@ func _collect_blockers() -> void:
 			continue
 		var n := node as Node3D
 		var radius := 0.0
-		if n is StaticBody3D and n.name != "Ground" and n.name != "Bounds":
+		if n is StaticBody3D and n.name != "Ground" and n.name != "Bounds" and not n.is_in_group("terrain"):
 			radius = 4.0
 		elif n is Marker3D:
 			radius = 3.0

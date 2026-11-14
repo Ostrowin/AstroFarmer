@@ -20,6 +20,7 @@ func _run() -> void:
 	await _test_plant_models()
 	_test_migrations()
 	_test_clock()
+	await _test_menu()
 	await _test_expedition()
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
@@ -316,6 +317,21 @@ func _test_night(level: Node, player: Player) -> void:
 	_check(bio.night < 0.01, "dzień: bioluminescencja gaśnie")
 	var moon := PlantCatalog.get_plant(&"moonpetal")
 	_check(moon != null and moon.night_glow and PlantVisuals.MODELS.has(&"moonpetal"), "Moonpetal: roślina z modelem, świeci nocą")
+
+
+# --- Menu główne ---------------------------------------------------------------
+
+func _test_menu() -> void:
+	_check(ProjectSettings.get_setting("application/run/main_scene") == "res://scenes/menu.tscn", "gra startuje od menu")
+	GameState.new_game()
+	GameState.save_game()
+	var menu := (load("res://scenes/menu.tscn") as PackedScene).instantiate()
+	add_child(menu)
+	await get_tree().process_frame
+	var labels := menu.find_children("*", "Button", true, false).map(func(b: Button) -> String: return b.text)
+	_check(labels.has("Continue") and labels.has("New Game") and labels.has("Quit"), "menu: Continue, New Game, Quit")
+	menu.queue_free()
+	await get_tree().process_frame
 
 
 # --- Zegar doby ---------------------------------------------------------------

@@ -29,10 +29,20 @@ func _run() -> void:
 	var night_pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).night_only)
 	var bushes := level.get_children().filter(func(n: Node) -> bool: return n is WildBush)
 	var creatures := level.get_children().filter(func(n: Node) -> bool: return n is Creature)
-	_check(pickups.size() == 12, "11 znajdziek + 1 ulepszenie (jest %d)" % pickups.size())
-	_check(night_pickups.size() == 5, "5 nocnych znajdziek (jest %d)" % night_pickups.size())
-	_check(bushes.size() == 4, "4 dzikie krzewy")
+	_check(pickups.size() == 16, "15 znajdziek + 1 ulepszenie (jest %d)" % pickups.size())
+	_check(night_pickups.size() == 7, "7 nocnych znajdziek (jest %d)" % night_pickups.size())
+	_check(bushes.size() == 6, "6 dzikich krzewów")
 	_check(creatures.size() == 1, "1 drapieżnik")
+
+	# Teren: wzgórza wokół płaskiego środka, środek ma zwykłą podłogę.
+	var hills := level.get_node("Hills") as TerrainRing
+	_check(hills.height_at(0, 0) == 0.0 and hills.height_at(50, -50) == 0.0, "środek łąki płaski")
+	_check(hills.height_at(0, -92) > 8.0, "grzbiet wzgórz wyraźnie wyżej")
+	var space: PhysicsDirectSpaceState3D = (exp1 as Node3D).get_world_3d().direct_space_state
+	var hit_mid: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(10, 30, 0), Vector3(10, -5, 0)))
+	_check(not hit_mid.is_empty() and (hit_mid["collider"] as Node).name == "Ground", "na środku promień trafia w podłogę")
+	var hit_slope: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(0, 60, -70), Vector3(0, -5, -70)))
+	_check(not hit_slope.is_empty() and (hit_slope["collider"] as Node).is_in_group("terrain") and hit_slope["position"].y > 0.5, "zbocze ma kolizję")
 	var creature := creatures[0] as Creature
 	_check(creature.state == Creature.State.SLEEP, "drapieżnik śpi przy Przebudzeniu < 50")
 

@@ -38,9 +38,3 @@ func show_report(title: String, sections: Array) -> void:
 	open_panel(720, 0)
 	# Wysokość dopasuje się do treści: panel rośnie w dół od środka, więc wyśrodkuj po klatce.
 	_center.call_deferred()
-
-
-func _center() -> void:
-	var height := get_combined_minimum_size().y
-	offset_top = -height * 0.5
-	offset_bottom = height * 0.5

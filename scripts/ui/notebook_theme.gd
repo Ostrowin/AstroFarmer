@@ -96,3 +96,73 @@ static func key_badge(key: String, size := 18) -> PanelContainer:
 	badge.add_child(l)
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return badge
+
+
+static var _theme: Theme
+
+
+## Ikona przedmiotu (art/ui/icons/<id>.png) albo null.
+static func icon(id: StringName) -> Texture2D:
+	if id == &"":
+		return null
+	var path := "res://art/ui/icons/%s.png" % id
+	return load(path) if ResourceLoader.exists(path) else null
+
+
+## Jasne kolory z dawnego ciemnego UI -> czytelne odpowiedniki na kremowym tle.
+static func ink(color: Color) -> Color:
+	if color.get_luminance() < 0.55:
+		return color
+	if color.s < 0.2:
+		return MUTED if color.v < 0.97 else TEXT
+	var h := color.h
+	if h < 0.06 or h > 0.92:
+		return BAD
+	if h < 0.17:
+		return Color("b85a14")
+	if h < 0.42:
+		return Color("2e7d4f")
+	if h < 0.72:
+		return Color("1f6f8b")
+	return AWAKE.darkened(0.2)
+
+
+## Motyw okien: karty, przyciski, suwaki i dymki w stylu notesu.
+static func theme() -> Theme:
+	if _theme:
+		return _theme
+	var t := Theme.new()
+	t.default_font = regular()
+	t.default_font_size = 16
+	t.set_color("font_color", "Label", TEXT)
+	t.set_font("font", "Button", bold())
+	t.set_color("font_color", "Button", TEXT)
+	t.set_color("font_hover_color", "Button", TEXT)
+	t.set_color("font_focus_color", "Button", TEXT)
+	t.set_color("font_pressed_color", "Button", Color.WHITE)
+	t.set_color("font_hover_pressed_color", "Button", Color.WHITE)
+	t.set_color("font_disabled_color", "Button", Color(MUTED, 0.6))
+	var normal := card(SLOT, SLOT_BORDER, 2, 1.0, 8)
+	normal.shadow_offset = Vector2(0, 3)
+	var hover := card(SLOT, ACCENT, 2, 1.0, 8)
+	hover.shadow_offset = Vector2(0, 3)
+	var pressed := card(ACCENT, ACCENT.darkened(0.3), 2, 1.0, 8)
+	pressed.shadow_offset = Vector2(0, 1)
+	var disabled := card(PANEL_DARK, SLOT_BORDER, 2, 0.6, 8)
+	disabled.shadow_offset = Vector2.ZERO
+	t.set_stylebox("normal", "Button", normal)
+	t.set_stylebox("hover", "Button", hover)
+	t.set_stylebox("pressed", "Button", pressed)
+	t.set_stylebox("hover_pressed", "Button", pressed)
+	t.set_stylebox("disabled", "Button", disabled)
+	t.set_stylebox("focus", "Button", StyleBoxEmpty.new())
+	t.set_stylebox("panel", "PanelContainer", card(PANEL, BORDER, BORDER_W, 0.97, 24))
+	t.set_stylebox("panel", "TooltipPanel", card(PANEL, BORDER, 2, 1.0, 8))
+	t.set_color("font_color", "TooltipLabel", TEXT)
+	t.set_font("font", "TooltipLabel", regular())
+	t.set_stylebox("grabber", "VScrollBar", bar(SLOT_BORDER))
+	t.set_stylebox("grabber_highlight", "VScrollBar", bar(ACCENT))
+	t.set_stylebox("grabber_pressed", "VScrollBar", bar(ACCENT))
+	t.set_stylebox("scroll", "VScrollBar", bar(Color(PANEL_DARK, 0.8)))
+	_theme = t
+	return t

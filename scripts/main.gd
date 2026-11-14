@@ -38,6 +38,8 @@ func _ready() -> void:
 	_farm.load_from_state()
 	_player.global_position = _spawn.global_position
 	_setup_day_night()
+	Sfx.set_ambience(&"valley")
+	Sfx.play_music("")
 
 	_interaction = _player.interaction as PlayerInteraction
 	_interaction.farm = _farm
