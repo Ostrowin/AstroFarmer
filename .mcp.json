@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "texturecraft": {
+      "command": "D:/Programy/Craft/TextureCraft/texturecraft-cli.exe",
+      "args": [
+        "mcp",
+        "--read-root", "D:/Projekty/Private/AstroFarmer",
+        "--write-root", "D:/Projekty/Private/AstroFarmer/art"
+      ]
+    }
+  }
+}

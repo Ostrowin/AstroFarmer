@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://art/materials/tilled.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/soil = Color(0.42, 0.28, 0.22, 1)
+shader_parameter/furrow = Color(0.28, 0.18, 0.15, 1)

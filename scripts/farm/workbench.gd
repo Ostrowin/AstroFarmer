@@ -3,7 +3,7 @@ extends StaticBody3D
 ## Stół warsztatowy w bazie (E otwiera okno receptur).
 ## Model z Blendera; bez pliku zostaje model z prymitywów.
 
-const MODEL := preload("res://art/models/buildings/workbench.glb")
+const MODEL := preload("res://art/models/buildings/workbench_painted.glb")
 
 const WOOD := Color(0.6, 0.42, 0.3)
 const METAL := Color(0.55, 0.57, 0.65)

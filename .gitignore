@@ -17,3 +17,9 @@ Thumbs.db
 
 # Kopie zapasowe Blendera
 *.blend1
+
+# Pobrane paczki dźwięków CC0 (źródła i linki w audio/LICENSES.md)
+audio/_incoming/
+
+# Projekty TextureCraft (setki MB na plik, GitHub przyjmuje max 100 MB). Do gry trafiają wyeksportowane tekstury i *_painted.glb.
+art/source/texturecraft/*.tcraft

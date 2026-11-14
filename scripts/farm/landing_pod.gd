@@ -7,7 +7,7 @@ const BODY := Color(0.93, 0.93, 0.97)
 const STRIPE := Color(1.0, 0.55, 0.2)
 const WINDOW := Color(0.35, 0.95, 1.0)
 ## Model z Blendera: Pad (lądowisko), Capsule (spada z nieba), Hatch (właz w Capsule).
-const MODEL := preload("res://art/models/buildings/landing_pod.glb")
+const MODEL := preload("res://art/models/buildings/landing_pod_painted.glb")
 const HATCH_OPEN := deg_to_rad(100.0)
 
 var _visual: Node3D

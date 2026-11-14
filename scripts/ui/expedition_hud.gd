@@ -18,12 +18,13 @@ func _ready() -> void:
 	_offhand_panel.anchor_right = 0.5
 	_offhand_panel.anchor_top = 1.0
 	_offhand_panel.anchor_bottom = 1.0
-	_offhand_panel.offset_left = 180
-	_offhand_panel.offset_right = 380
-	_offhand_panel.offset_top = -96
-	_offhand_panel.offset_bottom = -26
+	_offhand_panel.offset_left = 100
+	_offhand_panel.offset_right = 260
+	_offhand_panel.offset_top = -94
+	_offhand_panel.offset_bottom = -24
 	_offhand_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_offhand_label = _make_label(16)
+	_offhand_label = Label.new()
+	_offhand_label.label_settings = NotebookTheme.label_settings(15)
 	_offhand_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_offhand_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_offhand_panel.add_child(_offhand_label)
@@ -31,25 +32,25 @@ func _ready() -> void:
 	var bars := VBoxContainer.new()
 	bars.anchor_left = 0.5
 	bars.anchor_right = 0.5
-	bars.offset_left = -220
-	bars.offset_right = 220
-	bars.offset_top = 10
-	bars.add_theme_constant_override("separation", 2)
+	bars.offset_left = -200
+	bars.offset_right = 200
+	bars.offset_top = 14
+	bars.add_theme_constant_override("separation", 4)
 	bars.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(bars)
 
 	_health_label = _make_label(16)
 	bars.add_child(_health_label)
-	_health_bar = _make_bar(Color(0.95, 0.35, 0.35))
+	_health_bar = _make_bar(NotebookTheme.HEALTH, 20)
 	bars.add_child(_health_bar)
 	_awake_label = _make_label(16)
 	bars.add_child(_awake_label)
-	_awake_bar = _make_bar(Color(0.7, 0.4, 1.0))
+	_awake_bar = _make_bar(NotebookTheme.AWAKE, 14)
 	bars.add_child(_awake_bar)
 
 	_alert = _make_label(26)
 	_alert.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_alert.modulate = Color(1, 0.45, 0.4)
+	_alert.label_settings.font_color = Color(1, 0.55, 0.45)
 	_alert.anchor_left = 0.5
 	_alert.anchor_right = 0.5
 	_alert.offset_left = -500
@@ -64,14 +65,8 @@ func refresh() -> void:
 	if _offhand_label == null or _interaction == null or not _interaction.has_method("offhand_text"):
 		return
 	_offhand_label.text = _interaction.offhand_text()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.06, 0.14, 0.6)
-	style.set_corner_radius_all(10)
-	style.set_border_width_all(2)
-	style.border_color = _interaction.offhand_color()
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	_offhand_panel.add_theme_stylebox_override("panel", style)
+	_offhand_panel.add_theme_stylebox_override("panel",
+		NotebookTheme.card(NotebookTheme.SLOT, _interaction.offhand_color().darkened(0.2), 3, 0.95, 6))
 
 
 func set_player(player: Player) -> void:
@@ -111,18 +106,12 @@ func details_visible() -> bool:
 	return not modal
 
 
-func _make_bar(fill: Color) -> ProgressBar:
+func _make_bar(fill: Color, height := 16) -> ProgressBar:
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(440, 16)
+	bar.custom_minimum_size = Vector2(400, height)
 	bar.show_percentage = false
 	bar.max_value = 100.0
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.05, 0.03, 0.1, 0.65)
-	bg.set_corner_radius_all(6)
-	var fg := StyleBoxFlat.new()
-	fg.bg_color = fill
-	fg.set_corner_radius_all(6)
-	bar.add_theme_stylebox_override("background", bg)
-	bar.add_theme_stylebox_override("fill", fg)
+	bar.add_theme_stylebox_override("background", NotebookTheme.bar(Color(NotebookTheme.PANEL_DARK, 0.9), true))
+	bar.add_theme_stylebox_override("fill", NotebookTheme.bar(fill))
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return bar

@@ -152,7 +152,21 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
   - [x] warsztat: Bright Lamp (2 Lumen Dust, 2 Glow Spores, 1 Starfall Shard) = latarka dalej i szerzej; 5 nowych wpisów w bazie danych.
 - [x] **3. Bioluminescencja** (2026-11-13, `scripts/fx/bioluminescence.gd`, szkice `art/source/sketches/biolum_*.png`): kępy trawy kołyszące się na wietrze ze świecącymi czubkami (w dzień zwykła trawa), plamy świecącego mchu (turkus, zieleń, fiolet), świetliki i zarodniki w powietrzu, drzewa-grzyby świecące od spodu na niebiesko, świecące ślady stóp gracza (gasną po 4 s). Wszystko świeci tylko nocą; baza ma wolny środek z farmą.
 - [ ] **4. Tekstury:** stylizowane, ręcznie malowane (TextureCraft, MaterialCraft), najpierw teren, potem rośliny, gracz i budynki.
-- [ ] **5. Plansza stylu UI** (DesignCraft, FigCraft): menu, paski, skille, ekran komputera, plecak, raport na jednej planszy. Wdrożenie dopiero po akceptacji.
+  - [x] teren (2026-11-13, `art/materials/`, szkice `art/source/sketches/terrain_*.png`): baza = malowana łąka (miękkie plamy trzech zieleni, pociągnięcia pędzla, kwiatki), łąka wyprawy = obca ziemia (turkus z fioletowymi łachami i kryształkami), pole uprawne z bruzdami. Liczone w shaderze z bezszwowego szumu, bez plików tekstur,
+  - [x] styl wszystkich modeli (2026-11-13, autoload `Stylize`, szkice `art/source/sketches/models_*.png`): cel-shading (ostre tony światła, jasna krawędź) + miękkie plamy farby. Działa na każdy model automatycznie; świecenie, mutacje i obwódki bez zmian,
+  - [ ] ręcznie malowane tekstury z TextureCraft (serwer MCP w `.mcp.json`; projekty `.tcraft` i tekstury w `art/source/texturecraft/`):
+    - [x] skała i stos kamieni (2026-11-13, w grze: `rock_painted.glb`, `rock_stack_painted.glb`),
+    - [x] chatka, drzewo-grzyb, legowisko (2026-11-13, w grze: `hut_painted.glb`, `tree_mushroom_painted.glb`, `den_painted.glb`),
+    - [x] warsztat, drzwi wyprawy, kapsuła, słupek płotu, latarnia ewakuacji, sosna, drzewo-latarnia (2026-11-14, w grze jako `*_painted.glb`),
+    - [ ] reszta (rośliny, stworzenia, gracz, znajdźki).
+    - Przepis v2 (zachowuje węzły modelu, np. Capsule/Hatch): `tc_prep2` robi UV na modelu z gry, TextureCraft maluje całość jednym skryptem z linii poleceń (`texturecraft-cli batch`), `tc_rebuild2` podmienia materiały.
+    - Przepis: Blender (w tle) łączy części i robi czyste UV na materiał, TextureCraft wypala mapy i maluje warstwami (kolor bazowy z szumem, ciemne wnęki, jasne krawędzie; na kamieniach bez krawędzi, bo low-poly robi z nich siatkę), Blender składa model z teksturami. Materiały świecące zostają bez zmian. Podgląd 3D w TextureCraft wywraca serwer, więc wyniki ogląda się w Godocie.
+- [ ] **5. Styl UI** (plansze w FigCraft, 2026-11-14; wybrany styl A "Field Notebook": kremowe karty z brązową ramką, twardy cień jak naklejka, pomarańczowe akcenty, font Lato w `art/fonts/`; plansze `art/source/sketches/ui_style_*.png`, pliki `art/source/ui/*.figcraft`):
+  - [x] HUD bazy i wyprawy (`scripts/ui/notebook_theme.gd`): karta z zegarem i cyklem, podpowiedź z klawiszem w znaczku, powiadomienia na kartach, kwadratowe sloty z kolorową ikoną i ilością (nazwa wybranego nad paskiem), paski zdrowia i Przebudzenia, druga ręka, licznik plecaka,
+  - [ ] prawdziwe ikony przedmiotów w slotach (teraz kolorowe kółka),
+  - [ ] menu główne z logo (nowy ekran startowy),
+  - [ ] komputer (baza danych) jako ekran z zakładkami, warsztat jako drzewko ulepszeń, plecak, przygotowanie wyprawy, raport.
+  - Montserrat (nagłówki z planszy) nie jest dostępny jako plik; w grze nagłówki są pogrubionym Lato. Montserrat można dołożyć później (darmowa licencja OFL).
 
 ## UI: angielski, mniej tekstu, obwódki (zrobione 2026-11-12)
 

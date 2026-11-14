@@ -7,7 +7,7 @@ extends StaticBody3D
 const WOOD := Color(0.62, 0.42, 0.28)
 const HEIGHT := 1.1
 ## Model z Blendera; bez pliku zostaje model z prymitywów.
-const MODEL := preload("res://art/models/buildings/fence_post.glb")
+const MODEL := preload("res://art/models/buildings/fence_post_painted.glb")
 
 
 func _ready() -> void:

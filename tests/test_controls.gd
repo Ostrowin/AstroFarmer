@@ -121,6 +121,12 @@ func _test_expedition() -> void:
 
 	# Model z animacjami.
 	_check(player.get_node_or_null("Visual/Model") != null, "gracz ma model z Blendera")
+	var styled := false
+	for node in player.get_node("Visual/Model").find_children("*", "MeshInstance3D", true, false):
+		var mat := (node as MeshInstance3D).get_active_material(0) as BaseMaterial3D
+		if mat and mat.diffuse_mode == BaseMaterial3D.DIFFUSE_TOON and mat.detail_enabled:
+			styled = true
+	_check(styled, "styl modeli: cel-shading i plamy farby")
 	_check(player.animation_state() == &"Idle", "animacja na start: Idle")
 	var tree := player.get_node("Visual/Model/AnimationTree") as AnimationTree
 	_check(tree != null and tree.active, "AnimationTree działa")

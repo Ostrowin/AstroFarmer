@@ -6,13 +6,14 @@
 [ext_resource type="PackedScene" path="res://scenes/levels/props/tree_cone.tscn" id="4_tree_cone"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/tree_mushroom.tscn" id="5_tree_mushroom"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/rock.tscn" id="6_rock"]
-[ext_resource type="PackedScene" path="res://art/models/buildings/evac_beacon.glb" id="7_evac"]
+[ext_resource type="PackedScene" path="res://art/models/buildings/evac_beacon_painted.glb" id="7_evac"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/tree_lantern.tscn" id="8_tree_lantern"]
 [ext_resource type="PackedScene" path="res://scenes/levels/props/rock_stack.tscn" id="9_rock_stack"]
 [ext_resource type="PackedScene" path="res://art/models/nature/mountain.glb" id="10_mountain"]
-[ext_resource type="PackedScene" path="res://art/models/nature/den.glb" id="11_den"]
+[ext_resource type="PackedScene" path="res://art/models/nature/den_painted.glb" id="11_den"]
 [ext_resource type="Script" path="res://scripts/fx/tree_scatter.gd" id="12_scatter"]
 [ext_resource type="Script" path="res://scripts/fx/bioluminescence.gd" id="13_biolum"]
+[ext_resource type="Material" path="res://art/materials/ground_meadow.tres" id="14_ground"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_meadow"]
 sky_top_color = Color(0.25, 0.32, 0.68, 1)
@@ -35,9 +36,6 @@ fog_density = 0.004
 
 [sub_resource type="PlaneMesh" id="Mesh_ground"]
 size = Vector2(120, 120)
-
-[sub_resource type="StandardMaterial3D" id="Material_ground"]
-albedo_color = Color(0.36, 0.62, 0.5, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_ground"]
 size = Vector3(120, 1, 120)
@@ -75,7 +73,7 @@ shadow_enabled = true
 
 [node name="Mesh" type="MeshInstance3D" parent="Level/Ground"]
 mesh = SubResource("Mesh_ground")
-surface_material_override/0 = SubResource("Material_ground")
+surface_material_override/0 = ExtResource("14_ground")
 
 [node name="Collision" type="CollisionShape3D" parent="Level/Ground"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)

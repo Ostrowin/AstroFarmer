@@ -56,6 +56,8 @@ Podgląd wszystkich roślin we wszystkich etapach (osobny zapis, nie rusza gry; 
 | `scenes/` | sceny (`levels/` poziomy i biomy, `ui/` interfejs) |
 | `scripts/` | skrypty (`autoload/` globalne singletony, np. `GameState`) |
 | `data/` | dane gry jako zasoby Godota (`plants/`, `creatures/`) |
+| `art/fonts/` | fonty gry (Lato, licencja OFL w `OFL-lato.txt`) |
+| `art/materials/` | materiały i shadery (teren: `ground_valley.tres`, `ground_meadow.tres`, pole `tilled.tres`) |
 | `art/models/` | modele do gry (`.glb`): `player.glb` z animacjami, `plants/<id>.glb` (3 etapy wzrostu w jednym pliku), `creatures/`, `buildings/`, `nature/` |
 | `art/source/` | pliki źródłowe Blendera (`.blend`) i szkice (`sketches/`); Godot je pomija (`.gdignore`) |
 | `audio/` | dźwięk |
@@ -88,6 +90,11 @@ Gra jest po angielsku i pokazuje jak najmniej tekstu. Obiekt, z którym można t
 - Tab: plecak. Przeciągnij nasiono na rękę PPM; PPM na przedmiocie wyrzuca 1 sztukę, przeciągnięcie do kosza wyrzuca stos.
 - E: podnieś / zjedz dziki owoc / nabierz wody z Mglistego źródła / wezwij ewakuację.
 - Q: skanuj.
+
+## Narzędzia graficzne
+
+- Blender przez MCP (modele, szkice brył).
+- TextureCraft przez MCP: skonfigurowany w `.mcp.json` (czyta cały projekt, zapisuje tylko w `art/`). Claude Code pyta o zgodę przy pierwszym uruchomieniu.
 
 ## Sposób pracy
 

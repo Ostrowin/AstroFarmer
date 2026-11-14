@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://art/materials/ground.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://art/materials/ground_noise.tres" id="2_noise"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/style = 1
+shader_parameter/noise_tex = ExtResource("2_noise")
+shader_parameter/c_light = Color(0.44, 0.72, 0.56, 1)
+shader_parameter/c_dark = Color(0.22, 0.46, 0.4, 1)
+shader_parameter/c_third = Color(0.3, 0.62, 0.62, 1)
+shader_parameter/c_soil = Color(0.5, 0.34, 0.5, 1)
+shader_parameter/c_fleck = Color(1, 0.75, 0.85, 1)
