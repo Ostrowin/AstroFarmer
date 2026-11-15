@@ -23,3 +23,8 @@ audio/_incoming/
 
 # Projekty TextureCraft (setki MB na plik, GitHub przyjmuje max 100 MB). Do gry trafiają wyeksportowane tekstury i *_painted.glb.
 art/source/texturecraft/*.tcraft
+
+# Muzyka chroniona prawem autorskim, tylko do lokalnego grania (bez licencji nie wolno jej publikować).
+# Bez tego pliku traktor gra własny hoedown (audio/music/hoedown_circuit.ogg).
+audio/music/cotton_eye_joe.mp3
+audio/music/cotton_eye_joe.mp3.import

@@ -58,6 +58,8 @@ var planet_attention: int = 0
 var farm: Array = []
 ## Budowle postawione w bazie (np. słupki płotu): lista {"id", "x", "y", "z"}.
 var structures: Array = []
+## Maszyny w bazie, np. "tractor" -> {"x", "z", "yaw"} (miejsce, gdzie gracz go zostawił).
+var machines: Dictionary = {}
 ## Trwałe ulepszenia z warsztatu: id -> true.
 var upgrades: Dictionary = {}
 ## Niepokój fauny 0..100: rośnie co cykl, przy 100 jest najazd na bazę.
@@ -120,6 +122,7 @@ func reset() -> void:
 	planet_attention = 0
 	farm = []
 	structures = []
+	machines = {}
 	upgrades.clear()
 	raid_pressure = Raid.START_PRESSURE
 	run = null
@@ -364,6 +367,7 @@ func to_dict() -> Dictionary:
 		"planet_attention": planet_attention,
 		"farm": farm.duplicate(true),
 		"structures": structures.duplicate(true),
+		"machines": machines.duplicate(true),
 		"upgrades": upgrades.keys().map(func(k): return String(k)),
 		"raid_pressure": raid_pressure,
 		"pending_cycles": pending_cycles,
@@ -402,6 +406,9 @@ func from_dict(data: Dictionary) -> void:
 	for entry in data.get("structures", []):
 		if typeof(entry) == TYPE_DICTIONARY:
 			structures.append(entry)
+	var saved_machines = data.get("machines", {})
+	if typeof(saved_machines) == TYPE_DICTIONARY:
+		machines = (saved_machines as Dictionary).duplicate(true)
 	for id in data.get("upgrades", []):
 		# Ogłuszacz Mk2 z wcześniejszych wersji = Pistolet Mk2.
 		upgrades[&"pistol_mk2" if String(id) == "stunner_mk2" else StringName(id)] = true

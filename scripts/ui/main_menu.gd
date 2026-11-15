@@ -1,7 +1,8 @@
 class_name MainMenu
 extends Node3D
 ## Ekran startowy: nocna dolina w tle (wolny przelot kamery), logo i przyciski
-## Continue / New Game / Quit w stylu Field Notebook.
+## Continue / New Game / Settings / Quit w stylu Field Notebook.
+## Settings rozwija obok kartę z głośnością i pełnym ekranem (SettingsBox).
 
 const GAME_SCENE := "res://scenes/main.tscn"
 const ORBIT_CENTER := Vector3(-2, 1.5, -2)
@@ -13,6 +14,7 @@ var _camera: Camera3D
 var _time := 0.0
 var _confirm_new := false
 var _new_button: Button
+var _settings_card: PanelContainer
 
 
 func _ready() -> void:
@@ -80,6 +82,7 @@ func _build_ui() -> void:
 		box.add_child(_button("Continue", _continue, true))
 	_new_button = _button("New Game", _new_game, not has_save)
 	box.add_child(_new_button)
+	box.add_child(_button("Settings", _toggle_settings, false))
 	box.add_child(_button("Quit", func() -> void: get_tree().quit(), false))
 
 	if has_save:
@@ -87,6 +90,28 @@ func _build_ui() -> void:
 		info.text = "Cycle %d  ·  Database %d%%" % [GameState.cycle, Codex.completion(GameState.research, GameState.max_level())]
 		info.label_settings = NotebookTheme.world_label_settings(16)
 		box.add_child(info)
+
+	_settings_card = PanelContainer.new()
+	_settings_card.add_theme_stylebox_override("panel", NotebookTheme.card(NotebookTheme.PANEL, NotebookTheme.BORDER, 3, 0.96, 16))
+	_settings_card.anchor_top = 0.5
+	_settings_card.anchor_bottom = 0.5
+	_settings_card.offset_left = 460
+	_settings_card.offset_top = -40
+	_settings_card.custom_minimum_size = Vector2(440, 0)
+	_settings_card.add_child(SettingsBox.new())
+	_settings_card.visible = false
+	root.add_child(_settings_card)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and _settings_card.visible:
+		_settings_card.visible = false
+
+
+func _toggle_settings() -> void:
+	_settings_card.visible = not _settings_card.visible
+	if _settings_card.visible:
+		(_settings_card.get_child(0) as SettingsBox).refresh()
 
 
 func _title_label(text: String, color: Color) -> Label:

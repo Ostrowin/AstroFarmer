@@ -18,9 +18,12 @@ const GROUPS := [
 ## Utwory: nazwa, opis, plik.
 const MUSIC := [
 	["star_rodeo (menu)", "orchestra + country", "res://audio/music/star_rodeo.ogg"],
+	["homestead (base)", "calm banjo, strings", "res://audio/music/homestead.ogg"],
 	["boss_rodeo (boss, later)", "electro + country", "res://audio/music/boss_rodeo.ogg"],
 	["rodeo_rave (boss, later)", "hard rave + country", "res://audio/music/rodeo_rave.ogg"],
 	["stampede (boss, later)", "hard electro, sub bass", "res://audio/music/stampede.ogg"],
+	["hoedown_circuit", "clear beat + banjo country", "res://audio/music/hoedown_circuit.ogg"],
+	["heavy_pulse", "60 BPM, rhythm + deep 808", "res://audio/music/heavy_pulse.ogg"],
 ]
 
 var _notes: Dictionary = {}

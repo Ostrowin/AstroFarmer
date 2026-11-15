@@ -13,11 +13,11 @@ const TREE_SIZE := Vector2(720, 390)
 const LAYOUT := {
 	&"fence": Vector2(20, 10), &"can_mk2": Vector2(380, 10),
 	&"backpack_mk2": Vector2(20, 145), &"pistol_mk2": Vector2(380, 145),
-	&"lamp_mk2": Vector2(200, 280),
+	&"drone": Vector2(20, 280), &"lamp_mk2": Vector2(380, 280),
 }
-const LINKS := [[&"fence", &"backpack_mk2"], [&"can_mk2", &"pistol_mk2"], [&"backpack_mk2", &"lamp_mk2"], [&"pistol_mk2", &"lamp_mk2"]]
+const LINKS := [[&"fence", &"backpack_mk2"], [&"can_mk2", &"pistol_mk2"], [&"backpack_mk2", &"drone"], [&"pistol_mk2", &"lamp_mk2"]]
 const ICONS := {
-	&"fence": &"fence_post", &"can_mk2": &"water_misty", &"backpack_mk2": &"sample_glowmoss",
+	&"fence": &"fence_post", &"can_mk2": &"water_misty", &"backpack_mk2": &"sample_glowmoss", &"drone": &"drone_dock",
 	&"pistol_mk2": &"thorn", &"lamp_mk2": &"glow_spores",
 }
 
@@ -141,7 +141,7 @@ func _craft(id: StringName) -> void:
 
 static func _stock_text() -> String:
 	var parts: Array[String] = []
-	for id in [&"crystal", &"sample_glowmoss", &"thorn", &"lumen_dust", &"glow_spores", &"starfall_shard", &"fence_post"]:
+	for id in [&"crystal", &"sample_glowmoss", &"thorn", &"lumen_dust", &"glow_spores", &"starfall_shard", &"fence_post", &"drone_dock"]:
 		var count := GameState.get_resource(id)
 		if count > 0 or id in [&"crystal", &"fence_post"]:
 			parts.append("%s %d" % [PlantCatalog.item_name(id), count])

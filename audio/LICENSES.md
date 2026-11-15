@@ -31,10 +31,14 @@ Dokładne pliki źródłowe każdego kandydata są w `audio/sfx/candidates.json`
 
 ## Muzyka
 
-- Efekty w „Boss Rodeo” i „Rodeo Rave” (okrzyki „yee-haw” i „HEY!/HA!/HOO!”, stopy hardstyle i „sub kick”, riser, uderzenie) są syntezowane od zera (`tools/audio/fx_synth.py`); odwrócony talerz pochodzi z VSCO 2 CE.
+- Efekty w „Boss Rodeo” i „Rodeo Rave” (okrzyki „yee-haw” i „HEY!/HA!/HOO!”, stopy hardstyle i „sub kick”, banjo z modelu fizycznego, riser, uderzenie) są syntezowane od zera (`tools/audio/fx_synth.py`); odwrócony talerz pochodzi z VSCO 2 CE.
 - `audio/music/` to utwory skomponowane do gry w SoundCraft na próbkach **VSCO 2 Community Edition** (Versilian Studios, CC0): https://github.com/sgossner/VSCO-2-CE. Biblioteka leży poza projektem, w `D:/Audio/VSCO-2-CE`.
 
 ## Jak odtworzyć `audio/sfx/`
 
 1. Pobierz paczki z listy powyżej do `audio/_incoming/` (Kenney: `audio/_incoming/<nazwa-paczki>/`, OpenGameArt: `audio/_incoming/oga/<skrót>/`). Folder nie trafia do gita.
 2. `python tools/audio/build_sounds.py` (potrzebne: ffmpeg, numpy).
+
+## Muzyka traktora (tylko lokalnie)
+
+`audio/music/cotton_eye_joe.mp3` (Rednex, „Cotton Eye Joe”) to utwór chroniony prawem autorskim. Leży tylko na dysku autora i jest w `.gitignore`. Nie wolno go wrzucać do repozytorium ani do wydanej gry bez licencji. Gdy pliku nie ma, traktor gra własny hoedown `hoedown_circuit.ogg`.

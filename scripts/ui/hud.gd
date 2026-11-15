@@ -28,6 +28,8 @@ var _slot_title: Label
 var _hotbar: HBoxContainer
 var _slots: Array[PanelContainer] = []
 var _notifications: VBoxContainer
+## Powiadomienia z kluczem (notify(text, key)): klucz -> karta.
+var _keyed := {}
 var _fade: ColorRect
 var _fade_label: Label
 var _click_hint: Label
@@ -194,10 +196,38 @@ func _ready() -> void:
 	GameState.research_added.connect(_on_research)
 	GameState.level_unlocked.connect(_on_level_unlocked)
 	GameState.cycle_advanced.connect(func(_c: int) -> void: refresh())
+	_build_pause_menu()
 
 
 ## true, gdy otwarte jest okno (np. przygotowanie wyprawy): chowa podpowiedź kliknięcia.
 var modal := false
+## Menu pod Esc (pauza, głośność, wyjście).
+var pause_menu: PauseMenu
+
+
+func _build_pause_menu() -> void:
+	pause_menu = PauseMenu.new()
+	pause_menu.name = "PauseMenu"
+	add_child(pause_menu)
+	pause_menu.closed.connect(func() -> void:
+		modal = false
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED)
+
+
+## Esc otwiera menu pauzy, gdy nie ma innego okna (okna same łapią Esc, bo są dziećmi HUD).
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and can_pause():
+		get_viewport().set_input_as_handled()
+		open_pause()
+
+
+func can_pause() -> bool:
+	return pause_menu != null and not pause_menu.visible and not modal and _fade.modulate.a < 0.01
+
+
+func open_pause() -> void:
+	modal = true
+	pause_menu.open()
 
 
 func _process(_delta: float) -> void:
@@ -319,8 +349,17 @@ func set_prompt(text: String, ok: bool) -> void:
 	_prompt_card.visible = not text.is_empty()
 
 
-func notify(text: String) -> void:
+## `key` (opcjonalny): kolejne powiadomienie z tym samym kluczem podmienia tekst
+## zamiast dokładać nową kartę (np. głośność muzyki przy wielu wciśnięciach).
+func notify(text: String, key: StringName = &"") -> void:
 	if text.is_empty():
+		return
+	if key != &"" and is_instance_valid(_keyed.get(key)):
+		var card := _keyed[key] as PanelContainer
+		(card.get_child(0) as Label).text = text
+		card.modulate.a = 1.0
+		(card.get_meta("tween") as Tween).kill()
+		card.set_meta("tween", _fade_card(card))
 		return
 	# Karta przyklejona do prawej krawędzi; szerokość według tekstu.
 	var label := PanelContainer.new()
@@ -335,10 +374,17 @@ func notify(text: String) -> void:
 	_notifications.add_child(label)
 	while _notifications.get_child_count() > MAX_NOTIFICATIONS:
 		_notifications.get_child(0).free()
-	var tween := label.create_tween()
+	label.set_meta("tween", _fade_card(label))
+	if key != &"":
+		_keyed[key] = label
+
+
+func _fade_card(card: Control) -> Tween:
+	var tween := card.create_tween()
 	tween.tween_interval(NOTIFY_SECONDS)
-	tween.tween_property(label, "modulate:a", 0.0, 0.6)
-	tween.tween_callback(label.queue_free)
+	tween.tween_property(card, "modulate:a", 0.0, 0.6)
+	tween.tween_callback(card.queue_free)
+	return tween
 
 
 func fade_out(text: String) -> void:

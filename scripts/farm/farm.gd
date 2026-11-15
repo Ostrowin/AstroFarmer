@@ -17,6 +17,7 @@ var rng := RandomNumberGenerator.new()
 
 var _plants: Array[Plant] = []
 var _posts: Array[FencePost] = []
+var _docks: Array[DroneDock] = []
 var _rails: Node3D
 var _marks: RaidMarks
 
@@ -57,6 +58,9 @@ func occupant(cell: Vector2i) -> Node3D:
 	for post in _posts:
 		if cell_of(post.global_position) == cell:
 			return post
+	for dock in _docks:
+		if cell_of(dock.global_position) == cell:
+			return dock
 	return null
 
 
@@ -71,7 +75,7 @@ func _cell_problem(point: Vector3, normal: Vector3, collider: Object, from: Vect
 	var taken := occupant(cell_of(point))
 	if taken is Plant:
 		return "Occupied"
-	if taken is FencePost:
+	if taken != null:
 		return "Occupied"
 	return ""
 
@@ -96,6 +100,39 @@ func place_post(point: Vector3) -> FencePost:
 	_rebuild_rails()
 	_sync()
 	return post
+
+
+func dock_problem(point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
+	if GameState.get_resource(&"drone_dock") <= 0:
+		return "No drone docks"
+	return _cell_problem(point, normal, collider, from, "Can't build here")
+
+
+func place_dock(point: Vector3) -> DroneDock:
+	if not GameState.spend_resource(&"drone_dock", 1):
+		return null
+	var dock := _spawn_dock(point)
+	_sync()
+	return dock
+
+
+func remove_dock(dock: DroneDock) -> void:
+	if not _docks.has(dock):
+		return
+	_docks.erase(dock)
+	if is_instance_valid(dock.drone):
+		dock.drone.queue_free()
+	dock.queue_free()
+	GameState.add_resource(&"drone_dock", 1)
+	_sync()
+
+
+func dock_count() -> int:
+	return _docks.size()
+
+
+func docks() -> Array[DroneDock]:
+	return _docks
 
 
 func remove_post(post: FencePost) -> void:
@@ -133,6 +170,36 @@ func water_plant(plant: Plant) -> String:
 	plant.water()
 	_sync()
 	return ""
+
+
+## Podlewanie przez drona: woda z jego zbiornika, nie z konewki. True = podlane.
+func drone_water(plant: Plant) -> bool:
+	if not _plants.has(plant) or not plant.is_thirsty() or plant.needs_sprout_item():
+		return false
+	plant.water()
+	_sync()
+	return true
+
+
+## Sadzenie przez maszynę (siewnik traktora) na wolnym polu gleby. Bez sprawdzania zasięgu gracza.
+## `exclude` = ciała pomijane przy sprawdzaniu gleby (sam traktor).
+func plant_at_cell(data: PlantData, cell: Vector2i, exclude: Array[RID] = []) -> Plant:
+	if GameState.get_resource(data.seed_item()) <= 0 or occupant(cell) != null or not soil_at(cell, exclude):
+		return null
+	return plant_seed(data, cell_center(cell))
+
+
+## Czy pod środkiem pola jest płaska gleba (nie staw, budynek ani skała).
+func soil_at(cell: Vector2i, exclude: Array[RID] = []) -> bool:
+	if not is_inside_tree():
+		return false
+	var center := cell_center(cell)
+	var query := PhysicsRayQueryParameters3D.create(center + Vector3(0, 3, 0), center + Vector3(0, -1, 0), 1, exclude)
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return false
+	var collider: Object = hit["collider"]
+	return collider is Node and (collider as Node).is_in_group("soil") and (hit["normal"] as Vector3).y >= MAX_SLOPE_NORMAL_Y
 
 
 func plant_seed(data: PlantData, point: Vector3) -> Plant:
@@ -230,10 +297,19 @@ func load_from_state() -> void:
 	for post in _posts:
 		post.queue_free()
 	_posts.clear()
+	for dock in _docks:
+		if is_instance_valid(dock.drone):
+			dock.drone.queue_free()
+		dock.queue_free()
+	_docks.clear()
 	_marks.clear()
 	for entry: Dictionary in GameState.structures:
-		if String(entry.get("id", "")) == "fence":
-			_spawn_post(Vector3(float(entry.get("x", 0)), float(entry.get("y", 0)), float(entry.get("z", 0))))
+		var pos := Vector3(float(entry.get("x", 0)), float(entry.get("y", 0)), float(entry.get("z", 0)))
+		match String(entry.get("id", "")):
+			"fence":
+				_spawn_post(pos)
+			"drone_dock":
+				_spawn_dock(pos)
 	_rebuild_rails()
 	for entry: Dictionary in GameState.farm:
 		var data := PlantCatalog.get_plant(StringName(entry.get("id", "")))
@@ -254,6 +330,19 @@ func plants() -> Array[Plant]:
 
 func post_count() -> int:
 	return _posts.size()
+
+
+func _spawn_dock(pos: Vector3) -> DroneDock:
+	var dock := DroneDock.new()
+	add_child(dock)
+	dock.global_position = _free_cell_near(pos)
+	_docks.append(dock)
+	var drone := WateringDrone.new()
+	drone.farm = self
+	drone.dock = dock
+	dock.drone = drone
+	add_child(drone)
+	return dock
 
 
 func _spawn_post(pos: Vector3) -> FencePost:
@@ -332,10 +421,15 @@ func _spawn(data: PlantData, pos: Vector3, stage := 0, progress := 0, watered :=
 
 func _sync() -> void:
 	GameState.farm = _plants.map(func(p: Plant) -> Dictionary: return p.to_dict())
-	GameState.structures = _posts.map(_post_entry)
+	GameState.structures = _posts.map(_post_entry) + _docks.map(_dock_entry)
 	changed.emit()
 
 
 static func _post_entry(post: FencePost) -> Dictionary:
 	var pos := post.global_position
 	return {"id": "fence", "x": pos.x, "y": pos.y, "z": pos.z}
+
+
+static func _dock_entry(dock: DroneDock) -> Dictionary:
+	var pos := dock.global_position
+	return {"id": "drone_dock", "x": pos.x, "y": pos.y, "z": pos.z}

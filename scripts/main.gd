@@ -5,6 +5,9 @@ extends Node3D
 ## → zbierasz, bronisz się, ulepszasz w warsztacie → znowu w drogę.
 
 const EXPEDITION_SCENE := "res://scenes/levels/expedition_meadow.tscn"
+## „Homestead”: spokojne banjo i smyczki, cicho pod dźwiękami natury (tools/audio/homestead.py).
+const BASE_MUSIC := "res://audio/music/homestead.ogg"
+const BASE_MUSIC_DB := -12.0
 
 @onready var _farm: Farm = $Farm
 @onready var _player: Player = $Player
@@ -25,6 +28,7 @@ var _collecting := false
 var _farm_lines: Array[String] = []
 var _raids: Array[Dictionary] = []
 var day_night: DayNight
+var tractor: Tractor
 
 
 func _ready() -> void:
@@ -39,7 +43,8 @@ func _ready() -> void:
 	_player.global_position = _spawn.global_position
 	_setup_day_night()
 	Sfx.set_ambience(&"valley")
-	Sfx.play_music("")
+	_play_base_music()
+	_spawn_tractor()
 
 	_interaction = _player.interaction as PlayerInteraction
 	_interaction.farm = _farm
@@ -91,8 +96,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_next_cycle"):
 		GameState.advance_cycle()
 	elif event.is_action_pressed("debug_new_game"):
+		tractor.exit()
 		GameState.new_game()
 		_farm.load_from_state()
+		tractor.load_state()
 		_save()
 		_hud.refresh()
 		_hud.notify("Debug: new game")
@@ -142,7 +149,7 @@ func _on_crafted(id: StringName) -> void:
 	_hud.refresh()
 	_save()
 	var recipe := Recipes.get_recipe(id)
-	_hud.notify("Zrobione: %s" % recipe.get("name", id))
+	_hud.notify("Crafted: %s" % recipe.get("name", id))
 
 
 func _show_report(title: String, sections: Array) -> void:
@@ -282,7 +289,26 @@ static func _describe(items: Dictionary) -> String:
 	return ", ".join(parts)
 
 
+func _spawn_tractor() -> void:
+	tractor = Tractor.new()
+	tractor.name = "Tractor"
+	tractor.farm = _farm
+	add_child(tractor)
+	tractor.load_state()
+	tractor.notify.connect(_hud.notify)
+	tractor.volume_changed.connect(func(text: String) -> void: _hud.notify(text, &"music_volume"))
+	tractor.exited.connect(func() -> void:
+		_play_base_music()
+		_save())
+
+
+func _play_base_music() -> void:
+	Sfx.play_music(BASE_MUSIC, BASE_MUSIC_DB)
+
+
 func _save() -> void:
+	if tractor:
+		tractor.save_state()
 	var error := GameState.save_game()
 	if error != OK:
 		push_warning("Could not save the game: %s" % error_string(error))

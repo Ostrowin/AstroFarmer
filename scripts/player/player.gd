@@ -23,6 +23,8 @@ signal died
 
 ## Wyłączane np. podczas przejścia na wyprawę.
 var input_enabled := true
+## Pojazd, w którym gracz siedzi (Tractor); null = pieszo. Pojazd sam ustawia pozycję gracza.
+var vehicle: Node3D = null
 ## Kondycja: spada od ataków i burzy na wyprawie.
 var health := 100.0
 ## Mnożnik prędkości (ulepszenie wyprawy "Turbo-buty").
@@ -154,6 +156,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_hurt_cooldown -= delta
+	if vehicle:
+		velocity = Vector3.ZERO
+		_visual.rotation.y = vehicle.global_rotation.y
+		return
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
@@ -236,9 +242,45 @@ func on_tilled_soil() -> bool:
 
 # --- Ruch specjalny ----------------------------------------------------------
 
+# --- Pojazdy -----------------------------------------------------------------
+
+## Kamera dalej za pojazdem, żeby było widać traktor i siewnik.
+const VEHICLE_CAMERA_DISTANCE := 7.5
+const CAMERA_DISTANCE := 4.5
+
+
+func enter_vehicle(target: Node3D) -> void:
+	vehicle = target
+	velocity = Vector3.ZERO
+	sprinting = false
+	_dash_left = 0.0
+	($Collision as CollisionShape3D).set_deferred("disabled", true)
+	if target is CollisionObject3D:
+		_spring_arm.add_excluded_object((target as CollisionObject3D).get_rid())
+	_spring_arm.spring_length = VEHICLE_CAMERA_DISTANCE
+	if _animator:
+		_animator.set_seated(true)
+
+
+func exit_vehicle(at: Vector3) -> void:
+	if vehicle is CollisionObject3D:
+		_spring_arm.remove_excluded_object((vehicle as CollisionObject3D).get_rid())
+	vehicle = null
+	global_position = at
+	velocity = Vector3.ZERO
+	($Collision as CollisionShape3D).set_deferred("disabled", false)
+	_spring_arm.spring_length = CAMERA_DISTANCE
+	if _animator:
+		_animator.set_seated(false)
+
+
+func in_vehicle() -> bool:
+	return vehicle != null
+
+
 ## Dash w kierunku ruchu (bez wciśniętego kierunku: tam, gdzie patrzy kamera).
 func dash(direction := Vector3.ZERO) -> bool:
-	if dash_cooldown_left > 0.0:
+	if vehicle or dash_cooldown_left > 0.0:
 		return false
 	if direction.length_squared() < 0.01:
 		direction = Basis(Vector3.UP, _yaw.rotation.y) * Vector3.FORWARD

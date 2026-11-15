@@ -17,7 +17,8 @@ const RAY_LENGTH := 12.0
 const RAY_MASK := 1 | 4
 
 ## Pasek narzędzi. "seed" sadzi gatunek, "can" to konewka,
-## "fertilizer" przyspiesza wzrost, "fence" stawia słupek płotu.
+## "fertilizer" przyspiesza wzrost, "fence" stawia słupek płotu, "dock" dok drona.
+## W traktorze: nasiona z paska sadzi siewnik, LMB opuszcza/podnosi siewnik, E wysiada.
 const SLOTS := [
 	{"kind": "seed", "plant": &"voidberry"},
 	{"kind": "seed", "plant": &"crystal_bloom"},
@@ -27,6 +28,7 @@ const SLOTS := [
 	{"kind": "can"},
 	{"kind": "fertilizer"},
 	{"kind": "fence"},
+	{"kind": "dock"},
 ]
 
 var farm: Farm
@@ -49,6 +51,9 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if _player.vehicle is Tractor:
+		_update_driving(_player.vehicle as Tractor)
+		return
 	_update_target()
 
 
@@ -63,6 +68,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		select_slot((selected + 1) % SLOTS.size())
 	elif event.is_action_pressed("hotbar_prev"):
 		select_slot((selected - 1 + SLOTS.size()) % SLOTS.size())
+	elif _player.vehicle is Tractor:
+		var tractor := _player.vehicle as Tractor
+		if event.is_action_pressed("use_tool"):
+			tractor.toggle_seeder()
+		elif event.is_action_pressed("interact"):
+			tractor.exit()
+		elif event.is_action_pressed("music_up", true):
+			tractor.change_volume(1)
+		elif event.is_action_pressed("music_down", true):
+			tractor.change_volume(-1)
 	elif event.is_action_pressed("use_tool"):
 		_use_tool()
 	elif event.is_action_pressed("interact"):
@@ -89,6 +104,8 @@ func slot_title(index: int) -> String:
 			return "Fertilizer"
 		"fence":
 			return "Fence"
+		"dock":
+			return "Drone"
 	return "Can"
 
 
@@ -101,6 +118,8 @@ func slot_detail(index: int) -> String:
 			return "×%d" % GameState.get_resource(&"fertilizer")
 		"fence":
 			return "×%d" % GameState.get_resource(&"fence_post")
+		"dock":
+			return "×%d" % GameState.get_resource(&"drone_dock")
 	return "%d/%d" % [GameState.get_resource(&"water"), GameState.water_capacity()]
 
 
@@ -114,6 +133,8 @@ func slot_icon(index: int) -> StringName:
 			return &"fertilizer"
 		"fence":
 			return &"fence_post"
+		"dock":
+			return &"drone_dock"
 	return &""
 
 
@@ -126,6 +147,8 @@ func slot_color(index: int) -> Color:
 			return RaidMarks.FERTILIZER_COLOR.lightened(0.3)
 		"fence":
 			return FencePost.WOOD
+		"dock":
+			return Color(1.0, 0.55, 0.15)
 	return Color(0.35, 0.7, 1.0)
 
 
@@ -180,6 +203,24 @@ func _update_target() -> void:
 			_set_prompt(plant.status_text(), true)
 		_outline.set_target(highlight)
 		return
+	if collider is Tractor:
+		var tractor := collider as Tractor
+		if _in_reach(_target["position"]) and tractor.can_enter(_player):
+			_set_prompt("[E] Drive", true)
+			highlight = tractor
+		else:
+			_set_prompt("", true)
+		_outline.set_target(highlight)
+		return
+	if collider is DroneDock:
+		var dock := collider as DroneDock
+		if _in_reach(dock.global_position):
+			_set_prompt("[E] Take drone", true)
+			highlight = dock
+		else:
+			_set_prompt(dock.get_status(), true)
+		_outline.set_target(highlight)
+		return
 	if collider is FencePost:
 		var post := collider as FencePost
 		if _in_reach(post.global_position):
@@ -219,7 +260,23 @@ func _update_target() -> void:
 		_show_ghost(_target["position"], problem == "")
 		_set_prompt("[LMB] Place post" if problem == "" else problem, problem == "")
 		return
+	if slot["kind"] == "dock" and collider != null:
+		var problem := farm.dock_problem(_target["position"], _target["normal"], collider, _player.global_position)
+		_show_ghost(_target["position"], problem == "")
+		_set_prompt("[LMB] Place drone" if problem == "" else problem, problem == "")
+		return
 	_set_prompt("", true)
+
+
+## W traktorze: siewnik sadzi gatunek z wybranego slotu (inny slot = tylko zbiera).
+func _update_driving(tractor: Tractor) -> void:
+	_ghost.visible = false
+	_grid.visible = false
+	_outline.set_target(null)
+	var slot: Dictionary = SLOTS[selected]
+	tractor.seed_plant = slot["plant"] if slot["kind"] == "seed" else &""
+	var action := "[LMB] Raise seeder" if tractor.seeder_down else "[LMB] Lower seeder"
+	_set_prompt("%s · [E] Get off · [+/-] Music" % action, true)
 
 
 ## Podgląd na siatce: zielone/czerwone pole + kratki dookoła.
@@ -285,6 +342,16 @@ func _use_tool() -> void:
 		Sfx.play(&"craft", _target["position"])
 		Effects.burst(farm, _target["position"] + Vector3(0, 0.1, 0), FencePost.WOOD, 10)
 		return
+	if slot["kind"] == "dock":
+		if collider == null or collider is Plant or collider is FencePost or collider is DroneDock:
+			return
+		if farm.dock_problem(_target["position"], _target["normal"], collider, _player.global_position) != "":
+			Sfx.play(&"deny")
+			return
+		farm.place_dock(_target["position"])
+		Sfx.play(&"craft", _target["position"])
+		Effects.burst(farm, _target["position"] + Vector3(0, 0.1, 0), Color(1.0, 0.55, 0.15), 10)
+		return
 	if slot["kind"] == "fertilizer":
 		if not (collider is Plant) or not _in_reach((collider as Plant).global_position):
 			return
@@ -335,12 +402,21 @@ func _interact() -> void:
 	elif collider is FencePost and _in_reach((collider as FencePost).global_position):
 		farm.remove_post(collider as FencePost)
 		Sfx.play(&"pickup", _player.global_position)
+	elif collider is DroneDock and _in_reach((collider as DroneDock).global_position):
+		farm.remove_dock(collider as DroneDock)
+		Sfx.play(&"pickup", _player.global_position)
+	elif collider is Tractor and _in_reach(_target["position"]):
+		(collider as Tractor).enter(_player)
 	elif collider is Node and (collider as Node).is_in_group("workbench") and _in_reach(_target["position"], 4.0):
 		workbench_used.emit()
 	elif collider is Node and (collider as Node).is_in_group("codex") and _in_reach(_target["position"], 4.5):
 		codex_used.emit()
 	elif collider is Node and (collider as Node).is_in_group("gate") and _in_reach(_target["position"], 5.0):
 		gate_used.emit()
+
+
+static func describe_gain(gained: Dictionary) -> String:
+	return _describe_gain(gained)
 
 
 static func _describe_gain(gained: Dictionary) -> String:

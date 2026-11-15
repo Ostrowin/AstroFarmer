@@ -9,6 +9,11 @@ const LIST := [
 		"cost": {&"crystal": 2}, "gives": {&"fence_post": 4},
 	},
 	{
+		"id": &"drone", "name": "Watering Drone",
+		"desc": "Waters thirsty plants near its dock",
+		"cost": {&"crystal": 3}, "gives": {&"drone_dock": 1},
+	},
+	{
 		"id": &"can_mk2", "name": "Big Watering Can",
 		"desc": "8 water instead of 5",
 		"cost": {&"crystal": 3}, "upgrade": true,

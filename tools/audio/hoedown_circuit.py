@@ -38,36 +38,40 @@ END_BEAT = 54 * 4 + 8
 midi = sr.midi
 
 SAMPLED = {
-    "banjo":    dict(glob=BANJO + "banjo_*.wav", mode="gate", attack=1, release=160, db=-2, pan=-0.2, send=-20, vel_sens=60,
-                     inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 120, "mid_freq": 1600, "mid_gain": -3, "mid_q": 0.8, "high_mid_freq": 3800, "high_mid_gain": 3})]),
-    "fiddle":   dict(glob="Strings/Solo Violin/Arco Vib/*_f.wav", mode="gate", attack=10, release=200, db=-4, pan=0.3, send=-14,
-                     inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 250, "high_mid_freq": 3500, "high_mid_gain": 2})]),
-    "fid_spic": dict(glob="Strings/Solo Violin/spic/*_v2_rr1.wav", mode="one", attack=1, release=100, db=-3, pan=0.3, send=-14),
-    "upright":  dict(glob="Strings/Solo Contrabass/Pizz/*.wav", mode="one", attack=1, release=150, db=2, pan=0.0, send=-30,
-                     pick=r"_f_|_mf_|v2|RR1|rr1"),
-    "snare_r":  dict(glob="Percussion/Snare2-HitSN_v7_rr1*.wav", mode="one", pitched=False, note=38, attack=1, release=250, db=0, pan=0.0, send=-22),
-    "tamb":     dict(glob="Percussion/Tamb1-Hit_v2_rr1*.wav", mode="one", pitched=False, note=54, attack=1, release=150, db=-16, pan=0.35, send=-30),
+    "banjo":    dict(glob=BANJO + "banjo_*.wav", mode="gate", attack=1, release=160, db=-8, pan=-0.2, send=-20, vel_sens=60,
+                     inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 120, "mid_freq": 1600, "mid_gain": -2, "mid_q": 0.8, "high_mid_freq": 3200, "high_mid_gain": -3, "high_mid_q": 0.7})]),
+    "fiddle":   dict(glob="Strings/Solo Violin/Arco Vib/*_f.wav", mode="gate", attack=10, release=200, db=-3, pan=0.3, send=-14,
+                     inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 250, "high_mid_freq": 3500, "high_mid_gain": -3, "high_shelf_freq": 6000, "high_shelf_gain": -3})]),
+    "fid_spic": dict(glob="Strings/Solo Violin/spic/*_v2_rr1.wav", mode="one", attack=1, release=100, db=3, pan=0.3, send=-14),
+    "upright":  dict(glob="Strings/Solo Contrabass/Pizz/*.wav", mode="one", attack=1, release=150, db=12, pan=0.0, send=-30,
+                     pick=r"_f_|_mf_|v2|RR1|rr1",
+                     inserts=[("compressor", {"threshold": -26, "ratio": 4, "attack": 4, "release": 120, "makeup": 9}),
+                              ("eq_7band", {"low_mid_freq": 700, "low_mid_gain": 4, "low_mid_q": 0.9})]),
+    # Werbel VSCO ma ton ok. 235 Hz (A#): pół tonu w górę na B, żeby nie zgrzytał w E-dur.
+    "snare_r":  dict(glob="Percussion/Snare2-HitSN_v7_rr1*.wav", mode="one", pitched=False, note=38, attack=1, release=250, db=6, pan=0.0, send=-22,
+                     sampler={"transpose": 1}),
+    "tamb":     dict(glob="Percussion/Tamb1-Hit_v2_rr1*.wav", mode="one", pitched=False, note=54, attack=1, release=150, db=-3, pan=0.35, send=-30),
 }
 FX_TRACKS = {
     "kick": dict(file="kick_punch.wav", db=-3, send=-60, release=30),
-    "hey": dict(file="hey.wav", db=-7, send=-14, inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 200, "high_shelf_freq": 6000, "high_shelf_gain": 4})]),
-    "ha": dict(file="ha.wav", db=-8, send=-14, inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 200, "high_shelf_freq": 6000, "high_shelf_gain": 4})]),
+    "hey": dict(file="hey.wav", db=-5, send=-14, inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 200, "high_shelf_freq": 6000, "high_shelf_gain": 4})]),
+    "ha": dict(file="ha.wav", db=-6, send=-14, inserts=[("eq_7band", {"hpf_on": 1, "hpf_freq": 200, "high_shelf_freq": 6000, "high_shelf_gain": 4})]),
     "yeehaw": dict(file="yeehaw.wav", db=-8, send=-10, echo=True),
     "riser": dict(file="riser_2bar.wav", db=-16, send=-14),
 }
 SYNTHS = {
-    "sub": dict(plugin="subtractive_synth", db=-9, pan=0.0, send=-60, params=dict(
+    "sub": dict(plugin="subtractive_synth", db=8, pan=0.0, send=-60, params=dict(
         osc1_wave=2, osc2_wave=3, osc_mix=20, cutoff=400, resonance=0, filter_env_amount=0,
         amp_attack=1, amp_decay=150, amp_sustain=60, amp_release=40, velocity=30, level=-6)),
-    "eb": dict(plugin="subtractive_synth", db=-1, pan=0.0, send=-50, params=dict(  # bas elektroniczny (refren)
+    "eb": dict(plugin="subtractive_synth", db=7, pan=0.0, send=-50, params=dict(  # bas elektroniczny (refren)
         osc1_wave=0, osc2_wave=1, osc2_semitones=-12, osc_mix=40, cutoff=900, resonance=35, filter_env_amount=60,
         amp_attack=1, amp_decay=150, amp_sustain=30, amp_release=40, filter_decay=120, filter_sustain=10, velocity=40, level=-6),
         inserts=[("saturator", dict(drive=12, tone=6000, mix=60, output=-5))]),
-    "lead": dict(plugin="subtractive_synth", db=-9, pan=0.1, send=-14, params=dict(
+    "lead": dict(plugin="subtractive_synth", db=4, pan=0.1, send=-14, params=dict(
         osc1_wave=1, osc2_wave=0, osc2_semitones=12, osc2_detune=8, osc_mix=35, cutoff=5000, resonance=20, filter_env_amount=45,
         amp_attack=1, amp_decay=260, amp_sustain=45, amp_release=120, filter_decay=220, filter_sustain=30, glide=0, velocity=40, level=-6),
-        inserts=[("mod_delay", dict(time="dotted8", feedback=25, mix=16, lpf=7000)), ("chorus", dict(mix=25, depth=35))]),
-    "drums": dict(plugin="drum_synth", db=4, pan=0.0, send=-26, params=dict(
+        inserts=[("mod_delay", dict(time=round(60000 / BPM), feedback=20, mix=14, lpf=6000)), ("chorus", dict(mix=25, depth=35))]),  # echo na ćwierćnutę: wzmacnia beat
+    "drums": dict(plugin="drum_synth", db=12, pan=0.0, send=-26, params=dict(
         snare_tune=2, snare_snappy=75, snare_decay=150, hat_decay=35, open_hat_decay=200, cymbal_decay=1800, level=-6),
         inserts=[("eq_7band", dict(hpf_on=1, hpf_freq=150, high_shelf_freq=8000, high_shelf_gain=3)),
                  ("compressor", dict(threshold=-14, ratio=3, attack=4, release=70, makeup=2))]),
@@ -122,7 +126,8 @@ def banjo_roll(bar, ch, melody, vel=100):
         hi = [t for t in tones if t != m][-1]
         mid = [t for t in tones if t < m] or tones[:1]
         for j, p in enumerate((m, hi, drone, mid[-1])):
-            add("banjo", p, bar * 4 + k + j * 0.25, 0.24, vel + (14 if j == 0 else 0))
+            # melodia na beacie mocno, wypełnienia ciszej: banjo samo akcentuje puls
+            add("banjo", p, bar * 4 + k + j * 0.25, 0.24, vel + (14, -16, -6, -12)[j])
 
 
 def beat(bar, crash=False, open_hats=False, fill=False):
@@ -130,12 +135,12 @@ def beat(bar, crash=False, open_hats=False, fill=False):
     for k in range(4):
         add("kick", 60, b + k, 0.4, 122, 0)
     for k in (1, 3):
-        add("drums", CLAP, b + k, 0.4, 118)
-        add("snare_r", 38, b + k, 0.4, 104)
+        add("drums", CLAP, b + k, 0.4, 127, 0)
+        add("snare_r", 38, b + k, 0.4, 116, 0)
     for k in range(4):
-        add("drums", OHAT if open_hats else HAT, b + k + 0.5, 0.25, 96)
+        add("drums", OHAT if open_hats else HAT, b + k + 0.5, 0.25, 62 if open_hats else 84)
     for k in range(16):
-        add("tamb", 54, b + k * 0.25, 0.2, 70 if k % 2 else 52)
+        add("tamb", 54, b + k * 0.25, 0.2, 58 if k % 4 == 2 else 42)
     if crash:
         add("drums", CRASH, b, 2, 116, 0)
     if fill:
@@ -261,7 +266,7 @@ def make_fx():
     names = "C C# D D# E F F# G G# A A# B".split()
     for m in range(50, 90, 3):  # banjo: D3 .. D#6 co 3 półtony
         fx_synth.save(fx_synth.banjo_note(440 * 2 ** ((m - 69) / 12), seed=m), BANJO + f"banjo_{names[m % 12]}{m // 12 - 1}.wav")
-    fx_synth.save(fx_synth.sub_kick(tail_hz=55, length=0.26, hold=0.35, grit=0.3), FX + "kick_punch.wav")
+    fx_synth.save(fx_synth.sub_kick(tail_hz=41.2, length=0.27, hold=0.6, grit=0.3), FX + "kick_punch.wav")  # stopa strojona do E
     chord = [1.0, 0.794, 1.189, 1.004, 0.79, 1.19]  # B3, G3(#), D#4... chór w E-dur: E, G#, B
     fx_synth.save(fx_synth.shout("e", 207.65, 0.26, 6, 24, [1.0, 0.794, 1.189, 1.003, 0.8, 1.185]), FX + "hey.wav")
     fx_synth.save(fx_synth.shout("a", 207.65, 0.22, 6, 25, chord), FX + "ha.wav")
@@ -275,8 +280,8 @@ def main():
     compose()
     sc_song.build("Hoedown Circuit", WORK, BPM, END_BEAT, notes, OUT_OGG, sampled=SAMPLED, fx_tracks=FX_TRACKS, fx_dir=FX,
                   synths=SYNTHS, reverb={"decay": 1.1, "size": 40, "low_cut": 350}, loudness=-11.0, fade=1.0,
-                  master=[("compressor", {"threshold": -14, "ratio": 2.5, "attack": 15, "release": 120, "makeup": 2}),
-                          ("maximizer", {"threshold": -6, "ceiling": -1})])
+                  master=[("compressor", {"threshold": -8, "ratio": 1.8, "attack": 30, "release": 200, "makeup": 1}),
+                          ("maximizer", {"threshold": -2, "ceiling": -1})])
 
 
 if __name__ == "__main__":

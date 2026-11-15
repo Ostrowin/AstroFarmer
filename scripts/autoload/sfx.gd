@@ -15,6 +15,8 @@ const SFX_DIR := "res://audio/sfx/"
 const PICKS_PATH := "res://audio/sfx/picks.json"
 const POOL_SIZE := 16
 const BUSES := [&"SFX", &"Ambient", &"Music"]
+## Ustawienia gracza (głośność szyn; Display dopisuje tu pełny ekran).
+const SETTINGS_PATH := "user://settings.cfg"
 ## Głośność (dB) i rozrzut wysokości zdarzeń; reszta: 0 dB, ±6%.
 const SETTINGS := {
 	&"step_grass": {"db": -15.0, "pitch": 0.1}, &"step_soil": {"db": -13.0, "pitch": 0.1},
@@ -43,11 +45,16 @@ var _amb_day: AudioStreamPlayer
 var _amb_night: AudioStreamPlayer
 var _amb_fade := 0.0
 var _music: AudioStreamPlayer
+## Głośność szyn ustawiona przez gracza (0..1, liniowo): szyna -> wartość.
+var volumes := {&"Music": 1.0, &"SFX": 1.0, &"Ambient": 1.0}
+## Plik ustawień; testy mogą podstawić własny.
+var settings_path := SETTINGS_PATH
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_ensure_buses()
+	_load_volumes()
 	picks = _load_picks()
 	for i in POOL_SIZE:
 		var player := AudioStreamPlayer3D.new()
@@ -197,18 +204,63 @@ func ambience() -> StringName:
 	return _ambience
 
 
-## Muzyka w pętli na szynie Music (pusta ścieżka = cisza).
-func play_music(path: String, volume_db := -8.0) -> void:
+## Muzyka w pętli na szynie Music (pusta ścieżka = cisza). Zawsze gra od początku.
+## `fade` = czas narastania głośności (0 = od razu pełna).
+func play_music(path: String, volume_db := -8.0, fade := 2.0) -> void:
 	if path == "":
 		_music.stop()
 		return
 	var stream := load(path) as AudioStream
 	if stream is AudioStreamOggVorbis:
 		(stream as AudioStreamOggVorbis).loop = true
+	elif stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
 	_music.stream = stream
-	_music.volume_db = -40.0
+	_music.volume_db = -40.0 if fade > 0.0 else volume_db
 	_music.play()
-	create_tween().tween_property(_music, "volume_db", volume_db, 2.0)
+	if fade > 0.0:
+		create_tween().tween_property(_music, "volume_db", volume_db, fade)
+
+
+## Głośność szyny ustawiona przez gracza (0..1).
+func bus_volume(bus: StringName) -> float:
+	return float(volumes.get(bus, 1.0))
+
+
+## Ustawia głośność szyny (0 = wyciszona) i zapisuje ustawienia.
+func set_bus_volume(bus: StringName, value: float, save := true) -> void:
+	value = clampf(value, 0.0, 1.0)
+	volumes[bus] = value
+	var index := AudioServer.get_bus_index(bus)
+	if index >= 0:
+		AudioServer.set_bus_volume_db(index, linear_to_db(maxf(value, 0.0001)))
+		AudioServer.set_bus_mute(index, value <= 0.001)
+	if save:
+		var config := ConfigFile.new()
+		config.load(settings_path)
+		config.set_value("audio", String(bus), value)
+		config.save(settings_path)
+
+
+func _load_volumes() -> void:
+	var config := ConfigFile.new()
+	config.load(settings_path)
+	for bus: StringName in volumes.keys():
+		set_bus_volume(bus, float(config.get_value("audio", String(bus), 1.0)), false)
+
+
+## Głośność grającej muzyki (dB na odtwarzaczu, bez szyny Music).
+func set_music_volume(volume_db: float) -> void:
+	_music.volume_db = volume_db
+
+
+func music_volume() -> float:
+	return _music.volume_db
+
+
+## Ścieżka aktualnie grającej muzyki ("" = cisza).
+func music_path() -> String:
+	return _music.stream.resource_path if _music.playing and _music.stream else ""
 
 
 func music_playing() -> bool:

@@ -92,6 +92,7 @@ func _ready() -> void:
 	add_child(day_night)
 	day_night.setup(_environment, _sun)
 	Sfx.set_ambience(&"meadow")
+	Sfx.play_music("")  # muzyka bazy zostaje w bazie
 	# Uruchomiona bezpośrednio z edytora (F6): wyprawa testowa bez wyposażenia.
 	run = GameState.run if GameState.run else GameState.start_run({})
 	_spawn_world()

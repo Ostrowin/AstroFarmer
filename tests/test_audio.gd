@@ -62,6 +62,9 @@ func _run() -> void:
 	_check(load("res://audio/music/boss_rodeo.ogg") is AudioStream, "jest muzyka bossa (Boss Rodeo)")
 	_check(load("res://audio/music/rodeo_rave.ogg") is AudioStream, "jest muzyka bossa (Rodeo Rave)")
 	_check(load("res://audio/music/stampede.ogg") is AudioStream, "jest muzyka bossa (Stampede)")
+	_check(load("res://audio/music/hoedown_circuit.ogg") is AudioStream, "jest Hoedown Circuit")
+	_check(load("res://audio/music/homestead.ogg") is AudioStream, "jest muzyka bazy (Homestead)")
+	_check(load("res://audio/music/heavy_pulse.ogg") is AudioStream, "jest Heavy Pulse")
 
 	# Każdy przycisk klika (i można go wyciszyć).
 	var button := Button.new()

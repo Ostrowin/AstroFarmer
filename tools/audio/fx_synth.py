@@ -134,7 +134,7 @@ def sub_kick(tail_hz=49.0, length=0.39, grit=0.35, hold=0.8):
     return out * np.minimum(1, (length - t) / 0.006)
 
 
-def banjo_note(freq, length=1.6, seed=0, pick_pos=0.13, brightness=0.996):
+def banjo_note(freq, length=1.6, seed=0, pick_pos=0.13, brightness=0.996, damping=1.0, drive=1.4):
     """Banjo modelem fizycznym: Karplus-Strong (struna z tłumieniem), szarpnięcie blisko
     mostka (filtr grzebieniowy), membrana jako rezonatory (ok. 300 Hz, 1.4 kHz, 3 kHz),
     metaliczny „twang” i krótki szum kostki. Zwraca jedną nutę (mono)."""
@@ -156,13 +156,27 @@ def banjo_note(freq, length=1.6, seed=0, pick_pos=0.13, brightness=0.996):
         buf[i] = loss * (0.55 * a + 0.45 * b)  # lekko niesymetryczne uśrednianie = jaśniej
     s = buf[p + 2:]
     t = np.arange(n) / SR
-    s *= np.exp(-t * (2.2 + freq / 400))  # membrana tłumi: krótkie wybrzmienie
+    s *= np.exp(-t * (2.2 + freq / 400) * damping)  # membrana tłumi: krótkie wybrzmienie
     body = (resonator(s, np.full(n, 300.0), np.full(n, 160.0)) * 1.2 + resonator(s, np.full(n, 1400.0), np.full(n, 500.0)) * 0.8 +
             resonator(s, np.full(n, 3000.0), np.full(n, 900.0)) * 0.7)
     out = 0.55 * s / (np.max(np.abs(s)) + 1e-9) + 0.45 * body / (np.max(np.abs(body)) + 1e-9)
     pick = rng.standard_normal(n) * np.exp(-t * 600) * 0.25
-    out = np.tanh(1.4 * (out + pick))
+    out = np.tanh(drive * (out + pick))
     return out * np.minimum(1, (length - t) / 0.05)
+
+
+def bass_808(freq=43.65, length=2.4, drive=2.2, punch=1.8):
+    """Bas 808: długi sinus z krótkim zjazdem wysokości na początku („kopnięcie”),
+    powolnym wybrzmieniem i saturacją, która dodaje harmoniczne (słychać go też
+    na małych głośnikach). Domyślnie F1."""
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    f = freq * (1 + punch * np.exp(-t * 40))
+    x = np.sin(np.cumsum(2 * np.pi * f / SR))
+    env = np.exp(-t * 1.1) * np.minimum(1, t / 0.002)
+    y = np.tanh(drive * x * env) / np.tanh(drive)
+    click = np.random.default_rng(17).standard_normal(n) * np.exp(-t * 700) * 0.15
+    return (y + click) * np.minimum(1, (length - t) / 0.05)
 
 
 VOWELS = {"e": (530, 1840, 2480), "a": (760, 1150, 2450), "o": (570, 840, 2410), "i": (280, 2250, 2950)}

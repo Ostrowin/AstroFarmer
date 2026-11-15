@@ -8,6 +8,8 @@ Roguelite TPP o farmerze-odkrywcy na nieprzyjaznej, obcej planecie. Godot 4.7, G
 - [Design_Zywa_Planeta.md](Design_Zywa_Planeta.md): kierunek gry i decyzje projektowe
 - [Pomysly_rozszerzen.md](Pomysly_rozszerzen.md): pula pomysłów
 - [astro_farmer_rozszerzona_baza_wiedzy.md](astro_farmer_rozszerzona_baza_wiedzy.md): baza wiedzy
+- [docs/Muzyka_generowanie.md](docs/Muzyka_generowanie.md): jak powstaje muzyka (SoundCraft + VSCO 2 CE), pułapki, pomiary, katalog utworów
+- [docs/Muzyka_zamowienia.md](docs/Muzyka_zamowienia.md): czego gra potrzebuje od czatu muzycznego (muzyka i sample)
 
 ## Uruchomienie
 
@@ -41,6 +43,20 @@ Otwórz `project.godot` w Godot 4.7 i naciśnij F5 (gra startuje od menu: Contin
 
 ```bash
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_controls.tscn
+```
+
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_machines.tscn
+```
+
+```bash
+"D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_settings.tscn
+```
+
+Modele maszyn farmy (dron, dok, traktor) i ikonę drona buduje skrypt Blendera:
+
+```bash
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -P tools/blender/machines_models.py
 ```
 
 Odsłuchownia dźwięków (klik = odsłuch, Use = wybór, Save zapisuje `audio/sfx/picks.json`):
@@ -90,7 +106,8 @@ Ruch jak w Risk of Rain 2:
 - Ctrl włącza bieg. Bieg trwa, dopóki się ruszasz i nie strzelasz.
 - Shift: dash (odnowienie 2 s).
 - F gasi i zapala latarkę na hełmie (świeci tylko po zmroku).
-- Esc zwalnia mysz.
+- Esc: menu pauzy (Resume, głośność muzyki, efektów i tła, pełny ekran, Main Menu, Quit). Wyjście z wyprawy trzeba potwierdzić, bo przerywa ją jak porażka.
+- F11 albo Alt+Enter: pełny ekran / okno (gra startuje na pełnym ekranie).
 
 Doba trwa 10 minut (zegar w lewym górnym rogu). W nocy jest ciemno, a latarka na hełmie świeci tam, gdzie patrzysz.
 
@@ -98,9 +115,10 @@ Gra jest po angielsku i pokazuje jak najmniej tekstu. Obiekt, z którym można t
 
 **Baza** (sadzenie i budowanie na siatce 1×1 m):
 - Tab (przytrzymaj): lista magazynu.
-- 1-8 / kółko: wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot).
-- LPM: użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek).
-- E: zbierz / zabierz słupek / warsztat / komputer w chatce (baza danych) / drzwi wyprawy.
+- 1-9 / kółko: wybór narzędzia (1-5 nasiona, 6 konewka, 7 nawóz, 8 płot, 9 dron nawadniający).
+- LPM: użyj (sadź, podlej, napełnij konewkę, nawóź, postaw słupek albo dok drona).
+- E: zbierz / zabierz słupek lub dok drona / wsiądź do traktora / warsztat / komputer w chatce (baza danych) / drzwi wyprawy.
+- W traktorze: WASD jazda, LPM opuszcza i podnosi siewnik (sadzi nasiona z wybranego slotu i zbiera dojrzałe uprawy pasem 3 pól), E wysiada, +/- głośniej i ciszej (muzyka startuje bardzo głośno).
 - F8 przesuwa zegar o 2 godziny, F9 następny cykl, F10 nowa gra (debug).
 
 **Wyprawa:**

@@ -17,6 +17,18 @@ const SPRINT_REFERENCE_SPEED := 8.5
 
 var state: StringName = &"Idle"
 var tree: AnimationTree
+## Siedzi w pojeździe: AnimationTree wyłączone, kości ustawione w pozę siedzącą.
+var seated := false
+
+## Poza siedząca: [kość, kość-dziecko (koniec), kąt w stopniach, cel: "forward" albo "down"].
+## Kierunek obrotu dobierany w locie (osie kości zależą od eksportu z Blendera).
+const SEAT_POSE := [
+	[&"thigh.L", &"shin.L", 85.0, "forward"], [&"thigh.R", &"shin.R", 85.0, "forward"],
+	[&"shin.L", &"foot.L", 80.0, "down"], [&"shin.R", &"foot.R", 80.0, "down"],
+	[&"upper_arm.L", &"forearm.L", 50.0, "forward"], [&"upper_arm.R", &"forearm.R", 50.0, "forward"],
+	[&"forearm.L", &"hand.L", 30.0, "forward"], [&"forearm.R", &"hand.R", 30.0, "forward"],
+]
+var _skeleton: Skeleton3D
 
 var _air_time := 0.0
 
@@ -61,6 +73,7 @@ func setup(model: Node) -> bool:
 	blend.connect_node(&"shoot", 1, &"shoot_clip")
 	blend.connect_node(&"output", 0, &"shoot")
 
+	_skeleton = model.get_node_or_null(SKELETON_PATH) as Skeleton3D
 	tree = AnimationTree.new()
 	tree.name = "AnimationTree"
 	tree.tree_root = blend
@@ -73,7 +86,7 @@ func setup(model: Node) -> bool:
 
 ## Wywoływane co klatkę fizyki przez gracza.
 func update(player: Player) -> void:
-	if tree == null:
+	if tree == null or seated:
 		return
 	var horizontal := Vector2(player.velocity.x, player.velocity.z).length()
 	var next := &"Idle"
@@ -97,6 +110,42 @@ func shoot() -> void:
 	if tree:
 		tree.set("parameters/shoot/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
+
+
+## Poza siedząca w pojeździe (true) albo powrót do zwykłych animacji (false).
+func set_seated(on: bool) -> void:
+	seated = on
+	if tree == null or _skeleton == null:
+		return
+	tree.active = not on
+	_skeleton.reset_bone_poses()
+	if not on:
+		_set_state(&"Idle")
+		return
+	for entry: Array in SEAT_POSE:
+		_bend(entry[0], entry[1], entry[2], entry[3])
+
+
+## Obraca kość wokół jej lokalnej osi X w tę stronę, w którą jej koniec idzie
+## bardziej do przodu (+Z szkieletu, model patrzy w +Z) albo bardziej w dół.
+func _bend(bone_name: StringName, child_name: StringName, degrees: float, goal: String) -> void:
+	var bone := _skeleton.find_bone(bone_name)
+	var child := _skeleton.find_bone(child_name)
+	if bone < 0 or child < 0:
+		return
+	var base := _skeleton.get_bone_pose_rotation(bone)
+	var best := base
+	var best_score := -INF
+	for sign: float in [1.0, -1.0]:
+		var rotation := base * Quaternion(Vector3.RIGHT, deg_to_rad(degrees * sign))
+		_skeleton.set_bone_pose_rotation(bone, rotation)
+		var head := _skeleton.get_bone_global_pose(bone).origin
+		var tail := _skeleton.get_bone_global_pose(child).origin
+		var score := (tail.z - head.z) if goal == "forward" else (head.y - tail.y)
+		if score > best_score:
+			best_score = score
+			best = rotation
+	_skeleton.set_bone_pose_rotation(bone, best)
 
 
 ## Krótkie oderwania od ziemi (schodek, nierówność) nie włączają skoku.

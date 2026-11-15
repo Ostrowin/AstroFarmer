@@ -26,6 +26,7 @@ const OTHER_ITEMS := {
 	&"sample_glowmoss": "Glowmoss",
 	&"fertilizer": "Fertilizer",
 	&"fence_post": "Fence Post",
+	&"drone_dock": "Watering Drone",
 	&"pollen": "Pollen",
 	&"water_misty": "Misty Water",
 	&"thorn": "Thornback Spike",

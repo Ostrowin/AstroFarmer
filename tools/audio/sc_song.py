@@ -1,4 +1,4 @@
-"""Wspólne składanie utworu w SoundCraft (używają go boss_rodeo.py, rodeo_rave.py i stampede.py).
+"""Wspólne składanie utworu w SoundCraft (używają go wszystkie skrypty utworów w tools/audio).
 
 Wejście: nuty (instrument -> [(wysokość, start_beat, długość_beat, velocity)]) i opis
 instrumentów: próbki VSCO (strefy samplera), jednorazowe próbki efektów i syntezatory
@@ -12,8 +12,39 @@ import star_rodeo as sr
 PPQ = 960
 
 
+def _fold_loop(wav, seconds):
+    """Nakłada ogon (wszystko po `seconds`) na początek i obcina do długości pętli."""
+    import numpy as np
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", wav, "-ac", "2", "-ar", "48000", "-f", "f32le", "-"], capture_output=True).stdout
+    x = np.frombuffer(raw, dtype=np.float32).reshape(-1, 2).copy()
+    n = int(round(seconds * 48000))
+    tail = x[n:]
+    y = x[:n].copy()
+    y[: len(tail)] += tail[: n]
+    out = wav.replace(".wav", "_loop.wav")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "f32le", "-ar", "48000", "-ac", "2", "-i", "-", "-c:a", "pcm_f32le", out],
+                   input=y.tobytes(), check=True)
+    return out
+
+
+def _zone_levels(zones):
+    """Wyrównanie stref: głośność RMS początku każdej próbki (0,4 s), poprawka do mediany w dB.
+    Próbki VSCO w jednej warstwie dynamiki potrafią różnić się o ponad 10 dB (kontrabas pizz)."""
+    import numpy as np
+    rms = {}
+    for z in zones:
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", z["path"], "-ac", "1", "-ar", "48000", "-t", "0.4", "-f", "f32le", "-"],
+                             capture_output=True).stdout
+        x = np.frombuffer(raw, dtype=np.float32)
+        rms[z["path"]] = float(20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-9))
+    med = float(np.median(list(rms.values())))
+    return {k: max(-12.0, min(12.0, med - v)) for k, v in rms.items()}
+
+
 def build(name, work, bpm, end_beat, notes, out_ogg, sampled=None, fx_tracks=None, fx_dir="", synths=None,
-          reverb=None, master=None, loudness=-14.0, fade=3.0):
+          reverb=None, master=None, loudness=-14.0, fade=3.0, loop_beats=None):
+    """loop_beats: utwór jest pętlą tej długości; nagranie dłuższe o ogon pogłosu,
+    ogon zostaje nałożony na początek (pętla bez szwu, bez wyciszenia na końcu)."""
     sampled, fx_tracks, synths = sampled or {}, fx_tracks or {}, synths or {}
     os.makedirs(work, exist_ok=True)
     sr.notes = notes
@@ -25,13 +56,17 @@ def build(name, work, bpm, end_beat, notes, out_ogg, sampled=None, fx_tracks=Non
     for inst, cfg in sampled.items():
         if inst not in notes:
             continue
-        for z in sr.zones_for(inst, cfg):
+        zones = sr.zones_for(inst, cfg)
+        levels = _zone_levels(zones) if cfg.get("even_zones") else {}
+        if levels:
+            print(f"  {inst}: wyrównanie stref " + " ".join(f"{z['root']}:{levels[z['path']]:+.0f}" for z in zones))
+        for z in zones:
             zn = [n for n in notes[inst] if z["low"] <= n[0] <= z["high"]]
             if zn:
-                plan.append((f"{inst}_{len(plan):02d}", "sampled", cfg, z, zn))
+                plan.append((f"{inst}_{len(plan):02d}", "sampled", cfg, {**z, "level_db": levels.get(z["path"], 0.0)}, zn))
     for inst, fx in fx_tracks.items():
         if inst in notes:
-            cfg = dict(mode="one", attack=1, release=fx.get("release", 400), db=fx["db"], pan=fx.get("pan", 0.0),
+            cfg = dict(mode=fx.get("mode", "one"), attack=1, release=fx.get("release", 400), db=fx["db"], pan=fx.get("pan", 0.0),
                        send=fx["send"], pitched=fx.get("pitched", False), echo=fx.get("echo", False), inserts=fx.get("inserts", []))
             root = fx.get("root", 60)
             zone = {"path": os.path.join(fx_dir, fx["file"]), "root": root,
@@ -57,7 +92,9 @@ def build(name, work, bpm, end_beat, notes, out_ogg, sampled=None, fx_tracks=Non
         if kind == "sampled":
             params = {"root_note": z["root"], "key_low": z["low"], "key_high": z["high"], "attack": cfg["attack"],
                       "release": cfg["release"], "play_mode": 1 if cfg["mode"] == "one" else 0, "velocity": cfg.get("vel_sens", 70),
-                      "key_track": 1 if cfg.get("pitched", True) else 0}
+                      "key_track": 1 if cfg.get("pitched", True) else 0, **cfg.get("sampler", {})}
+            if z.get("level_db"):  # even_zones: poprawka strefy dodana do poziomu samplera
+                params["level"] = max(-48.0, min(12.0, params.get("level", 0.0) + z["level_db"]))
             lines.append("mix.sampler_load " + json.dumps({"track": track, "path": z["path"], "params": params}))
             if cfg.get("echo"):
                 inserts.insert(0, ("mod_delay", {"time": delay_ms, "feedback": 38, "mix": 26, "lpf": 5000}))
@@ -105,11 +142,15 @@ def build(name, work, bpm, end_beat, notes, out_ogg, sampled=None, fx_tracks=Non
     length = end_beat * 60 / bpm
     # Głośność: pomiar LUFS, wzmocnienie do celu i limiter szczytów (loudnorm nie podnosi
     # głośności, gdy szczyty potężnego dołu blokują go przed przekroczeniem limitu).
+    if loop_beats:
+        wav = _fold_loop(wav, loop_beats * 60 / bpm)
+        fade = 0.0
     meter = subprocess.run(["ffmpeg", "-nostats", "-i", wav, "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
     measured = float([l for l in meter.splitlines() if "I:" in l][-1].split(":")[1].split()[0])
     gain = loudness - measured
+    fade_filter = f"afade=t=out:st={length - fade}:d={fade}," if fade > 0 else ""
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", wav, "-af",
-                    f"afade=t=out:st={length - fade}:d={fade},volume={gain:.2f}dB,alimiter=limit=0.79:attack=3:release=60:level=disabled",
+                    f"{fade_filter}volume={gain:.2f}dB,alimiter=limit=0.79:attack=3:release=60:level=disabled",
                     "-ar", "48000", "-c:a", "libvorbis", "-q:a", "6", out_ogg], check=True)
     print(f"Głośność: {measured:.1f} LUFS -> cel {loudness} (wzmocnienie {gain:+.1f} dB, limiter -2 dBFS)")
     print("Gotowe:", out_ogg)
