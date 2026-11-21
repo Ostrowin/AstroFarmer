@@ -37,6 +37,10 @@ var caves: Array[Vector4] = []
 var cave_facing: PackedFloat32Array = []
 ## Arena bossa: Vector4(x, z, promień, wysokość dna).
 var arena := Vector4.ZERO
+## Wioska Sporekinów (bezpieczna strefa): Vector4(x, z, promień, wysokość placu).
+var village := Vector4.ZERO
+## Słoneczna Polana (mini-biom, Rot Shepherd): Vector4(x, z, promień, wysokość).
+var glade := Vector4.ZERO
 ## Serca grzybni: Vector4(x, z, zasięg, przesunięcie fazy pulsu).
 var hearts: Array[Vector4] = []
 var rng := RandomNumberGenerator.new()
@@ -182,19 +186,44 @@ func _layout_features() -> void:
 		break
 	if arena == Vector4.ZERO:  # awaryjnie: naprzeciw lądowiska
 		arena = Vector4(-pad_center.x, -pad_center.y * 0.8, 18.0, _raw(-pad_center.x, -pad_center.y * 0.8) - 1.5)
+	village = Vector4.ZERO
+	for attempt in 300:
+		var p := Vector2(rng.randf_range(-half_size + 35, half_size - 35), rng.randf_range(-half_size + 35, half_size - 35))
+		var dp := p.distance_to(pad_center)
+		if dp < 45.0 or dp > 150.0 or _blocked(p, 20.0 + 14.0):
+			continue
+		if p.distance_to(Vector2(arena.x, arena.y)) < arena.z + 20.0 + 45.0:
+			continue
+		village = Vector4(p.x, p.y, 20.0, _raw(p.x, p.y))
+		break
+	glade = Vector4.ZERO
+	for attempt in 300:
+		var p := Vector2(rng.randf_range(-half_size + 35, half_size - 35), rng.randf_range(-half_size + 35, half_size - 35))
+		if p.distance_to(pad_center) < 60.0 or _blocked(p, 16.0 + 14.0):
+			continue
+		if p.distance_to(Vector2(arena.x, arena.y)) < arena.z + 16.0 + 35.0:
+			continue
+		if village.z > 0.0 and p.distance_to(Vector2(village.x, village.y)) < village.z + 16.0 + 35.0:
+			continue
+		glade = Vector4(p.x, p.y, 16.0, _raw(p.x, p.y))
+		break
 	caves.clear()
 	cave_facing.clear()
 	for i in 3:
 		var r := 15.0 if i == 0 else rng.randf_range(10.0, 12.0)
-		for attempt in 300:
+		for attempt in 800:
 			var p := Vector2(rng.randf_range(-half_size + 30, half_size - 30), rng.randf_range(-half_size + 30, half_size - 30))
-			if p.distance_to(pad_center) < 45.0 or _blocked(p, r + 10.0):
+			if p.distance_to(pad_center) < 45.0 or _blocked(p, r + 22.0):  # z podjazdem (do r + 18)
 				continue
 			if p.distance_to(Vector2(arena.x, arena.y)) < arena.z + r + 25.0:
 				continue
+			if village.z > 0.0 and p.distance_to(Vector2(village.x, village.y)) < village.z + r + 25.0:
+				continue
+			if glade.z > 0.0 and p.distance_to(Vector2(glade.x, glade.y)) < glade.z + r + 25.0:
+				continue
 			var ok := true
 			for c in caves:
-				if p.distance_to(Vector2(c.x, c.y)) < c.z + r + 30.0:
+				if p.distance_to(Vector2(c.x, c.y)) < c.z + r + 20.0:
 					ok = false
 			if not ok:
 				continue
@@ -255,6 +284,16 @@ func height_at(x: float, z: float) -> float:
 		var ad := Vector2(x - arena.x, z - arena.y).length()
 		if ad < arena.z + 14.0:
 			h = lerpf(h, arena.w, 1.0 - smoothstep(arena.z * 0.85, arena.z + 14.0, ad))
+	# Wioska: równy plac.
+	if village.z > 0.0:
+		var vd := Vector2(x - village.x, z - village.y).length()
+		if vd < village.z + 12.0:
+			h = lerpf(h, village.w, 1.0 - smoothstep(village.z, village.z + 12.0, vd))
+	# Słoneczna Polana: równa łąka.
+	if glade.z > 0.0:
+		var gd := Vector2(x - glade.x, z - glade.y).length()
+		if gd < glade.z + 10.0:
+			h = lerpf(h, glade.w, 1.0 - smoothstep(glade.z * 0.8, glade.z + 10.0, gd))
 	# Jaskinie: równa podłoga pod bryłą i płaski podjazd przed wejściem.
 	for ci in caves.size():
 		var c := caves[ci]
@@ -416,6 +455,22 @@ func cave_at(x: float, z: float, margin := 0.0) -> int:
 	return -1
 
 
+func in_village(x: float, z: float, margin := 0.0) -> bool:
+	return village.z > 0.0 and Vector2(x - village.x, z - village.y).length() < village.z + margin
+
+
+func village_point() -> Vector3:
+	return surface_point(village.x, village.y)
+
+
+func in_glade(x: float, z: float, margin := 0.0) -> bool:
+	return glade.z > 0.0 and Vector2(x - glade.x, z - glade.y).length() < glade.z + margin
+
+
+func glade_point() -> Vector3:
+	return surface_point(glade.x, glade.y)
+
+
 func in_arena(x: float, z: float, margin := 0.0) -> bool:
 	return arena.z > 0.0 and Vector2(x - arena.x, z - arena.y).length() < arena.z + margin
 
@@ -452,7 +507,7 @@ func random_point(r: RandomNumberGenerator, pad_clear := 14.0, avoid_canyon := t
 			continue
 		if avoid_pits and in_pit(p.x, p.y, 4.0):
 			continue
-		if cave_at(p.x, p.y, 7.0) >= 0 or in_arena(p.x, p.y, 2.0):  # nic nie zastawia wejść do jaskiń
+		if cave_at(p.x, p.y, 7.0) >= 0 or in_arena(p.x, p.y, 2.0) or in_village(p.x, p.y, 2.0) or in_glade(p.x, p.y, 8.0):  # nic nie zastawia jaskiń i wioski
 			continue
 		break
 	return surface_point(p.x, p.y)
@@ -570,6 +625,7 @@ func _material() -> ShaderMaterial:
 	m.set_shader_parameter("hearts", hv.slice(0, 16))
 	m.set_shader_parameter("heart_count", mini(hearts.size(), 16))
 	m.set_shader_parameter("arena", arena)
+	m.set_shader_parameter("glade", glade)
 	var cv: Array[Vector4] = []
 	for c in caves:
 		cv.append(c)

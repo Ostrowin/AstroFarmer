@@ -5,6 +5,9 @@ extends Hud
 var _health_bar: ProgressBar
 var _health_label: Label
 var _awake_bar: ProgressBar
+## Pasek zdrowia mini-bossa / bossa (ukryty, gdy nie ma walki).
+var _boss_label: Label
+var _boss_bar: ProgressBar
 var _awake_label: Label
 var _alert: Label
 var _offhand_panel: PanelContainer
@@ -50,6 +53,12 @@ func _ready() -> void:
 	bars.add_child(_awake_label)
 	_awake_bar = _make_bar(NotebookTheme.AWAKE, 14)
 	bars.add_child(_awake_bar)
+	_boss_label = _make_label(18)
+	_boss_label.visible = false
+	bars.add_child(_boss_label)
+	_boss_bar = _make_bar(Color(0.55, 0.75, 0.25), 18)
+	_boss_bar.visible = false
+	bars.add_child(_boss_bar)
 
 	_alert = _make_label(26)
 	_alert.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -102,6 +111,22 @@ func show_overlay(show: bool) -> void:
 func set_awakening(value: float) -> void:
 	_awake_bar.value = value
 	_awake_label.text = "Awakening %d" % int(value)
+
+
+func show_boss(title: String, fraction: float) -> void:
+	_boss_label.visible = true
+	_boss_bar.visible = true
+	_boss_label.text = title
+	_boss_bar.value = clampf(fraction, 0.0, 1.0) * _boss_bar.max_value
+
+
+func hide_boss() -> void:
+	_boss_label.visible = false
+	_boss_bar.visible = false
+
+
+func boss_visible() -> bool:
+	return _boss_bar.visible
 
 
 func set_alert(text: String) -> void:

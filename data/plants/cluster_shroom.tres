@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"cluster_shroom"
+display_name = "Cluster Shroom"
+description = "A Boomshroom that bursts into three smaller bombs."
+base_biome = &"grzybowy_las"
+shape = 3
+stages = 3
+cycles_per_stage = 1
+needs_water = true
+min_spacing = 1.0
+harvest_item = &""
+harvest_item_name = ""
+harvest_amount = Vector2i(1, 2)
+seeds_per_harvest = Vector2i(2, 3)
+is_tool = true
+night_glow = false
+leaf_color = Color(0.85, 0.75, 0.55, 1)
+accent_color = Color(1, 0.35, 0.2, 1)

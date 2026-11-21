@@ -323,9 +323,12 @@ func _on_research(id: StringName, text: String, count: int) -> void:
 	refresh()
 
 
-func _on_level_unlocked(_biome: StringName, level: int) -> void:
+func _on_level_unlocked(biome: StringName, level: int) -> void:
 	Sfx.play(&"chime")
-	notify("Meadow level %d unlocked" % level)
+	if biome == GameState.FOREST_BIOME:
+		notify("Mushroom Forest discovered")
+	else:
+		notify("Meadow level %d unlocked" % level)
 
 
 ## Chowa/pokazuje interfejs gry (np. na czas przerywnika z lądowaniem).
@@ -424,7 +427,7 @@ func _make_slot(index: int) -> PanelContainer:
 	panel.add_child(holder)
 	var key := Label.new()
 	key.name = "Key"
-	key.text = str(index + 1)
+	key.text = str((index + 1) % 10)  # dziesiąty slot pod klawiszem 0
 	key.label_settings = NotebookTheme.label_settings(13, NotebookTheme.MUTED)
 	key.position = Vector2(2, -2)
 	holder.add_child(key)

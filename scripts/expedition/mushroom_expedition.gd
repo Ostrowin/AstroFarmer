@@ -16,6 +16,13 @@ const SPORE_HOLLOW_LOOT := 5
 var director: SpawnDirector
 ## Halucynacje od zarodników (Grota Zarodników, Spore Ticki).
 var hallucination: Hallucination
+var trade_panel: TradePanel
+## Słoneczna Polana i jej mini-boss.
+var glade: ForestGlade
+var shepherd: RotShepherd
+## Arena i boss etapu.
+var puffking: Puffking
+var boss_defeated := false
 
 @onready var _terrain: ForestTerrain = $Level/Terrain
 
@@ -69,12 +76,43 @@ func _spawn_world() -> void:
 	director.name = "SpawnDirector"
 	add_child(director)
 	director.setup(_level, _terrain, _player, run)
+	var village := $Level/Village as SporekinVillage
+	if village and _terrain.village.z > 0.0:
+		director.add_safe_zone(village.center(), village.radius() + 12.0)
+	director.add_safe_zone(_terrain.pad_point(), 14.0)
+	trade_panel = TradePanel.new()
+	trade_panel.closed.connect(_on_trade_closed)
+	trade_panel.traded.connect(func(id: StringName) -> void:
+		var offer := Trades.get_offer(id)
+		_hud.notify("Learned: " + String(offer["name"]) if offer.get("plan", false) else "+ " + String(offer["name"]))
+		_hud.refresh())
+	(_player.interaction as ExpeditionInteraction).trade_requested.connect(_open_trade)
+
+	glade = $Level/Glade as ForestGlade
+	if glade and _terrain.glade.z > 0.0:
+		shepherd = glade.spawn_shepherd(_level, director)
+		if shepherd:
+			shepherd.killed.connect(_on_shepherd_killed)
+			shepherd.phase_changed.connect(func(_p: int) -> void: _hud.notify("The Shepherd plants his staff"))
+		glade.cleansed.connect(func() -> void: director.add_safe_zone(glade.center(), glade.radius() + 6.0))
+
+	# The Puffking śpi na środku areny (droga: grubiejąca grzybnia).
+	puffking = Puffking.new()
+	puffking.arena_center = _terrain.arena_point()
+	puffking.arena_radius = _terrain.arena.z
+	puffking.ground_height = _terrain.mesh_height_at
+	_level.add_child(puffking)
+	puffking.global_position = _terrain.arena_point()
+	puffking.phase_changed.connect(func(_p: int) -> void: _hud.notify("The Puffking bursts!"))
+	puffking.defeated.connect(_on_puffking_defeated)
 
 	hallucination = Hallucination.new()
 	hallucination.name = "Hallucination"
 	hallucination.add_to_group("hallucination")
 	add_child(hallucination)
 	hallucination.setup(_player, _level, _hud)
+	if run.meal == &"stew":
+		hallucination.resist = 0.5
 
 
 ## Znajdźki: większość w lesie, część na dnie dołów i w kanionie (trzeba tam zejść).
@@ -95,6 +133,63 @@ func _add_pickup(entry: Dictionary, at: Vector3) -> void:
 	pickup.setup(entry)
 	pickup.position = at
 	_level.add_child(pickup)
+
+
+func _ready() -> void:
+	super._ready()
+	_hud.add_child(trade_panel)
+
+
+func _process(delta: float) -> void:
+	super._process(delta)
+	if _terrain.village.z > 0.0 and _terrain.in_village(_player.global_position.x, _player.global_position.z):
+		GameState.learn(&"sporekin", "visit")
+	var boss_fight := puffking != null and is_instance_valid(puffking) and puffking.awake() and not puffking.dead
+	# W trakcie walki z bossem reżyser nie dosyła stworzeń (walka ma być czytelna).
+	if director:
+		director.boss_pause = boss_fight
+	if boss_fight:
+		_hud.show_boss("The Puffking", puffking.fight_fraction())
+	elif shepherd and is_instance_valid(shepherd) and shepherd.awake() and not shepherd.dead:
+		_hud.show_boss("Rot Shepherd", shepherd.health / shepherd.max_health)
+	elif _hud.boss_visible():
+		_hud.hide_boss()
+
+
+## Boss pokonany: latarnia przylatuje na arenę (ewakuacja od razu), etap 2 odblokowany.
+func _on_puffking_defeated() -> void:
+	boss_defeated = true
+	run.add_awakening(15.0)
+	_hud.notify("The Puffking is defeated")
+	_hud.notify("Forest II unlocked")
+	var target := _terrain.surface_point(_terrain.arena.x + 6.0, _terrain.arena.y)
+	var tw := create_tween()
+	_beacon.global_position = target + Vector3(0, 40, 0)
+	tw.tween_property(_beacon, "global_position", target, 3.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func() -> void: _hud.notify("The beacon has landed"))
+
+
+func _on_shepherd_killed(_c: ForestCreature) -> void:
+	run.add_awakening(10.0)
+	_hud.notify("The glade is free")
+	_hud.notify("Lantern Moth joins you")
+	if get_tree().get_first_node_in_group("lantern_moth") == null:
+		add_companion()
+
+
+func _open_trade() -> void:
+	if _ending or trade_panel.visible:
+		return
+	_player.input_enabled = false
+	_hud.modal = true
+	trade_panel.open(run)
+
+
+func _on_trade_closed() -> void:
+	_hud.modal = false
+	if not _ending:
+		_player.input_enabled = true
+		_player.capture_mouse()
 
 
 ## Las ma na razie jeden poziom.

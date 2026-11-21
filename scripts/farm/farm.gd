@@ -18,6 +18,7 @@ var rng := RandomNumberGenerator.new()
 var _plants: Array[Plant] = []
 var _posts: Array[FencePost] = []
 var _docks: Array[DroneDock] = []
+var _logs: Array[MushroomLog] = []
 var _rails: Node3D
 var _marks: RaidMarks
 
@@ -61,6 +62,9 @@ func occupant(cell: Vector2i) -> Node3D:
 	for dock in _docks:
 		if cell_of(dock.global_position) == cell:
 			return dock
+	for log in _logs:
+		if cell_of(log.global_position) == cell:
+			return log
 	return null
 
 
@@ -125,6 +129,42 @@ func remove_dock(dock: DroneDock) -> void:
 	dock.queue_free()
 	GameState.add_resource(&"drone_dock", 1)
 	_sync()
+
+
+func log_problem(point: Vector3, normal: Vector3, collider: Object, from: Vector3) -> String:
+	if GameState.get_resource(&"mushroom_log") <= 0:
+		return "No mushroom logs"
+	return _cell_problem(point, normal, collider, from, "Can't build here")
+
+
+func place_log(point: Vector3) -> MushroomLog:
+	if not GameState.spend_resource(&"mushroom_log", 1):
+		return null
+	var log := _spawn_log(point, 0)
+	GameState.learn(&"mushroom_log", "place")
+	_sync()
+	return log
+
+
+## Zbiór grzybów z kłody (zwraca ile) albo, gdy pusta, zabranie jej do magazynu (zwraca -1).
+func use_log(log: MushroomLog) -> int:
+	if not _logs.has(log):
+		return 0
+	if log.mushrooms > 0:
+		var got := log.harvest()
+		GameState.add_resource(&"mushroom", got)
+		GameState.learn(&"mushroom_log", "harvest")
+		_sync()
+		return got
+	_logs.erase(log)
+	log.queue_free()
+	GameState.add_resource(&"mushroom_log", 1)
+	_sync()
+	return -1
+
+
+func logs() -> Array[MushroomLog]:
+	return _logs
 
 
 func dock_count() -> int:
@@ -245,6 +285,8 @@ func harvest(plant: Plant) -> Dictionary:
 func _on_cycle_advanced(_cycle: int) -> void:
 	_marks.clear()
 	var lines: Array[String] = []
+	for log in _logs:
+		log.grow()
 	for plant in _plants:
 		var was_ripe := plant.is_ripe()
 		var line := plant.advance_cycle()
@@ -302,6 +344,9 @@ func load_from_state() -> void:
 			dock.drone.queue_free()
 		dock.queue_free()
 	_docks.clear()
+	for log in _logs:
+		log.queue_free()
+	_logs.clear()
 	_marks.clear()
 	for entry: Dictionary in GameState.structures:
 		var pos := Vector3(float(entry.get("x", 0)), float(entry.get("y", 0)), float(entry.get("z", 0)))
@@ -310,6 +355,8 @@ func load_from_state() -> void:
 				_spawn_post(pos)
 			"drone_dock":
 				_spawn_dock(pos)
+			"mushroom_log":
+				_spawn_log(pos, int(entry.get("mushrooms", 0)))
 	_rebuild_rails()
 	for entry: Dictionary in GameState.farm:
 		var data := PlantCatalog.get_plant(StringName(entry.get("id", "")))
@@ -330,6 +377,15 @@ func plants() -> Array[Plant]:
 
 func post_count() -> int:
 	return _posts.size()
+
+
+func _spawn_log(pos: Vector3, mushrooms: int) -> MushroomLog:
+	var log := MushroomLog.new()
+	log.mushrooms = mushrooms
+	add_child(log)
+	log.global_position = _free_cell_near(pos)
+	_logs.append(log)
+	return log
 
 
 func _spawn_dock(pos: Vector3) -> DroneDock:
@@ -421,13 +477,18 @@ func _spawn(data: PlantData, pos: Vector3, stage := 0, progress := 0, watered :=
 
 func _sync() -> void:
 	GameState.farm = _plants.map(func(p: Plant) -> Dictionary: return p.to_dict())
-	GameState.structures = _posts.map(_post_entry) + _docks.map(_dock_entry)
+	GameState.structures = _posts.map(_post_entry) + _docks.map(_dock_entry) + _logs.map(_log_entry)
 	changed.emit()
 
 
 static func _post_entry(post: FencePost) -> Dictionary:
 	var pos := post.global_position
 	return {"id": "fence", "x": pos.x, "y": pos.y, "z": pos.z}
+
+
+static func _log_entry(log: MushroomLog) -> Dictionary:
+	var pos := log.global_position
+	return {"id": "mushroom_log", "x": pos.x, "y": pos.y, "z": pos.z, "mushrooms": log.mushrooms}
 
 
 static func _dock_entry(dock: DroneDock) -> Dictionary:

@@ -83,16 +83,18 @@ Handel ze Sporekinami: płacisz Glow Spores, Mycelium Fiber, kryształami; dosta
 
 ## Wejście do lasu
 
-Zamiast przycisku „(test)”: na łące (poziom 2, w pobliżu Mglistego źródła) nocą leży rzadki **Spore Pod** (zarodnia przyniesiona wiatrem). Zeskanowanie jej odblokowuje cel „Mushroom Forest” na ekranie wyprawy. Do czasu skończenia etapu zostawiam też przycisk testowy (do usunięcia przed playtestem).
+Zamiast przycisku „(test)”: na łące (poziom 2, w pobliżu Mglistego źródła) leży rzadki **Spore Pod** (zarodnia przyniesiona wiatrem). Zeskanowanie jej odblokowuje cel „Mushroom Forest” na ekranie wyprawy. Do czasu skończenia etapu zostawiam też przycisk testowy (do usunięcia przed playtestem).
 
 ## Kolejność robienia (po akceptacji szkiców)
 
 1. ~~Reżyser + kokon + Sporebat i Rotling (podstawa rozgrywki).~~ Zrobione 2026-11-20 (zrzuty: `art/source/sketches/forest_ingame_6..8_*.png`).
 2. ~~Świat: grzybnia shaderem, zarodniki, Shelfcapy, jaskinie, Grota Zarodników.~~ Zrobione 2026-11-21 (zrzuty `forest_ingame_9..14_*.png`).
 3. ~~Spore Tick, Rot Thornback, halucynacje.~~ Zrobione 2026-11-21 (etap 1: obraz faluje, fałszywe znajdźki, fantomy; mocniejsze skutki z tabeli dla etapów 2–3 przyjdą z tymi etapami).
-4. Wioska Sporekinów + handel + Spore Mask, Mushroom Log, Fungicide, Mycelium Fiber.
-5. Słoneczna Polana + Rot Shepherd + Lantern Moth.
-6. Arena + The Puffking + Cluster Shroom + odblokowanie etapu 2.
-7. Spore Pod na łące (wejście do lasu), wpisy w bazie danych, test całego etapu.
+4. ~~Wioska Sporekinów + handel + Spore Mask, Mushroom Log, Fungicide, Mycelium Fiber.~~ Zrobione 2026-11-21 (+ Mushroom Stew: halucynacje o połowę wolniej).
+5. ~~Słoneczna Polana + Rot Shepherd + Lantern Moth.~~ Zrobione 2026-11-21 (Glade Bloom: plon Pollen; model 3D kwiatu jeszcze do szkicu).
+6. ~~Arena + The Puffking + Cluster Shroom + odblokowanie etapu 2.~~ Zrobione 2026-11-21 (etap 2 sam w sobie jeszcze nie istnieje: tylko flaga i napis na ekranie wyprawy).
+7. ~~Spore Pod na łące (wejście do lasu), wpisy w bazie danych, test całego etapu.~~ Zrobione 2026-11-21 (Spore Pod leży cały czas, nie tylko nocą; w buildzie debug las zawsze dostępny).
+
+**Etap 1 gotowy do playtestu** (2026-11-21).
 
 Muzyka i dźwięki lasu: zamówione w [Muzyka_zamowienia.md](Muzyka_zamowienia.md) (osobny czat).

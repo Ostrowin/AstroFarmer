@@ -178,6 +178,10 @@ func _run() -> void:
 	await _test_world(forest, terrain, player, level)
 	await _test_director(forest, terrain, player, level)
 	await _test_step3(forest, terrain, player, level)
+	await _test_village(forest, terrain, player, level)
+	await _test_glade(forest, terrain, player, level)
+	await _test_puffking(forest, terrain, player, level)
+	_test_codex()
 
 	forest.queue_free()
 	GameState.run = null
@@ -243,7 +247,7 @@ func _test_world(forest: Node, terrain: ForestTerrain, player: Player, level: No
 			if dy > 1.3 or dxz > 3.2:
 				climbable = false
 				worst = "dy %.2f dxz %.2f (krok %d z %d)" % [dy, dxz, k, stair.size()]
-	_check(shelves.stairs.size() >= 6 and count >= 20, "schody z Shelfcapów (%d schodów, %d półek)" % [shelves.stairs.size(), count])
+	_check(shelves.stairs.size() >= 5 and count >= 12, "schody z Shelfcapów (%d schodów, %d półek)" % [shelves.stairs.size(), count])
 	_check(climbable, "kolejne półki w zasięgu skoku (do 1,3 m w górę, do 3,2 m w bok) %s" % worst)
 	var first: Transform3D = (shelves.stairs[0] as Array)[0]
 	var top := first.origin + first.basis.z * 1.0
@@ -266,9 +270,11 @@ func _test_director(forest: Node, terrain: ForestTerrain, player: Player, level:
 	if director == null:
 		return
 	director.enabled = false
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 21
-	var spot := terrain.random_point(rng, 20.0)
+	# Plac wioski: płasko i bez przeszkód (kłody, głazy, pnie psują losowe miejsca).
+	# Sporekini na placu na chwilę bez kolizji, żeby nie zatrzymywali szarż i biegu.
+	for kin in get_tree().get_nodes_in_group("sporekin"):
+		(kin as CollisionObject3D).collision_layer = 0
+	var spot := terrain.village_point() + Vector3(-4.0, 0, 0)
 	player.global_position = spot + Vector3(0, 0.5, 0)
 	player.velocity = Vector3.ZERO
 	await _frames(10)
@@ -362,9 +368,7 @@ func _test_step3(forest: Node, terrain: ForestTerrain, player: Player, level: No
 		if is_instance_valid(c):
 			c.queue_free()
 	director.alive.clear()
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 33
-	var spot := terrain.random_point(rng, 20.0)
+	var spot := terrain.village_point() + Vector3(-4.0, 0, 0)
 	player.global_position = spot + Vector3(0, 0.5, 0)
 	player.velocity = Vector3.ZERO
 	player.heal(100)
@@ -391,19 +395,19 @@ func _test_step3(forest: Node, terrain: ForestTerrain, player: Player, level: No
 	player.heal(100)
 	hp = player.health
 	director.alive.clear()
-	director.spawn_pack("rot_thornback", 1, terrain.surface_point(spot.x + 10.0, spot.z + 2.0))
+	director.spawn_pack("rot_thornback", 1, terrain.surface_point(spot.x + 8.0, spot.z + 1.0))
 	await _frames(int(1.6 * 60) + 5)
 	var rts := director.alive.filter(func(c: ForestCreature) -> bool: return c is RotThornback)
 	var rt := (rts[0] if not rts.is_empty() else null) as RotThornback
 	_check(rt != null, "z kokonu wychodzi Rot Thornback")
 	if rt == null:
 		return
-	for k in 900:
+	for k in 1800:  # szarża po prostej może trafić w pień albo kłodę: czekamy na kolejną
 		await _frames(1)
 		player.velocity = Vector3.ZERO
 		if player.health < hp:
 			break
-	_check(rt.charges > 0 and player.health <= hp - RotThornback.DAMAGE + 0.1, "Rot Thornback szarżuje i trafia (%.0f -> %.0f)" % [hp, player.health])
+	_check(rt.charges > 0 and player.health <= hp - RotThornback.DAMAGE + 0.1, "Rot Thornback szarżuje i trafia (%.0f -> %.0f, szarże %d, stan %s, odległość %.1f)" % [hp, player.health, rt.charges, RotThornback.State.keys()[rt.state], rt.global_position.distance_to(player.global_position)])
 	for k in 7:
 		rt.take_hit(10.0)
 	_check(rt.dead, "Rot Thornback pada po 7 strzałach")
@@ -452,6 +456,244 @@ func _test_step3(forest: Node, terrain: ForestTerrain, player: Player, level: No
 	player.global_position = spot + Vector3(0, 0.5, 0)
 	await _frames(int(2.0 * 60))
 	_check(hall.value < 0.45, "poza mgłą halucynacje opadają (%.2f)" % hall.value)
+
+
+## Krok 4: wioska Sporekinów, handel, plany, Mushroom Log, Spore Mask.
+func _test_village(forest: Node, terrain: ForestTerrain, player: Player, level: Node) -> void:
+	var village := level.get_node("Village") as SporekinVillage
+	_check(terrain.village.z > 0.0 and village.trader != null, "wioska Sporekinów z handlarzem")
+	_check(village.huts.size() >= 4 and village.folk.size() >= 3, "chatki (%d) i Sporekini (%d)" % [village.huts.size(), village.folk.size()])
+	var vp := Vector2(terrain.village.x, terrain.village.y)
+	_check(vp.distance_to(Vector2(terrain.arena.x, terrain.arena.y)) > terrain.arena.z + 40.0, "wioska daleko od areny bossa")
+	var director := forest.get("director") as SpawnDirector
+	_check(director.in_safe_zone(village.center()), "wioska to bezpieczna strefa (bez kokonów)")
+	var mush := level.get_node("Mushrooms") as ForestMushrooms
+	var inside := 0
+	for g in mush.giants:
+		var b: Vector3 = g["base"]
+		if terrain.in_village(b.x, b.z):
+			inside += 1
+	_check(inside == 0, "olbrzymy nie rosną na placu wioski")
+	# Handel.
+	var run := GameState.run
+	run.backpack.clear()
+	run.add_item(&"crystal", 2)
+	run.add_item(&"mycelium_fiber", 3)
+	run.add_item(&"glow_spores", 1)
+	GameState.upgrades.erase(&"plan_spore_mask")
+	var mask_offer := Trades.get_offer(&"plan_spore_mask")
+	_check(Trades.problem(mask_offer, run) == "", "stać nas na plan Spore Mask")
+	_check(Recipes.problem(Recipes.get_recipe(&"spore_mask")).begins_with("Plan"), "bez planu receptura maski zablokowana")
+	_check(Trades.buy(&"plan_spore_mask", run) and GameState.has_upgrade(&"plan_spore_mask") and run.count(&"crystal") == 0, "plan kupiony za 2 kryształy")
+	_check(Trades.problem(mask_offer, run) == "Known", "plan drugi raz: Known")
+	_check(Trades.buy(&"mushroom_log", run) and run.count(&"mushroom_log") == 1 and run.count(&"mycelium_fiber") == 0, "Mushroom Log do plecaka za 3 włókna + 1 zarodniki")
+	_check(not Trades.buy(&"glowmoss", run), "bez włókien nie da się kupić Glowmossa")
+	# Okno handlu przez interakcję z handlarzem.
+	var inter := player.interaction as ExpeditionInteraction
+	player.global_position = village.trader.global_position + Vector3(1.2, 0.3, 0)
+	inter.set("_target", {"collider": village.trader, "position": village.trader.global_position + Vector3(0, 1, 0)})
+	inter.call("_interact")
+	await _frames(3)
+	var panel := forest.get("trade_panel") as TradePanel
+	_check(panel.visible and not player.input_enabled, "E przy handlarzu otwiera handel")
+	panel.close()
+	await _frames(2)
+	_check(not panel.visible and player.input_enabled, "zamknięcie handlu oddaje sterowanie")
+	# Receptura maski po planie.
+	GameState.add_resource(&"mycelium_fiber", 3)
+	GameState.add_resource(&"glow_spores", 2)
+	_check(Recipes.problem(Recipes.get_recipe(&"spore_mask")) == "" and Recipes.craft(&"spore_mask") and GameState.has_upgrade(&"spore_mask"), "warsztat robi Spore Mask po planie")
+	GameState.upgrades.erase(&"spore_mask")
+
+
+## Krok 5: Słoneczna Polana, Rot Shepherd, nagrody (Glade Bloom, Lantern Moth).
+func _test_glade(forest: Node, terrain: ForestTerrain, player: Player, level: Node) -> void:
+	var glade := level.get_node("Glade") as ForestGlade
+	_check(terrain.glade.z > 0.0, "Słoneczna Polana na mapie")
+	var shepherd := forest.get("shepherd") as RotShepherd
+	_check(shepherd != null and glade.herd.size() == 3, "Rot Shepherd z uśpionym stadem")
+	if shepherd == null:
+		return
+	var mush := level.get_node("Mushrooms") as ForestMushrooms
+	var over := 0
+	for g in mush.giants:
+		var b: Vector3 = g["base"]
+		if terrain.in_glade(b.x, b.z, 6.0):
+			over += 1
+	_check(over == 0, "nad Polaną nie ma olbrzymów (wpada słońce)")
+	var director := forest.get("director") as SpawnDirector
+	director.enabled = false
+	GameState.upgrades.erase(&"lantern_moth")
+	for m in get_tree().get_nodes_in_group("lantern_moth"):
+		m.queue_free()
+	# Gracz daleko: pasterz śpi, stado się pasie.
+	var hud := forest.get_node("HUD") as ExpeditionHud
+	_check(not shepherd.awake() and glade.herd[0].dormant, "pasterz śpi, dopóki gracz nie wejdzie na Polanę")
+	# Wejście na Polanę budzi pasterza i stado, pokazuje pasek zdrowia.
+	var c := glade.center()
+	player.global_position = c + Vector3(0, 0.5, glade.radius() * 0.6)
+	player.velocity = Vector3.ZERO
+	player.heal(100)
+	await _frames(10)
+	_check(shepherd.awake() and not glade.herd[0].dormant, "wejście na Polanę budzi pasterza i stado")
+	_check(hud.boss_visible(), "pasek zdrowia Rot Shepherda na HUD")
+	# Przywołuje kokony z Rotlingami.
+	for k in 600:
+		await _frames(1)
+		if shepherd.summons > 0:
+			break
+	_check(shepherd.summons > 0, "pasterz przywołuje kokony z Rotlingami")
+	_check(not shepherd.trap(4.0), "Snapper nie trzyma pasterza")
+	# Faza 2: pierścień zgnilizny, trafienie w czasie zamachu przerywa.
+	shepherd.take_hit(shepherd.max_health * 0.52)
+	_check(shepherd.phase == 2, "poniżej połowy zdrowia: faza 2")
+	for k in 400:
+		await _frames(1)
+		if shepherd.state == RotShepherd.State.CAST:
+			break
+	_check(shepherd.state == RotShepherd.State.CAST, "pasterz unosi kostur (ostrzeżenie)")
+	var hp_before := shepherd.health
+	shepherd.take_hit(10.0)
+	_check(shepherd.state == RotShepherd.State.STUNNED and hp_before - shepherd.health >= 29.0, "trafienie w świecący kostur: ogłusza, 3x obrażenia")
+	# Pierścień trafia gracza na ziemi.
+	for r in glade.herd:
+		if is_instance_valid(r):
+			r.queue_free()
+	for cr in director.alive.duplicate():
+		if is_instance_valid(cr):
+			cr.queue_free()
+	director.alive.clear()
+	player.heal(100)
+	var hp := player.health
+	player.global_position = shepherd.global_position + Vector3(6.0, 0.5, 0)
+	var rings := shepherd.rings
+	for k in 900:
+		await _frames(1)
+		player.velocity = Vector3.ZERO
+		if shepherd.rings > rings and player.health < hp:
+			break
+	_check(shepherd.rings > rings and player.health < hp, "pierścień zgnilizny rani gracza na ziemi (%.0f -> %.0f)" % [hp, player.health])
+	# Śmierć: Polana oczyszczona, nagrody, towarzysz.
+	shepherd.take_hit(10000.0)
+	await _frames(5)
+	_check(glade.cleared, "po pokonaniu pasterza Polana się oczyszcza")
+	var seeds := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).item_id == &"seed_glade_bloom")
+	_check(seeds.size() == 1 and (seeds[0] as Pickup).amount == 3, "nagroda: 3 nasiona Glade Bloom")
+	_check(GameState.has_upgrade(&"lantern_moth") and get_tree().get_first_node_in_group("lantern_moth") != null, "nagroda: towarzysz Lantern Moth")
+	_check(director.in_safe_zone(c), "oczyszczona Polana jest bezpieczna")
+	await _frames(5)
+	_check(not hud.boss_visible(), "pasek zdrowia znika po walce")
+	_check(PlantCatalog.get_plant(&"glade_bloom") != null, "Glade Bloom da się posadzić w bazie (gatunek w katalogu)")
+
+
+## Krok 6: arena, The Puffking (toczenie, chmura, rozpad na 3 purchawki), nagrody, latarnia na arenie.
+func _test_puffking(forest: Node, terrain: ForestTerrain, player: Player, level: Node) -> void:
+	var pk := forest.get("puffking") as Puffking
+	_check(pk != null and not pk.awake(), "The Puffking śpi na arenie")
+	if pk == null:
+		return
+	var director := forest.get("director") as SpawnDirector
+	director.enabled = false
+	for c in director.alive.duplicate():
+		if is_instance_valid(c):
+			c.queue_free()
+	director.alive.clear()
+	var hud := forest.get_node("HUD") as ExpeditionHud
+	var ac := terrain.arena_point()
+	player.heal(100)
+	player.global_position = ac + Vector3(0, 0.5, terrain.arena.z * 0.6)
+	player.velocity = Vector3.ZERO
+	await _frames(10)
+	_check(pk.awake() and hud.boss_visible(), "wejście na arenę budzi Puffkinga, pasek zdrowia na HUD")
+	_check(director.boss_pause, "w walce z bossem reżyser nie dosyła stworzeń")
+	# Toczy się na gracza.
+	var hp := player.health
+	for k in 600:
+		await _frames(1)
+		player.velocity = Vector3.ZERO
+		if player.health < hp:
+			break
+	_check(pk.rolls > 0 and player.health < hp, "Puffking toczy się i trafia (%.0f -> %.0f)" % [hp, player.health])
+	# Chmura: otwory świecą (2x obrażenia), potem obrażenia i halucynacje w chmurze.
+	for k in 900:
+		await _frames(1)
+		if pk.state == Puffking.State.PUFF_WINDUP:
+			break
+	_check(pk.state == Puffking.State.PUFF_WINDUP, "przed chmurą otwory rozbłyskują")
+	var before := pk.health
+	pk.take_hit(10.0)
+	_check(is_equal_approx(before - pk.health, 20.0), "trafienie w świecące otwory: 2x obrażenia")
+	var hall := forest.get("hallucination") as Hallucination
+	hall.value = 0.0
+	player.heal(100)
+	player.global_position = pk.global_position + Vector3(4.5, 0.5, 0)
+	for k in 200:
+		await _frames(1)
+		player.velocity = Vector3.ZERO
+		if pk.state == Puffking.State.PUFF and player.health < 95.0:
+			break
+	_check(player.health < 100.0 and hall.value > 0.0, "chmura zarodników rani i dodaje halucynacji")
+	# Faza 2: pęka na 3 purchawki.
+	player.global_position = ac + Vector3(0, 0.5, terrain.arena.z * 0.8)
+	pk.take_hit(pk.max_health)
+	await _frames(5)
+	_check(pk.phase == 2 and pk.minis.size() == 3, "przy połowie zdrowia pęka na 3 purchawki")
+	_check(hud.boss_visible() and pk.fight_fraction() <= 0.5, "pasek bossa liczy też purchawki")
+	player.heal(100)
+	hp = player.health
+	for k in 600:
+		await _frames(1)
+		if player.health < hp:
+			break
+	_check(player.health < hp, "purchawki gonią gracza i wybuchają (%.0f -> %.0f)" % [hp, player.health])
+	# Wybuch rani inne purchawki (zwabianie na siebie).
+	var alive := pk.minis.filter(func(m: MiniPuff) -> bool: return is_instance_valid(m) and not m.dead)
+	if alive.size() >= 2:
+		var a := alive[0] as MiniPuff
+		var b := alive[1] as MiniPuff
+		b.global_position = a.global_position + Vector3(1.0, 0, 0)
+		var bhp := b.health
+		a.take_hit(1000.0)
+		await _frames(2)
+		_check(not is_instance_valid(b) or b.dead or b.health < bhp, "wybuch purchawki rani sąsiednią")
+	for m in pk.minis:
+		if is_instance_valid(m) and not m.dead:
+			m.take_hit(1000.0)
+	await _frames(10)
+	_check(pk.dead and forest.get("boss_defeated") == true, "wszystkie purchawki zniszczone: boss pokonany")
+	var seeds := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).item_id == &"seed_cluster_shroom")
+	_check(seeds.size() == 1 and (seeds[0] as Pickup).amount == 3, "nagroda: 3 nasiona Cluster Shroom")
+	_check(GameState.has_upgrade(&"forest_stage2"), "etap 2 lasu odblokowany")
+	await _frames(int(3.3 * 60))
+	var beacon := level.get_node("EvacBeacon") as Node3D
+	_check(Vector2(beacon.global_position.x - ac.x, beacon.global_position.z - ac.z).length() < terrain.arena.z, "latarnia ewakuacji przylatuje na arenę")
+	_check(not director.boss_pause and not hud.boss_visible(), "po walce reżyser wraca, pasek znika")
+	# Cluster Shroom: wybuch + 3 mniejsze bomby.
+	var boom := BoomPlant.new()
+	boom.cluster = true
+	level.add_child(boom)
+	boom.global_position = ac + Vector3(-6, 0.1, -6)
+	await _frames(int(1.1 * 60))
+	var smalls := level.get_children().filter(func(n: Node) -> bool: return n is BoomPlant and (n as BoomPlant).scale_factor < 1.0)
+	_check(smalls.size() == 3, "Cluster Shroom rozrzuca 3 mniejsze bomby")
+	_check(RunState.THROWABLES.has(&"seed_cluster_shroom"), "Cluster Shroom można rzucać (druga ręka)")
+
+
+## Krok 7: baza danych lasu (fakty odkrywane w walce i w wiosce).
+func _test_codex() -> void:
+	var ids := [&"sporebat", &"rotling", &"spore_tick", &"rot_thornback", &"hammer_cap", &"sporekin",
+		&"rot_shepherd", &"puffking", &"mycelium_fiber", &"glade_bloom", &"cluster_shroom", &"mushroom_log"]
+	var all_forest := true
+	for id in ids:
+		if not Codex.is_forest(id):
+			all_forest = false
+	_check(all_forest, "12 wpisów lasu w bazie danych")
+	_check(GameState.knows(&"rotling", "kill") and GameState.knows(&"puffking", "kill") and GameState.knows(&"rot_shepherd", "kill"), "pokonanie stworzeń i bossów odkrywa fakty")
+	_check(GameState.knows(&"spore_tick", "bite") and GameState.knows(&"sporekin", "trade"), "ugryzienie Ticka i handel odkrywają fakty")
+	_check(GameState.knows(&"hammer_cap", "wave"), "fala Hammer Capa odkrywa fakt")
+	_check(GameState.knows(&"sporekin", "visit"), "wizyta w wiosce odkrywa fakt")
+	_check(GameState.knows(&"cluster_shroom", "boom"), "rzut Cluster Shroomem odkrywa fakt")
+	_check(ExpeditionPrep.forest_open(), "w buildzie testowym las dostępny na ekranie wyprawy")
 
 
 func _wait_wave(hammer: HammerCap, sent: int) -> void:

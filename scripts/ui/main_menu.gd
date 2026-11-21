@@ -87,7 +87,7 @@ func _build_ui() -> void:
 
 	if has_save:
 		var info := Label.new()
-		info.text = "Cycle %d  ·  Database %d%%" % [GameState.cycle, Codex.completion(GameState.research, GameState.max_level())]
+		info.text = "Cycle %d  ·  Database %d%%" % [GameState.cycle, Codex.completion(GameState.research, GameState.max_level(), GameState.forest_unlocked())]
 		info.label_settings = NotebookTheme.world_label_settings(16)
 		box.add_child(info)
 

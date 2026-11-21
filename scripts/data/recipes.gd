@@ -33,6 +33,16 @@ const LIST := [
 		"desc": "Helmet light reaches further",
 		"cost": {&"lumen_dust": 2, &"glow_spores": 2, &"starfall_shard": 1}, "upgrade": true,
 	},
+	{
+		"id": &"spore_mask", "name": "Spore Mask",
+		"desc": "No hallucinations from spores",
+		"cost": {&"mycelium_fiber": 3, &"glow_spores": 2}, "upgrade": true, "requires": &"plan_spore_mask",
+	},
+	{
+		"id": &"fungicide", "name": "Fungicide ×2",
+		"desc": "Protects crops from fungus",
+		"cost": {&"mycelium_fiber": 2, &"crystal": 1}, "gives": {&"fungicide": 2}, "requires": &"plan_fungicide",
+	},
 ]
 
 
@@ -47,6 +57,8 @@ static func get_recipe(id: StringName) -> Dictionary:
 static func problem(recipe: Dictionary) -> String:
 	if recipe.get("upgrade", false) and GameState.has_upgrade(recipe["id"]):
 		return "Owned"
+	if recipe.has("requires") and not GameState.has_upgrade(recipe["requires"]):
+		return "Plan: trade with Sporekin"
 	var missing: Array[String] = []
 	var cost: Dictionary = recipe["cost"]
 	for id in cost:

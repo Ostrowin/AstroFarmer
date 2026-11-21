@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dt5skcy3gtthf"
-path="res://.godot/imported/evac_beacon_painted_mesh_MetalDark_OcclusionRoughnessMetallic.png-53974002f459c9aeb9fc5e6db55ba11c.ctex"
+path.s3tc="res://.godot/imported/evac_beacon_painted_mesh_MetalDark_OcclusionRoughnessMetallic.png-53974002f459c9aeb9fc5e6db55ba11c.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "80ef3fa73ad156b9c9f99c54ac45e5f9"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://art/models/buildings/evac_beacon_painted_mesh_MetalDark_OcclusionRoughnessMetallic.png"
-dest_files=["res://.godot/imported/evac_beacon_painted_mesh_MetalDark_OcclusionRoughnessMetallic.png-53974002f459c9aeb9fc5e6db55ba11c.ctex"]
+dest_files=["res://.godot/imported/evac_beacon_painted_mesh_MetalDark_OcclusionRoughnessMetallic.png-53974002f459c9aeb9fc5e6db55ba11c.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

@@ -6,12 +6,20 @@ const IDS := [
 	&"seed_voidberry", &"seed_crystal_bloom", &"seed_snapper", &"seed_boomshroom", &"seed_mistbloom", &"seed_moonpetal",
 	&"crystal", &"sample_glowmoss", &"pollen", &"thorn", &"fertilizer", &"water_misty", &"voidberry", &"mist_fruit",
 	&"glow_spores", &"starfall_shard", &"lumen_dust", &"moon_petal",
+	&"mycelium_fiber", &"mushroom_log", &"mushroom", &"fungicide", &"spore_mask", &"seed_glade_bloom", &"seed_cluster_shroom", &"spore_pod",
 ]
 ## Przedmioty bez modelu znajdźki: model zastępczy.
 const EXTRA := {
 	&"fence_post": "res://art/models/buildings/fence_post_painted.glb",
 	&"moon_petal": "res://art/models/pickups/moonpetal.glb",
 	&"lumen_dust": "res://art/models/pickups/pollen.glb",
+	# Grzybowy Las (materiały z ForestProps).
+	&"mycelium_fiber": "res://art/models/forest/mycelium_fiber.glb",
+	&"mushroom_log": "res://art/models/forest/mushroom_log.glb",
+	&"mushroom": "res://art/models/forest/mushroom_food.glb",
+	&"fungicide": "res://art/models/forest/fungicide.glb",
+	&"spore_mask": "res://art/models/forest/spore_mask.glb",
+	&"spore_pod": "res://art/models/forest/spore_pod.glb",
 }
 const SIZE := 128
 
@@ -57,6 +65,8 @@ func _render(id: StringName) -> void:
 	var node: Node3D
 	if EXTRA.has(id):
 		node = (load(EXTRA[id]) as PackedScene).instantiate()
+		if String(EXTRA[id]).contains("/forest/"):
+			ForestProps.apply(node, String(id))
 		if id == &"lumen_dust":
 			for mi in node.find_children("*", "MeshInstance3D", true, false):
 				var m := StandardMaterial3D.new()

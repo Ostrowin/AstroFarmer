@@ -14,6 +14,11 @@ const ICONS := {
 	&"glowcap": &"glow_spores", &"pollenbug": &"pollen", &"chrupik": &"fertilizer", &"thornback": &"thorn",
 	&"lumimoth": &"lumen_dust", &"glowmoss": &"sample_glowmoss", &"crystal_vein": &"crystal",
 	&"misty_spring": &"water_misty", &"starfall": &"starfall_shard",
+	&"spore_pod": &"spore_pod", &"mycelium_fiber": &"mycelium_fiber", &"glade_bloom": &"seed_glade_bloom",
+	&"cluster_shroom": &"seed_cluster_shroom", &"mushroom_log": &"mushroom_log", &"sporekin": &"spore_mask",
+	&"spore_tick": &"glow_spores", &"rotling": &"mycelium_fiber", &"sporebat": &"mycelium_fiber",
+	&"rot_thornback": &"mycelium_fiber", &"rot_shepherd": &"seed_glade_bloom", &"puffking": &"seed_cluster_shroom",
+	&"hammer_cap": &"mushroom",
 }
 
 var _category := "Plants"
@@ -54,7 +59,7 @@ func _rebuild() -> void:
 	fill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(fill)
 	var percent := Label.new()
-	percent.text = "%d%%" % Codex.completion(research, max_level)
+	percent.text = "%d%%" % Codex.completion(research, max_level, GameState.forest_unlocked())
 	percent.label_settings = NotebookTheme.label_settings(30, SCREEN_TEXT)
 	top.add_child(percent)
 
@@ -116,7 +121,7 @@ func _tab(category: String) -> Button:
 
 func _entry_row(id: StringName, research: Dictionary, max_level: int) -> Control:
 	var known := Codex.known_count(research, id)
-	var locked := int(Codex.ENTRIES[id]["level"]) > max_level
+	var locked := _locked(id, max_level)
 	var b := Button.new()
 	b.custom_minimum_size = Vector2(260, 50)
 	var on := id == _selected
@@ -174,6 +179,12 @@ func _dots(known: int, total: int) -> HBoxContainer:
 	return dots
 
 
+static func _locked(id: StringName, max_level: int) -> bool:
+	if Codex.is_forest(id):
+		return not GameState.forest_unlocked()
+	return int(Codex.ENTRIES[id]["level"]) > max_level
+
+
 func _detail(id: StringName, research: Dictionary, max_level: int) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
@@ -182,9 +193,9 @@ func _detail(id: StringName, research: Dictionary, max_level: int) -> Control:
 		return box
 	var entry: Dictionary = Codex.ENTRIES[id]
 	var known: Array = research.get(id, [])
-	if int(entry["level"]) > max_level:
+	if _locked(id, max_level):
 		box.add_child(_screen_label("???", 28, SCREEN_TEXT))
-		box.add_child(_screen_label("Found on Meadow II.", 15, SCREEN_DIM, false))
+		box.add_child(_screen_label("Found in the Mushroom Forest." if Codex.is_forest(id) else "Found on Meadow II.", 15, SCREEN_DIM, false))
 		return box
 	box.add_child(_screen_label(entry["name"] if not known.is_empty() else "???", 28, SCREEN_TEXT))
 	box.add_child(_screen_label("%s · %d / %d facts" % [entry["category"], known.size(), Codex.fact_count(id)], 14, SCREEN_DIM, false))

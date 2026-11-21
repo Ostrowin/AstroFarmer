@@ -27,6 +27,8 @@ const PACKS := [
 var credits := 0.0
 var alive: Array[ForestCreature] = []
 var enabled := true
+## Wstrzymanie na czas walki z bossem (osobno od `enabled`).
+var boss_pause := false
 ## Bezpieczne strefy: Vector4(x, y, z, promień).
 var safe_zones: Array[Vector4] = []
 var elapsed := 0.0
@@ -59,7 +61,7 @@ func rate() -> float:
 
 
 func _process(delta: float) -> void:
-	if not enabled or _player == null:
+	if not enabled or boss_pause or _player == null:
 		return
 	elapsed += delta
 	credits += rate() * delta

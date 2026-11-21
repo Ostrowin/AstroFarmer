@@ -11,6 +11,7 @@ signal cancelled
 const OPTIONS := [
 	{"id": &"seed_snapper", "label": "Snapper Seeds", "hint": "Throw (RMB): trap", "max": 4},
 	{"id": &"seed_boomshroom", "label": "Boomshroom Seeds", "hint": "Throw (RMB): stun", "max": 3},
+	{"id": &"seed_cluster_shroom", "label": "Cluster Shroom Seeds", "hint": "Throw (RMB): stun + 3 bombs", "max": 3},
 	{"id": &"voidberry", "label": "Voidberry", "hint": "Eat: +30 health", "max": 4},
 ]
 
@@ -46,7 +47,7 @@ func _ready() -> void:
 	var biome_row := HBoxContainer.new()
 	biome_row.add_theme_constant_override("separation", 10)
 	biome_row.add_child(_label("Place", 18))
-	for biome: Array in [[&"meadow", "Wild Meadow"], [&"mushroom", "Mushroom Forest (test)"]]:
+	for biome: Array in [[&"meadow", "Wild Meadow"], [&"mushroom", "Mushroom Forest"]]:
 		var biome_button := _button(biome[1], _set_biome.bind(biome[0]), 16)
 		biome_button.toggle_mode = true
 		biome_row.add_child(biome_button)
@@ -159,7 +160,14 @@ func _on_depart() -> void:
 		"meal": _meal if _meal_available(_meal) else &"", "biome": _biome})
 
 
+## Las dostępny po odkryciu (Spore Pod); w buildzie debug (edytor) zawsze, do testów.
+static func forest_open() -> bool:
+	return GameState.forest_unlocked() or OS.is_debug_build()
+
+
 func _set_biome(biome: StringName) -> void:
+	if biome == &"mushroom" and not forest_open():
+		return
 	_biome = biome
 	_refresh()
 
@@ -196,15 +204,21 @@ func _used() -> int:
 
 
 func _refresh() -> void:
+	if _biome == &"mushroom" and not forest_open():
+		_biome = &"meadow"
 	for id in _biome_buttons:
 		(_biome_buttons[id] as Button).set_pressed_no_signal(id == _biome)
+	(_biome_buttons[&"mushroom"] as Button).disabled = not forest_open()
 	var forest := _biome == &"mushroom"
 	for i in _level_buttons.size():
 		var level := i + 1
 		_level_buttons[i].set_pressed_no_signal(level == (1 if forest else _level))
 		_level_buttons[i].disabled = forest or level > GameState.max_level()
 	if forest:
-		_level_label.text = "Test: random terrain · pits · canyon with Hammer Caps"
+		_level_label.text = ("Puffking defeated · Forest II coming soon" if GameState.has_upgrade(&"forest_stage2")
+			else "Village · Sunbreak Glade · Spore Hollow · The Puffking")
+	elif not GameState.forest_unlocked() and GameState.max_level() >= 2:
+		_level_label.text = "Fog · Misty Spring · Mistbloom seed · a strange Spore Pod" if _level == 2 else "Mushroom Forest: find a Spore Pod on Meadow II"
 	elif GameState.max_level() < 2:
 		_level_label.text = "Level II: %d/%d database entries" % [
 			Codex.discovered_count(GameState.research, 1), Codex.LEVEL2_REQUIRED]

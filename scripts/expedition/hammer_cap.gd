@@ -175,6 +175,7 @@ func _update_wave(delta: float) -> void:
 			if absf(d - _wave_r) < 0.7 and _on_ground(player):
 				player.call("take_damage", wave_damage, impact_point)
 				_wave_hit = true
+				GameState.learn(&"hammer_cap", "wave")
 	if _wave_r >= wave_radius:
 		_wave_r = -1.0
 		_ring.visible = false

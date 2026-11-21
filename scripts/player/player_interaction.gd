@@ -29,6 +29,7 @@ const SLOTS := [
 	{"kind": "fertilizer"},
 	{"kind": "fence"},
 	{"kind": "dock"},
+	{"kind": "log"},
 ]
 
 var farm: Farm
@@ -106,6 +107,8 @@ func slot_title(index: int) -> String:
 			return "Fence"
 		"dock":
 			return "Drone"
+		"log":
+			return "Mushroom Log"
 	return "Can"
 
 
@@ -120,6 +123,8 @@ func slot_detail(index: int) -> String:
 			return "×%d" % GameState.get_resource(&"fence_post")
 		"dock":
 			return "×%d" % GameState.get_resource(&"drone_dock")
+		"log":
+			return "×%d" % GameState.get_resource(&"mushroom_log")
 	return "%d/%d" % [GameState.get_resource(&"water"), GameState.water_capacity()]
 
 
@@ -135,6 +140,8 @@ func slot_icon(index: int) -> StringName:
 			return &"fence_post"
 		"dock":
 			return &"drone_dock"
+		"log":
+			return &"mushroom_log"
 	return &""
 
 
@@ -149,6 +156,8 @@ func slot_color(index: int) -> Color:
 			return FencePost.WOOD
 		"dock":
 			return Color(1.0, 0.55, 0.15)
+	if slot["kind"] == "log":
+		return Color(0.55, 0.4, 0.28)
 	return Color(0.35, 0.7, 1.0)
 
 
@@ -212,6 +221,15 @@ func _update_target() -> void:
 			_set_prompt("", true)
 		_outline.set_target(highlight)
 		return
+	if collider is MushroomLog:
+		var log := collider as MushroomLog
+		if _in_reach(log.global_position):
+			_set_prompt("[E] Harvest mushrooms" if log.mushrooms > 0 else "[E] Take log", true)
+			highlight = log
+		else:
+			_set_prompt(log.get_status(), true)
+		_outline.set_target(highlight)
+		return
 	if collider is DroneDock:
 		var dock := collider as DroneDock
 		if _in_reach(dock.global_position):
@@ -259,6 +277,11 @@ func _update_target() -> void:
 		var problem := farm.post_problem(_target["position"], _target["normal"], collider, _player.global_position)
 		_show_ghost(_target["position"], problem == "")
 		_set_prompt("[LMB] Place post" if problem == "" else problem, problem == "")
+		return
+	if slot["kind"] == "log" and collider != null:
+		var problem := farm.log_problem(_target["position"], _target["normal"], collider, _player.global_position)
+		_show_ghost(_target["position"], problem == "")
+		_set_prompt("[LMB] Place log" if problem == "" else problem, problem == "")
 		return
 	if slot["kind"] == "dock" and collider != null:
 		var problem := farm.dock_problem(_target["position"], _target["normal"], collider, _player.global_position)
@@ -342,6 +365,16 @@ func _use_tool() -> void:
 		Sfx.play(&"craft", _target["position"])
 		Effects.burst(farm, _target["position"] + Vector3(0, 0.1, 0), FencePost.WOOD, 10)
 		return
+	if slot["kind"] == "log":
+		if collider == null or collider is Plant or collider is FencePost or collider is DroneDock or collider is MushroomLog:
+			return
+		if farm.log_problem(_target["position"], _target["normal"], collider, _player.global_position) != "":
+			Sfx.play(&"deny")
+			return
+		farm.place_log(_target["position"])
+		Sfx.play(&"craft", _target["position"])
+		Effects.burst(farm, _target["position"] + Vector3(0, 0.2, 0), Color(0.45, 0.32, 0.22), 10)
+		return
 	if slot["kind"] == "dock":
 		if collider == null or collider is Plant or collider is FencePost or collider is DroneDock:
 			return
@@ -402,6 +435,13 @@ func _interact() -> void:
 	elif collider is FencePost and _in_reach((collider as FencePost).global_position):
 		farm.remove_post(collider as FencePost)
 		Sfx.play(&"pickup", _player.global_position)
+	elif collider is MushroomLog and _in_reach((collider as MushroomLog).global_position):
+		var got := farm.use_log(collider as MushroomLog)
+		if got > 0:
+			Sfx.play(&"harvest", _player.global_position)
+			notify.emit("+%d Mushroom" % got)
+		else:
+			Sfx.play(&"pickup", _player.global_position)
 	elif collider is DroneDock and _in_reach((collider as DroneDock).global_position):
 		farm.remove_dock(collider as DroneDock)
 		Sfx.play(&"pickup", _player.global_position)

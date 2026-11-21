@@ -8,17 +8,19 @@ extends UiPanel
 signal crafted(id: StringName)
 
 const NODE_SIZE := Vector2(320, 104)
-const TREE_SIZE := Vector2(720, 390)
+const TREE_SIZE := Vector2(720, 525)
 ## Pozycje kart w drzewku (lewy górny róg).
 const LAYOUT := {
 	&"fence": Vector2(20, 10), &"can_mk2": Vector2(380, 10),
 	&"backpack_mk2": Vector2(20, 145), &"pistol_mk2": Vector2(380, 145),
 	&"drone": Vector2(20, 280), &"lamp_mk2": Vector2(380, 280),
+	&"spore_mask": Vector2(20, 415), &"fungicide": Vector2(380, 415),
 }
 const LINKS := [[&"fence", &"backpack_mk2"], [&"can_mk2", &"pistol_mk2"], [&"backpack_mk2", &"drone"], [&"pistol_mk2", &"lamp_mk2"]]
 const ICONS := {
 	&"fence": &"fence_post", &"can_mk2": &"water_misty", &"backpack_mk2": &"sample_glowmoss", &"drone": &"drone_dock",
 	&"pistol_mk2": &"thorn", &"lamp_mk2": &"glow_spores",
+	&"spore_mask": &"spore_mask", &"fungicide": &"fungicide",
 }
 
 
@@ -106,7 +108,8 @@ func _node(recipe: Dictionary) -> Control:
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(text)
 	text.add_child(label(recipe["name"], 18))
-	var cost := label(Recipes.cost_text(recipe) if state != "owned" else recipe["desc"], 13, 220,
+	var locked := Recipes.problem(recipe).begins_with("Plan")
+	var cost := label(Recipes.problem(recipe) if locked else (Recipes.cost_text(recipe) if state != "owned" else recipe["desc"]), 13, 220,
 		NotebookTheme.MUTED if state != "missing" else NotebookTheme.BAD)
 	text.add_child(cost)
 	var action := Button.new()
@@ -141,7 +144,7 @@ func _craft(id: StringName) -> void:
 
 static func _stock_text() -> String:
 	var parts: Array[String] = []
-	for id in [&"crystal", &"sample_glowmoss", &"thorn", &"lumen_dust", &"glow_spores", &"starfall_shard", &"fence_post", &"drone_dock"]:
+	for id in [&"crystal", &"sample_glowmoss", &"thorn", &"lumen_dust", &"glow_spores", &"starfall_shard", &"mycelium_fiber", &"fence_post", &"drone_dock", &"mushroom_log", &"fungicide"]:
 		var count := GameState.get_resource(id)
 		if count > 0 or id in [&"crystal", &"fence_post"]:
 			parts.append("%s %d" % [PlantCatalog.item_name(id), count])

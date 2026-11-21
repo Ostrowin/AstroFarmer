@@ -14,10 +14,13 @@ const MODELS := {
 	&"crystal_bloom": preload("res://art/models/plants/crystal_bloom.glb"),
 	&"snapper": preload("res://art/models/plants/snapper.glb"),
 	&"boomshroom": preload("res://art/models/plants/boomshroom.glb"),
+	&"cluster_shroom": preload("res://art/models/plants/boomshroom.glb"),
 	&"mistbloom": preload("res://art/models/plants/mistbloom.glb"),
 	&"moonpetal": preload("res://art/models/plants/moonpetal.glb"),
 }
 const MODEL_STAGES := 3
+## Gatunki bez własnego modelu: id węzłów w pożyczonym pliku.
+const MODEL_ALIAS := {&"cluster_shroom": &"boomshroom"}
 const GIANT_SCALE := 1.4
 
 ## Widoczne mutacje upraw: nazwa, bonus do plonu i wygląd.
@@ -39,7 +42,8 @@ static func build(data: PlantData, stage: int, mutation: StringName = &"") -> No
 	root.name = "Model"
 	# Etap danych -> etap modelu (modele mają 3 etapy).
 	var model_stage := roundi(float(stage) / float(maxi(1, data.last_stage())) * (MODEL_STAGES - 1))
-	var wanted := "%s_stage%d" % [data.id, model_stage]
+	# Gatunek może pożyczać model innego (Cluster Shroom = model Boomshrooma).
+	var wanted := "%s_stage%d" % [MODEL_ALIAS.get(data.id, data.id), model_stage]
 	var keep: Node3D = null
 	for child in root.get_children():
 		if child.name == wanted:

@@ -10,6 +10,8 @@ const PLANTS := {
 	&"boomshroom": preload("res://data/plants/boomshroom.tres"),
 	&"mistbloom": preload("res://data/plants/mistbloom.tres"),
 	&"moonpetal": preload("res://data/plants/moonpetal.tres"),
+	&"glade_bloom": preload("res://data/plants/glade_bloom.tres"),
+	&"cluster_shroom": preload("res://data/plants/cluster_shroom.tres"),
 }
 
 
@@ -34,6 +36,10 @@ const OTHER_ITEMS := {
 	&"starfall_shard": "Starfall Shard",
 	&"lumen_dust": "Lumen Dust",
 	&"mycelium_fiber": "Mycelium Fiber",
+	&"mushroom_log": "Mushroom Log",
+	&"mushroom": "Mushroom",
+	&"fungicide": "Fungicide",
+	&"spore_pod": "Spore Pod",
 }
 
 

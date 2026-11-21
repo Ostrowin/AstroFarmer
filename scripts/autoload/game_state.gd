@@ -17,6 +17,7 @@ signal level_unlocked(biome_id: StringName, level: int)
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
 const START_BIOME := &"zielona_dolina"
+const FOREST_BIOME := &"grzybowy_las"
 ## Pojemność konewki; woda trzymana jako zasób &"water".
 const WATER_CAPACITY := 5
 ## Konewka po ulepszeniu w warsztacie.
@@ -229,6 +230,8 @@ func cook_meal(id: StringName) -> bool:
 	var cost: Dictionary = meal["cost"]
 	for item in cost:
 		spend_resource(item, int(cost[item]))
+	if id == &"stew":
+		learn(&"mushroom_log", "cook")
 	return true
 
 
@@ -262,6 +265,15 @@ func _check_unlocks() -> void:
 	if max_level() < 2 and Codex.discovered_count(research, 1) >= Codex.LEVEL2_REQUIRED:
 		unlock_biome_level(START_BIOME, 2)
 		level_unlocked.emit(START_BIOME, 2)
+	# Spore Pod z Meadow II wskazuje drogę do Grzybowego Lasu.
+	if not forest_unlocked() and research.has(&"spore_pod"):
+		add_upgrade(&"forest_access")
+		level_unlocked.emit(FOREST_BIOME, 1)
+
+
+## Grzybowy Las odkryty (Spore Pod zeskanowany albo podniesiony).
+func forest_unlocked() -> bool:
+	return has_upgrade(&"forest_access")
 
 
 ## Zwraca true, jeśli to nowe odkrycie.

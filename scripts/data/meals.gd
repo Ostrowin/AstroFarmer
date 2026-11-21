@@ -30,6 +30,11 @@ const LIST := [
 		"desc": "Awakening -40%",
 		"cost": {&"moon_petal": 1, &"voidberry": 1}, "effect": "calm", "awakening_rate": 0.6,
 	},
+	{
+		"id": &"stew", "name": "Mushroom Stew",
+		"desc": "Hallucinations -50%",
+		"cost": {&"mushroom": 2}, "effect": "clear_mind",
+	},
 ]
 
 

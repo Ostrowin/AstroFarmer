@@ -14,6 +14,9 @@ const COOLDOWN := 1.2
 const ROT_TINT := Color(0.62, 0.72, 0.48)
 
 var bites := 0
+## Uśpione stado (Rot Shepherd): pasie się wokół `home` i nie goni gracza, dopóki go nie obudzi.
+var dormant := false
+var home := Vector3.ZERO
 
 var _t := 0.0
 var _windup := -1.0
@@ -93,6 +96,18 @@ func _physics_process(delta: float) -> void:
 	var player := _player()
 	var move := Vector3.ZERO
 	_cooldown -= delta
+	if dormant:
+		# Pasie się: powoli krąży wokół domu.
+		var goal := home + Vector3(cos(_t * 0.3 + home.x), 0, sin(_t * 0.3 + home.z)) * 2.0
+		var to_goal := _flat(goal - global_position)
+		if to_goal.length() > 0.3:
+			move = to_goal.normalized() * 1.0
+			rotation.y = lerp_angle(rotation.y, atan2(to_goal.x, to_goal.z), minf(delta * 3.0, 1.0))
+		velocity.x = move.x
+		velocity.z = move.z
+		move_and_slide()
+		_animate(move.length() * 3.0)
+		return
 	if player and not is_stunned():
 		var to := _flat(player.global_position - global_position)
 		var dist := to.length()

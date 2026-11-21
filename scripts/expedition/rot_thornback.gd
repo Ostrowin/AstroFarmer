@@ -1,7 +1,7 @@
 class_name RotThornback
 extends ForestCreature
 ## Rot Thornback: Thornback zarażony grzybnią (narośla na grzbiecie, zgniły odcień).
-## Idzie powoli w stronę gracza; z 4–14 m zatrzymuje się, grzebie łapą (0,8 s ostrzeżenia)
+## Idzie powoli w stronę gracza; bliżej niż 14 m zatrzymuje się, grzebie łapą (0,8 s ostrzeżenia)
 ## i szarżuje prosto przed siebie. Trafienie w szarży: 18 obrażeń i odrzut. Po szarży chwilę
 ## dyszy (dobry moment na strzały). Snapper go łapie, Boomshroom ogłusza. Wytrzymuje 7 strzałów.
 ## Przy śmierci narośle pękają chmurą zarodników.
@@ -99,7 +99,8 @@ func _physics_process(delta: float) -> void:
 				_face(to, delta, 4.0)
 				move = to.normalized() * WALK
 				_play(&"Walk")
-				if dist > 4.0 and dist < 14.0:
+				# Z daleka szarża, z bliska też (krótki rozbieg) - nie stoi wtulony w gracza.
+				if dist < 14.0:
 					state = State.WINDUP
 					_timer = WINDUP_TIME
 					Sfx.play(&"roar", global_position)
@@ -119,7 +120,8 @@ func _physics_process(delta: float) -> void:
 				_play(&"Run")
 				move = _dir * CHARGE_SPEED
 				_timer -= delta
-				if not _hit and player.global_position.distance_to(global_position + Vector3(0, 0.5, 0)) < 1.6:
+				var off := player.global_position - global_position
+				if not _hit and _flat(off).length() < 1.7 and absf(off.y) < 2.0:
 					_hit = true
 					if _hurt(player, DAMAGE):
 						player.knockback(global_position, 10.0)

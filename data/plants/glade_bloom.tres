@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlantData" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/plant_data.gd" id="1_plant"]
+
+[resource]
+script = ExtResource("1_plant")
+id = &"glade_bloom"
+display_name = "Glade Bloom"
+description = "A sun flower from the Sunbreak Glade. Full of pollen."
+base_biome = &"grzybowy_las"
+shape = 0
+stages = 3
+cycles_per_stage = 1
+needs_water = true
+min_spacing = 1.0
+harvest_item = &"pollen"
+harvest_item_name = "Pollen"
+harvest_amount = Vector2i(2, 3)
+seeds_per_harvest = Vector2i(1, 2)
+is_tool = false
+night_glow = false
+leaf_color = Color(0.3, 0.62, 0.25, 1)
+accent_color = Color(1, 0.8, 0.3, 1)

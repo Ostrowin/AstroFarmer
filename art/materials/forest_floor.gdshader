@@ -17,6 +17,11 @@ uniform vec3 c_mycelium : source_color = vec3(0.35, 0.9, 1.0);
 uniform vec4 hearts[16];
 uniform int heart_count = 0;
 uniform vec4 arena = vec4(0.0);
+// Słoneczna Polana (x, z, promień, wysokość) i zasięg zgnilizny (1 = zjada brzegi, 0 = oczyszczona).
+uniform vec4 glade = vec4(0.0);
+uniform float glade_rot = 1.0;
+uniform vec3 c_grass : source_color = vec3(0.18, 0.42, 0.12);
+uniform vec3 c_rot : source_color = vec3(0.17, 0.12, 0.06);
 uniform vec4 caves[4];
 uniform int cave_count = 0;
 
@@ -58,6 +63,17 @@ void fragment() {
 	vec2 cell = floor(lc);
 	vec2 centre = vec2(hash(cell + 3.1), hash(cell + 7.7)) * 0.8 + 0.1;
 	float lichen = step(0.93, hash(cell)) * smoothstep(0.09, 0.04, length(fract(lc) - centre)) * rocky;
+	// Słoneczna Polana: zielona trawa w słońcu, brzegi zjada brunatna zgnilizna.
+	float meadow = 0.0;
+	if (glade.z > 0.0) {
+		float gd = length(p - glade.xy) + (n(p, 9.0) - 0.5) * 4.0;
+		meadow = 1.0 - smoothstep(glade.z * 0.85, glade.z + 3.0, gd);
+		vec3 grass = c_grass * (0.8 + 0.4 * n(p, 3.0)) * (1.0 + 0.25 * n(p + 50.0, 11.0));
+		float rot_band = smoothstep(glade.z * (1.0 - 0.55 * glade_rot), glade.z, gd) * glade_rot;
+		grass = mix(grass, c_rot * (0.8 + 0.4 * n(p, 2.0)), clamp(rot_band * 1.3, 0.0, 1.0));
+		col = mix(col, grass, meadow * (1.0 - rocky));
+	}
+
 	// Wnętrza jaskiń: ciemno.
 	float dark = 0.0;
 	for (int i = 0; i < cave_count; i++) {
@@ -85,7 +101,7 @@ void fragment() {
 	}
 	float dist = length(CAMERA_POSITION_WORLD - wp);
 	float patches = smoothstep(0.5, 0.66, n(p + warp * 2.0, 55.0)) * 0.8;
-	float mask = max(max(patches, near_heart * 1.4), max(cord, dark)) * (1.0 - rocky * 0.85);
+	float mask = max(max(patches, near_heart * 1.4), max(cord, dark)) * (1.0 - rocky * 0.85) * (1.0 - meadow);
 	float fade = mix(1.0 - smoothstep(20.0, 55.0, dist), 1.0 - smoothstep(40.0, 110.0, dist), cord);
 	float threads = clamp(mycelium_threads(p, cord) * mask * fade, 0.0, 1.0);
 	col = mix(col, vec3(0.5, 0.55, 0.58), threads * 0.35);

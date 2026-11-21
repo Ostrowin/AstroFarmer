@@ -33,6 +33,10 @@ const ITEM_MODELS := {
 const SAMPLE_MODELS := {
 	&"glow_spores": preload("res://art/models/pickups/glowcap.glb"),
 	&"mycelium_fiber": preload("res://art/models/forest/mycelium_fiber.glb"),
+	&"mushroom_log": preload("res://art/models/forest/mushroom_log.glb"),
+	&"mushroom": preload("res://art/models/forest/mushroom_food.glb"),
+	&"fungicide": preload("res://art/models/forest/fungicide.glb"),
+	&"spore_pod": preload("res://art/models/forest/spore_pod.glb"),
 	&"starfall_shard": preload("res://art/models/pickups/starfall.glb"),
 	&"sample_glowmoss": preload("res://art/models/pickups/glowmoss.glb"),
 	&"pollen": preload("res://art/models/pickups/pollen.glb"),
@@ -97,7 +101,9 @@ static func entry_for(id: StringName, amount := 1) -> Dictionary:
 		&"moon_petal":
 			entry["color"] = Color(0.82, 0.72, 1.0)
 		&"mycelium_fiber":
-			entry["color"] = Color(0.6, 0.95, 1.0)
+			entry.merge({"color": Color(0.6, 0.95, 1.0), "scan": &"mycelium_fiber", "scan_name": "Mycelium Fiber"}, true)
+		&"spore_pod":
+			entry.merge({"rare": true, "color": Color(0.75, 0.45, 1.0), "scan": &"spore_pod", "scan_name": "Spore Pod"}, true)
 	return entry
 
 

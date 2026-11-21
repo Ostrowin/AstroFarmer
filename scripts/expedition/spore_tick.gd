@@ -65,6 +65,7 @@ func _physics_process(delta: float) -> void:
 			_leap_hit = true
 			if _hurt(player, BITE_DAMAGE):
 				hits += 1
+				GameState.learn(&"spore_tick", "bite")
 				_dose()
 		if is_on_floor() and velocity.y <= 0.0:
 			_airborne = false

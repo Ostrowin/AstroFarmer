@@ -22,6 +22,8 @@ const LEVEL2_EXTRA_PICKUPS := 8
 const LEVEL2_START_AWAKENING := 10.0
 const SPRING_POSITION := Vector3(-54, 0, 0)
 const MISTBLOOM_POSITION := Vector3(-48, 0, -14)
+## Spore Pod (wejście do Grzybowego Lasu): na Meadow II przy Mglistym źródle.
+const SPORE_POD_POSITION := Vector3(-60, 0, 7)
 ## Stadka małych stworzeń blisko lądowiska: [rodzaj, środek, liczba].
 const CRITTERS := [
 	[Critter.Kind.POLLENBUG, Vector3(-18, 0, 32), 1],
@@ -131,6 +133,8 @@ func _ready() -> void:
 	run.changed.connect(_hud.refresh)
 	_hud.refresh()
 	_apply_meal()
+	if GameState.has_upgrade(&"lantern_moth"):
+		add_companion()
 	if run.level >= 2:
 		_hud.notify("Misty Spring: west")
 	_hud.notify("Return to the beacon to leave")
@@ -248,6 +252,11 @@ func _apply_level_2() -> void:
 		"scan_name": mistbloom.display_name, "color": mistbloom.accent_color})
 	seed_pickup.position = MISTBLOOM_POSITION
 	_level.add_child(seed_pickup)
+	if not GameState.forest_unlocked():
+		var pod := Pickup.new()
+		pod.setup(Pickup.entry_for(&"spore_pod", 1))
+		pod.position = SPORE_POD_POSITION
+		_level.add_child(pod)
 	var spots := $Level/PickupSpots.get_children()
 	spots.shuffle()
 	for i in LEVEL2_EXTRA_PICKUPS:
@@ -256,6 +265,15 @@ func _apply_level_2() -> void:
 		pickup.position = (spots[i] as Node3D).position + Vector3(2.5, 0, 1.5)
 		_level.add_child(pickup)
 	run.add_awakening(LEVEL2_START_AWAKENING)
+
+
+## Towarzysz Lantern Moth (nagroda za Rot Shepherda).
+func add_companion() -> LanternMoth:
+	var moth := LanternMoth.new()
+	moth.name = "LanternMoth"
+	moth.target = _player
+	add_child(moth)
+	return moth
 
 
 ## Danie z kuchni zjedzone przed wyjściem.

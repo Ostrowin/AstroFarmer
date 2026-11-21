@@ -30,7 +30,7 @@ var meal: StringName = &""
 var offhand: StringName = &""
 
 ## Przedmioty, które można włożyć do drugiej ręki i rzucać (PPM).
-const THROWABLES: Array[StringName] = [&"seed_snapper", &"seed_boomshroom"]
+const THROWABLES: Array[StringName] = [&"seed_snapper", &"seed_boomshroom", &"seed_cluster_shroom"]
 
 var _reached: Array[int] = []
 

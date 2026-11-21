@@ -11,6 +11,8 @@ signal hotbar_changed(index: int)
 signal notify(text: String)
 signal evac_requested
 signal inventory_requested
+## Handlarz Sporekinów (Grzybowy Las).
+signal trade_requested
 
 const RAY_LENGTH := 40.0
 const RAY_MASK := 1 | 4
@@ -27,7 +29,7 @@ const THROW_RANGE := 12.0
 const FOOD_HEAL := 30.0
 const AWAKENING_COMMON := 2.0
 const AWAKENING_RARE := 12.0
-const THROWABLE_NAMES := {&"seed_snapper": "Snapper", &"seed_boomshroom": "Boomshroom"}
+const THROWABLE_NAMES := {&"seed_snapper": "Snapper", &"seed_boomshroom": "Boomshroom", &"seed_cluster_shroom": "Cluster Shroom"}
 
 ## Pasek pod LPM.
 const SLOTS := [
@@ -156,6 +158,13 @@ func _update_target() -> void:
 			highlight = collider as Node
 		else:
 			_set_prompt(("Backpack full" if not has_space else "") + hint, has_space)
+	elif collider is Sporekin:
+		var kin := collider as Sporekin
+		if kin.trader and _in_reach(kin.global_position, EVAC_REACH):
+			_set_prompt("[E] Trade" + hint, true)
+			highlight = kin
+		else:
+			_set_prompt(String(kin.get_scan_info()["name"]) + hint, true)
 	elif collider is Pickup:
 		var pickup := collider as Pickup
 		if not _in_reach(pickup.global_position):
@@ -288,6 +297,8 @@ func _throw() -> void:
 	elif on_creature:
 		landing = Vector3((collider as Node3D).global_position.x, _player.global_position.y, (collider as Node3D).global_position.z)
 	var plant: Node3D = TrapPlant.new() if item == &"seed_snapper" else BoomPlant.new()
+	if item == &"seed_cluster_shroom":
+		(plant as BoomPlant).cluster = true
 	_world().add_child(plant)
 	plant.global_position = landing
 	Sfx.play(&"throw", _player.global_position)
@@ -306,6 +317,12 @@ func _cycle_offhand() -> void:
 func _interact() -> void:
 	var collider: Object = _target.get("collider")
 	var run := GameState.run
+	if collider is Sporekin:
+		var kin := collider as Sporekin
+		if kin.trader and _in_reach(kin.global_position, EVAC_REACH):
+			kin.say(":)")
+			trade_requested.emit()
+		return
 	if collider is Pickup:
 		var pickup := collider as Pickup
 		if not _in_reach(pickup.global_position) or run == null:

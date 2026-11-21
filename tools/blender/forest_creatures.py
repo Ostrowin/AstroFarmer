@@ -9,6 +9,9 @@ Zapisuje art/models/forest/:
   rot_growths.glb   - narośla grzybów do przyczepienia na grzbiecie zarażonego zwierzęcia (Rotling)
   mycelium_fiber.glb- znajdźka: kłębek świecących nitek
   spore_tick.glb    - kleszcz zarodnikowy (świecące woreczki z zarodnikami na odwłoku)
+  sporekin_0..3.glb - Sporekini (bagienni ludkowie, 4 kolory; 0 z lampionem = handlarz)
+  stilt_hut(_small).glb - chatki na palach
+  mushroom_log.glb, spore_mask.glb, fungicide.glb, mushroom_food.glb - budowla i przedmioty
 Przód modeli = -Y w Blenderze (= +Z w Godocie... po eksporcie glTF: Blender -Y -> Godot +Z).
 """
 import bpy, math, os, random, sys
@@ -101,6 +104,24 @@ def main():
     export([g], "rot_growths.glb")
     export([fiber_tangle()], "mycelium_fiber.glb")
     export([s1.spore_tick("SporeTick")], "spore_tick.glb")
+    # Wioska Sporekinów (etap 1, krok 4).
+    for i in range(4):
+        export([s1.sporekin("Sporekin%d" % i, i, i + 1, lantern=(i == 0))], "sporekin_%d.glb" % i)
+    export([s1.stilt_hut("StiltHut")], "stilt_hut.glb")
+    export([s1.stilt_hut("StiltHutSmall", 1.9, 1.15)], "stilt_hut_small.glb")
+    # Rot Shepherd (mini-boss Słonecznej Polany).
+    export([s1.rot_shepherd("RotShepherd")], "rot_shepherd.glb")
+    # The Puffking (boss etapu 1) i małe purchawki z fazy 2.
+    export([s1.puffking("Puffking")], "puffking.glb")
+    export([s1.mini_puff("MiniPuff")], "mini_puff.glb")
+    # Przedmioty i budowla.
+    export([s1.mushroom_log("MushroomLog")], "mushroom_log.glb")
+    export([s1.spore_mask("SporeMask")], "spore_mask.glb")
+    export([s1.fungicide("Fungicide")], "fungicide.glb")
+    export([s1.spore_pod("SporePod")], "spore_pod.glb")
+    b = Builder([])
+    fp.oyster_cluster("Mushroom", 77, tiers=1, size=0.22, b=b, origin=Matrix.Rotation(-1.2, 4, "X"), finish=False)
+    export([b.finish("MushroomFood")], "mushroom_food.glb")
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(fp.ROOT, "art", "source", "forest_creatures.blend"))
 
 

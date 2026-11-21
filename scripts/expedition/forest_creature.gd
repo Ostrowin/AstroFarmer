@@ -105,6 +105,8 @@ func _tick_status(delta: float) -> void:
 
 
 func _die() -> void:
+	if not phantom:
+		GameState.learn(scan_id(), "kill")
 	dead = true
 	collision_layer = 0
 	killed.emit(self)

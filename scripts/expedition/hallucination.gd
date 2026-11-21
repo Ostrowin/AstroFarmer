@@ -21,6 +21,8 @@ const PHANTOM_MAX := 3
 var value := 0.0
 ## Etap lasu (1 = do zrobienia bez maski). Wyższe etapy: szybszy przyrost, więcej fantomów.
 var stage := 1
+## Mnożnik przyrostu (Mushroom Stew: 0,5).
+var resist := 1.0
 var fakes: Array[Node3D] = []
 var phantoms: Array[Node3D] = []
 
@@ -54,7 +56,7 @@ func masked() -> bool:
 func add(amount: float) -> void:
 	if masked():
 		return
-	value = clampf(value + amount * (1.0 + 0.5 * (stage - 1)), 0.0, 1.0)
+	value = clampf(value + amount * resist * (1.0 + 0.5 * (stage - 1)), 0.0, 1.0)
 	changed.emit(value)
 
 

@@ -26,6 +26,7 @@ func _run() -> void:
 	await _test_tractor_driving()
 	_test_seeder()
 	await _test_riding()
+	await _test_mushroom_log()
 	Engine.time_scale = 1.0
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE))
 	GameState.save_path = GameState.SAVE_PATH
@@ -75,6 +76,32 @@ func _test_dock() -> void:
 	_farm.load_from_state()
 	await get_tree().physics_frame
 	_check(_farm.dock_count() == 1 and _farm.docks()[0].drone != null, "dok i dron wracają po wczytaniu")
+
+
+## Mushroom Log (od Sporekinów): stawianie, grzyb co cykl (max 3), zbiór, zapis, Mushroom Stew.
+func _test_mushroom_log() -> void:
+	Engine.time_scale = 1.0
+	var spot := Vector3(-6.5, 0, -6.5)
+	_check(_farm.log_problem(spot, Vector3.UP, _soil(), spot) == "No mushroom logs", "bez kłody w magazynie: odmowa")
+	GameState.add_resource(&"mushroom_log", 1)
+	_check(_farm.log_problem(spot, Vector3.UP, _soil(), spot) == "", "kłodę można postawić na glebie")
+	var log := _farm.place_log(spot)
+	_check(log != null and log.mushrooms == 0 and GameState.get_resource(&"mushroom_log") == 0, "kłoda postawiona")
+	for i in 4:
+		GameState.advance_cycle()
+	_check(log.mushrooms == MushroomLog.MAX, "grzyby rosną co cykl, najwyżej %d" % MushroomLog.MAX)
+	var saved := GameState.structures.filter(func(e: Dictionary) -> bool: return e["id"] == "mushroom_log")
+	_check(saved.size() == 1 and int(saved[0]["mushrooms"]) == MushroomLog.MAX, "kłoda i grzyby w zapisie")
+	GameState.from_dict(GameState.to_dict())
+	_farm.load_from_state()
+	await get_tree().physics_frame
+	var logs := _farm.logs()
+	_check(logs.size() == 1 and logs[0].mushrooms == MushroomLog.MAX, "kłoda wraca po wczytaniu z grzybami")
+	var before := GameState.get_resource(&"mushroom")
+	_check(_farm.use_log(logs[0]) == MushroomLog.MAX and GameState.get_resource(&"mushroom") == before + MushroomLog.MAX, "zbiór daje grzyby")
+	_check(_farm.use_log(logs[0]) == -1 and GameState.get_resource(&"mushroom_log") == 1 and _farm.logs().is_empty(), "pusta kłoda wraca do magazynu")
+	var stew := Meals.get_meal(&"stew")
+	_check(Meals.can_cook(stew, {&"mushroom": 2}), "z grzybów da się ugotować Mushroom Stew")
 
 
 func _test_drone_watering() -> void:

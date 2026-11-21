@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/fx/forest_caves.gd" id="8_caves"]
 [ext_resource type="Script" path="res://scripts/fx/forest_spores.gd" id="9_spores"]
 [ext_resource type="Script" path="res://scripts/fx/forest_shelves.gd" id="10_shelves"]
+[ext_resource type="Script" path="res://scripts/fx/sporekin_village.gd" id="11_village"]
+[ext_resource type="Script" path="res://scripts/fx/forest_glade.gd" id="12_glade"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_forest"]
 sky_top_color = Color(0.09, 0.07, 0.17, 1)
@@ -76,6 +78,14 @@ mushrooms_path = NodePath("../Mushrooms")
 
 [node name="Shelves" type="Node3D" parent="Level"]
 script = ExtResource("10_shelves")
+terrain_path = NodePath("../Terrain")
+
+[node name="Village" type="Node3D" parent="Level"]
+script = ExtResource("11_village")
+terrain_path = NodePath("../Terrain")
+
+[node name="Glade" type="Node3D" parent="Level"]
+script = ExtResource("12_glade")
 terrain_path = NodePath("../Terrain")
 
 [node name="EvacBeacon" type="StaticBody3D" parent="Level" groups=["evac"]]
