@@ -148,7 +148,7 @@ func _update_target() -> void:
 	var run := GameState.run
 	var has_space := run != null and run.free_space() > 0
 
-	if collider is Creature or collider is Critter:
+	if collider is Creature or collider is Critter or collider is HammerCap or collider is ForestCreature:
 		_set_prompt(String(collider.call("get_scan_info")["name"]) + hint, true)
 	elif collider is MistySpring:
 		if _in_reach(_target["position"], EVAC_REACH) and has_space:
@@ -240,7 +240,7 @@ func _fire() -> void:
 	Effects.beam(_world(), muzzle, to, Color(1, 0.9, 0.45, 0.9))
 	Sfx.play(&"shot", muzzle)
 	var collider: Object = _target.get("collider")
-	if not (collider is Creature or collider is Critter):
+	if not (collider is Creature or collider is Critter or collider is HammerCap or collider is ForestCreature):
 		return
 	if _distance_to((collider as Node3D).global_position) > PISTOL_RANGE:
 		return
@@ -282,8 +282,10 @@ func _throw() -> void:
 	_player.stop_sprint()
 	_player.play_shoot()
 	var landing: Vector3 = _target["position"]
-	var on_creature := collider is Creature or collider is Critter
-	if on_creature:
+	var on_creature := collider is Creature or collider is Critter or collider is HammerCap or collider is ForestCreature
+	if collider is HammerCap:  # wisi na ścianie kanionu: nasiono ląduje tam, gdzie uderza kapelusz
+		landing = (collider as HammerCap).impact_point
+	elif on_creature:
 		landing = Vector3((collider as Node3D).global_position.x, _player.global_position.y, (collider as Node3D).global_position.z)
 	var plant: Node3D = TrapPlant.new() if item == &"seed_snapper" else BoomPlant.new()
 	_world().add_child(plant)
@@ -307,6 +309,11 @@ func _interact() -> void:
 	if collider is Pickup:
 		var pickup := collider as Pickup
 		if not _in_reach(pickup.global_position) or run == null:
+			return
+		if pickup.phantom:  # halucynacja: rozwiewa się w dłoni
+			Hallucination._vanish(pickup)
+			Sfx.play(&"deny")
+			notify.emit("Not real")
 			return
 		if pickup.kind == "artifact":
 			_apply_buff(pickup.buff)

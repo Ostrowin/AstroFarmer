@@ -45,6 +45,8 @@ var _amb_day: AudioStreamPlayer
 var _amb_night: AudioStreamPlayer
 var _amb_fade := 0.0
 var _music: AudioStreamPlayer
+## Zdarzenie -> jego kandydaci (litery), żeby nie listować folderów przy każdym dźwięku.
+var _candidate_cache := {}
 ## Głośność szyn ustawiona przez gracza (0..1, liniowo): szyna -> wartość.
 var volumes := {&"Music": 1.0, &"SFX": 1.0, &"Ambient": 1.0}
 ## Plik ustawień; testy mogą podstawić własny.
@@ -87,9 +89,15 @@ func _process(delta: float) -> void:
 # --- Efekty ------------------------------------------------------------------
 
 ## Odtwarza dźwięk zdarzenia. Z pozycją: w świecie (3D), bez: interfejs.
+## Za każdym razem losuje jednego z kandydatów (a, b, c...), żeby dźwięki się nie nudziły
+## (decyzja autora 2026-11-20). picks.json wybiera już tylko pętle tła (set_ambience).
 ## `pitch_jitter` < 0 = rozrzut z SETTINGS.
 func play(id: StringName, position = null, pitch_jitter := -1.0) -> void:
-	play_candidate(id, picks.get(String(id), "a"), position, pitch_jitter)
+	if not _candidate_cache.has(id):
+		_candidate_cache[id] = candidates(id)
+	var pool: PackedStringArray = _candidate_cache[id]
+	var letter: String = pool[randi() % pool.size()] if not pool.is_empty() else picks.get(String(id), "a")
+	play_candidate(id, letter, position, pitch_jitter)
 
 
 func play_candidate(id: StringName, letter: String, position = null, pitch_jitter := -1.0) -> void:

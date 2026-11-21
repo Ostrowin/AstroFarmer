@@ -300,7 +300,7 @@ func _test_night(level: Node, player: Player) -> void:
 	_check(Codex.ENTRIES.has(&"moonpetal") and Codex.ENTRIES.has(&"lumimoth") and Codex.ENTRIES.has(&"drifter"), "baza danych zna nocne gatunki")
 	# Bioluminescencja: świeci nocą, gaśnie w dzień, ślady stóp za graczem.
 	var bio := level.get_node_or_null("Bioluminescence") as Bioluminescence
-	_check(bio != null and bio.get_node("Grass").multimesh.instance_count > 1000, "łąka: świecąca trawa")
+	_check(bio != null and bio.blade_count() > 1000, "łąka: świecąca trawa")
 	GameState.time_of_day = 0.0
 	await get_tree().process_frame
 	await get_tree().process_frame

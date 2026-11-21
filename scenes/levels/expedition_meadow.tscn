@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/fx/terrain_ring.gd" id="15_terrain"]
 [ext_resource type="Material" path="res://art/materials/ground_meadow.tres" id="14_ground"]
 
+[ext_resource type="Script" path="res://scripts/fx/prop_scatter.gd" id="20_props"]
 [sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_meadow"]
 sky_top_color = Color(0.25, 0.32, 0.68, 1)
 sky_horizon_color = Color(1, 0.68, 0.5, 1)
@@ -36,7 +37,7 @@ fog_light_color = Color(0.95, 0.72, 0.65, 1)
 fog_density = 0.004
 
 [sub_resource type="BoxShape3D" id="Shape_ground"]
-size = Vector3(150, 1, 150)
+size = Vector3(640, 1, 640)
 
 [sub_resource type="CylinderShape3D" id="Shape_pad"]
 height = 0.2
@@ -49,10 +50,10 @@ size = Vector3(0.4, 3, 0.4)
 radius = 2.6
 
 [sub_resource type="BoxShape3D" id="Shape_wall_x"]
-size = Vector3(132, 10, 1)
+size = Vector3(590, 10, 1)
 
 [sub_resource type="BoxShape3D" id="Shape_wall_z"]
-size = Vector3(1, 10, 132)
+size = Vector3(1, 10, 590)
 
 [node name="Expedition" type="Node3D"]
 script = ExtResource("1_expedition")
@@ -64,6 +65,7 @@ environment = SubResource("Environment_meadow")
 transform = Transform3D(0.8192, -0.4699, 0.329, 0, 0.5736, 0.8192, -0.5736, -0.6711, 0.4699, 0, 10, 0)
 light_color = Color(1, 0.92, 0.82, 1)
 shadow_enabled = true
+directional_shadow_max_distance = 70.0
 
 [node name="Level" type="Node3D" parent="."]
 
@@ -75,16 +77,18 @@ shape = SubResource("Shape_ground")
 
 [node name="Hills" type="Node3D" parent="Level"]
 script = ExtResource("15_terrain")
-flat_half = 60.0
-ridge = 92.0
-ridge_height = 16.0
-collision_extent = 80.0
+flat_half = 272.0
+ridge = 340.0
+ridge_height = 28.0
+collision_extent = 305.0
 layout_seed = 7
 material = ExtResource("14_ground")
 snap_children_of = NodePath("../Mountains")
+extent = 780.0
+cell = 5.0
 
 [node name="EvacBeacon" type="StaticBody3D" parent="Level" groups=["evac"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 68)
 
 [node name="Model" parent="Level/EvacBeacon" instance=ExtResource("7_evac")]
 
@@ -103,10 +107,10 @@ light_energy = 2.0
 omni_range = 8.0
 
 [node name="PlayerSpawn" type="Marker3D" parent="Level"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 33)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 67)
 
 [node name="Den" type="StaticBody3D" parent="Level"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -31)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -62)
 
 [node name="Model" parent="Level/Den" instance=ExtResource("11_den")]
 
@@ -115,207 +119,271 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 shape = SubResource("Shape_den")
 
 [node name="DenSpot" type="Marker3D" parent="Level"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -26.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -57.5)
 
 [node name="PickupSpots" type="Node3D" parent="Level"]
 
 [node name="S1" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 22)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, 44)
 
 [node name="S2" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 40)
 
 [node name="S3" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 16)
 
 [node name="S4" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, 20)
 
 [node name="S5" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 24)
 
 [node name="S6" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
 
 [node name="S7" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 0, -12)
 
 [node name="S8" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, -16)
 
 [node name="S9" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48, 0, -36)
 
 [node name="S10" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 0, -40)
 
 [node name="S11" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -36)
 
 [node name="S12" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -48)
 
 [node name="S13" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0, 24)
 
 [node name="S14" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, 28)
 
 [node name="S15" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32, 0, 60)
 
 [node name="S16" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0, 28)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, 56)
 
 [node name="BushSpots" type="Node3D" parent="Level"]
 
 [node name="B1" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 32)
 
 [node name="B2" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 8)
 
 [node name="B3" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, -24)
 
 [node name="B4" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -8)
 
 [node name="ArtifactSpots" type="Node3D" parent="Level"]
 
 [node name="A1" type="Marker3D" parent="Level/ArtifactSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, -60)
 
 [node name="A2" type="Marker3D" parent="Level/ArtifactSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0, -60)
 
 [node name="A3" type="Marker3D" parent="Level/ArtifactSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -80)
 
 [node name="Rocks" type="Node3D" parent="Level"]
 
 [node name="Rock1" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(0.2122, 0, -0.9772, 0, 1, 0, 0.9772, 0, 0.2122, -4, 0, 26)
+transform = Transform3D(0.2122, 0, -0.9772, 0, 1, 0, 0.9772, 0, 0.2122, -8, 0, 52)
 
 [node name="Rock2" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(-0.9964, 0, -0.0845, 0, 1, 0, 0.0845, 0, -0.9964, 9, 0, 13)
+transform = Transform3D(-0.9964, 0, -0.0845, 0, 1, 0, 0.0845, 0, -0.9964, 18, 0, 26)
 
 [node name="Rock3" parent="Level/Rocks" instance=ExtResource("9_rock_stack")]
-transform = Transform3D(0.0446, 0, 0.999, 0, 1, 0, -0.999, 0, 0.0446, -11, 0, 2)
+transform = Transform3D(0.0446, 0, 0.999, 0, 1, 0, -0.999, 0, 0.0446, -22, 0, 4)
 
 [node name="Rock4" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(0.9849, 0, -0.1731, 0, 1, 0, 0.1731, 0, 0.9849, 4, 0, -12)
+transform = Transform3D(0.9849, 0, -0.1731, 0, 1, 0, 0.1731, 0, 0.9849, 8, 0, -24)
 
 [node name="Rock5" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(-0.2986, 0, -0.9544, 0, 1, 0, 0.9544, 0, -0.2986, -8, 0, -26)
+transform = Transform3D(-0.2986, 0, -0.9544, 0, 1, 0, 0.9544, 0, -0.2986, -16, 0, -52)
 
 [node name="Rock6" parent="Level/Rocks" instance=ExtResource("9_rock_stack")]
-transform = Transform3D(-0.908, 0, 0.4191, 0, 1, 0, -0.4191, 0, -0.908, 26, 0, 0)
+transform = Transform3D(-0.908, 0, 0.4191, 0, 1, 0, -0.4191, 0, -0.908, 52, 0, 0)
 
 [node name="Rock7" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(0.5326, 0, 0.8464, 0, 1, 0, -0.8464, 0, 0.5326, -27, 0, 24)
+transform = Transform3D(0.5326, 0, 0.8464, 0, 1, 0, -0.8464, 0, 0.5326, -54, 0, 48)
 
 [node name="Trees" type="Node3D" parent="Level"]
 
 [node name="Mushroom1" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(-0.8383, 0, -0.5452, 0, 1, 0, 0.5452, 0, -0.8383, -16, 0, 18)
+transform = Transform3D(-0.8383, 0, -0.5452, 0, 1, 0, 0.5452, 0, -0.8383, -32, 0, 36)
 
 [node name="Mushroom2" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(-0.4326, 0, 0.9016, 0, 1, 0, -0.9016, 0, -0.4326, 15, 0, 16)
+transform = Transform3D(-0.4326, 0, 0.9016, 0, 1, 0, -0.9016, 0, -0.4326, 30, 0, 32)
 
 [node name="Mushroom3" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(0.9498, 0, 0.3128, 0, 1, 0, -0.3128, 0, 0.9498, -22, 0, -2)
+transform = Transform3D(0.9498, 0, 0.3128, 0, 1, 0, -0.3128, 0, 0.9498, -44, 0, -4)
 
 [node name="Mushroom4" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(0.1877, 0, -0.9822, 0, 1, 0, 0.9822, 0, 0.1877, 10, 0, -15)
+transform = Transform3D(0.1877, 0, -0.9822, 0, 1, 0, 0.9822, 0, 0.1877, 20, 0, -30)
+
+[node name="RockScatter" type="Node3D" parent="Level"]
+script = ExtResource("20_props")
+scenes = Array[PackedScene]([ExtResource("6_rock"), ExtResource("9_rock_stack")])
+weights = Array[float]([3, 1.2])
+names = Array[String](["Rock", "Rock"])
+count = 320
+layout_seed = 51
+half_extents = Vector2(268, 268)
+spacing = 8.0
+scale_range = Vector2(0.8, 1.8)
+clustering = 0.6
+cluster_size = 75.0
+view_distance = 130.0
+keep_clear = Array[Vector3]([Vector3(0, 68, 9.8), Vector3(0, -62, 9.8), Vector3(-54, 0, 7), Vector3(-48, -14, 5.6), Vector3(30, 16, 7), Vector3(0, 36, 4.2), Vector3(0, 0, 4.2), Vector3(0, -30, 4.2)])
+
+[node name="GroveScatter" type="Node3D" parent="Level"]
+script = ExtResource("20_props")
+scenes = Array[PackedScene]([ExtResource("5_tree_mushroom"), ExtResource("8_tree_lantern"), ExtResource("4_tree_cone")])
+weights = Array[float]([2.5, 1.5, 1.5])
+names = Array[String](["Mushroom", "Lantern", "Cone"])
+count = 420
+layout_seed = 53
+half_extents = Vector2(268, 268)
+spacing = 9.0
+scale_range = Vector2(0.9, 1.6)
+clustering = 0.65
+cluster_size = 90.0
+view_distance = 140.0
+keep_clear = Array[Vector3]([Vector3(0, 68, 9.8), Vector3(0, -62, 9.8), Vector3(-54, 0, 7), Vector3(-48, -14, 5.6), Vector3(30, 16, 7), Vector3(0, 36, 4.2), Vector3(0, 0, 4.2), Vector3(0, -30, 4.2)])
 
 [node name="TreeScatter" type="Node3D" parent="Level"]
 script = ExtResource("12_scatter")
-count = 80
+count = 1400
 layout_seed = 21
-half_extents = Vector2(57, 57)
-keep_clear = Array[Vector3]([Vector3(0, 34, 7), Vector3(0, -31, 7), Vector3(-27, 0, 5), Vector3(-24, -7, 4), Vector3(15, 8, 5), Vector3(0, 18, 3), Vector3(0, 0, 3), Vector3(0, -15, 3)])
+half_extents = Vector2(268, 268)
+keep_clear = Array[Vector3]([Vector3(0, 68, 9.8), Vector3(0, -62, 9.8), Vector3(-54, 0, 7), Vector3(-48, -14, 5.6), Vector3(30, 16, 7), Vector3(0, 36, 4.2), Vector3(0, 0, 4.2), Vector3(0, -30, 4.2)])
 species = {&"gnarled": 2.0, &"umbrella": 1.5, &"willow": 2.0, &"spooky": 2.0}
+clustering = 0.6
+cluster_size = 60.0
+variants = 32
+view_distance = 120.0
+near_distance = 25.0
+mid_distance = 55.0
 
 [node name="Bioluminescence" type="Node3D" parent="Level"]
 script = ExtResource("13_biolum")
 layout_seed = 5
-half_extents = Vector2(58, 58)
-grass_clumps = 460
-blades = 16000
-moss_patches = 38
-fireflies = 420
-spores = 700
-keep_clear = Array[Vector3]([Vector3(0, 34, 4), Vector3(-27, 0, 3)])
+half_extents = Vector2(272, 272)
+grass_clumps = 9500
+blades = 280000
+moss_patches = 720
+fireflies = 480
+spores = 760
+keep_clear = Array[Vector3]([Vector3(0, 68, 5.6), Vector3(-54, 0, 4.2)])
+grass_distance = 75.0
+particles_around_player = 45.0
+light_distance = 60.0
 
 [node name="Mushroom5" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(-0.9982, 0, -0.0596, 0, 1, 0, 0.0596, 0, -0.9982, -12, 0, -32)
+transform = Transform3D(-0.9982, 0, -0.0596, 0, 1, 0, 0.0596, 0, -0.9982, -24, 0, -64)
 
 [node name="Mushroom6" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(0.0696, 0, 0.9976, 0, 1, 0, -0.9976, 0, 0.0696, 14, 0, -34)
+transform = Transform3D(0.0696, 0, 0.9976, 0, 1, 0, -0.9976, 0, 0.0696, 28, 0, -68)
 
 [node name="Mushroom7" parent="Level/Trees" instance=ExtResource("5_tree_mushroom")]
-transform = Transform3D(0.9803, 0, -0.1977, 0, 1, 0, 0.1977, 0, 0.9803, 34, 0, -14)
+transform = Transform3D(0.9803, 0, -0.1977, 0, 1, 0, 0.1977, 0, 0.9803, 68, 0, -28)
 
 [node name="Cone1" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
-transform = Transform3D(-0.9979, 0, 0.0644, 0, 1, 0, -0.0644, 0, -0.9979, -36, 0, -6)
+transform = Transform3D(-0.9979, 0, 0.0644, 0, 1, 0, -0.0644, 0, -0.9979, -72, 0, -12)
 
 [node name="Cone2" parent="Level/Trees" instance=ExtResource("8_tree_lantern")]
-transform = Transform3D(0.1924, 0, 0.9813, 0, 1, 0, -0.9813, 0, 0.1924, 36, 0, 26)
+transform = Transform3D(0.1924, 0, 0.9813, 0, 1, 0, -0.9813, 0, 0.1924, 72, 0, 52)
 
 [node name="Cone3" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
-transform = Transform3D(0.9483, 0, -0.3174, 0, 1, 0, 0.3174, 0, 0.9483, -34, 0, 34)
+transform = Transform3D(0.9483, 0, -0.3174, 0, 1, 0, 0.3174, 0, 0.9483, -68, 0, 68)
 
 [node name="Cone4" parent="Level/Trees" instance=ExtResource("4_tree_cone")]
-transform = Transform3D(-0.4369, 0, -0.8995, 0, 1, 0, 0.8995, 0, -0.4369, 26, 0, 36)
+transform = Transform3D(-0.4369, 0, -0.8995, 0, 1, 0, 0.8995, 0, -0.4369, 52, 0, 72)
 
 [node name="Cone5" parent="Level/Trees" instance=ExtResource("8_tree_lantern")]
-transform = Transform3D(-0.8357, 0, 0.5492, 0, 1, 0, -0.5492, 0, -0.8357, 24, 0, -38)
+transform = Transform3D(-0.8357, 0, 0.5492, 0, 1, 0, -0.5492, 0, -0.8357, 48, 0, -76)
 
 [node name="HillTrees" type="Node3D" parent="Level"]
 script = ExtResource("12_scatter")
-count = 70
+count = 380
 layout_seed = 33
-half_extents = Vector2(112, 112)
-ring_inner = 67.0
+half_extents = Vector2(410, 410)
+ring_inner = 292.0
 species = {&"gnarled": 2.0, &"umbrella": 2.0, &"willow": 1.5, &"spooky": 1.5}
 spacing = 6.5
 terrain = NodePath("../Hills")
 no_collision = true
+variants = 24
+view_distance = 240.0
+near_distance = 20.0
+mid_distance = 40.0
 
 [node name="Mountains" type="Node3D" parent="Level"]
 
 [node name="Mountain1" parent="Level/Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-0.5595, 0.0, -1.6379, 0.0, 1.6764, 0.0, 1.6379, 0.0, -0.5595, 0.0, 0.0, -118.4)
+transform = Transform3D(-1.4547, 0, -4.2585, 0, 4.3586, 0, 4.2585, 0, -1.4547, 0, 0, -411.4845)
 
 [node name="Mountain2" parent="Level/Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-1.0951, 0.0, 0.8472, 0.0, 1.2352, 0.0, -0.8472, 0.0, -1.0951, -91.76, 0.0, -71.04)
+transform = Transform3D(-2.8473, 0, 2.2027, 0, 3.2115, 0, -2.2027, 0, -2.8473, -320.5477, 0, -248.166)
 
 [node name="Mountain3" parent="Level/Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(1.2521, 0.0, 0.826, 0.0, 1.4118, 0.0, -0.826, 0.0, 1.2521, 94.72, 0.0, -65.12)
+transform = Transform3D(3.2555, 0, 2.1476, 0, 3.6707, 0, -2.1476, 0, 3.2555, 320.899, 0, -220.618)
 
 [node name="Mountain4" parent="Level/Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(0.3189, 0.0, -1.2285, 0.0, 0.9707, 0.0, 1.2285, 0.0, 0.3189, -109.52, 0.0, 35.52)
+transform = Transform3D(0.8291, 0, -3.1941, 0, 2.5238, 0, 3.1941, 0, 0.8291, -417.5166, 0, 135.4108)
 
 [node name="Mountain5" parent="Level/Mountains" instance=ExtResource("10_mountain")]
-transform = Transform3D(-1.2657, 0.0, 0.0954, 0.0, 1.1471, 0.0, -0.0954, 0.0, -1.2657, 106.56, 0.0, 59.2)
+transform = Transform3D(-3.2908, 0, 0.248, 0, 2.9825, 0, -0.248, 0, -3.2908, 332.5623, 0, 184.7568)
+
+[node name="MountainX1" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-1.9565, 0, -0.6943, 0, 2.1089, 0, 0.6943, 0, -1.9565, -207.4344, 0, -423.8236)
+
+[node name="MountainX2" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-2.91, 0, 0.9048, 0, 3.2113, 0, -0.9048, 0, -2.91, 146.15, 0, -404.7429)
+
+[node name="MountainX3" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-2.1214, 0, -0.0836, 0, 2.3849, 0, 0.0836, 0, -2.1214, 414.3075, 0, -62.806)
+
+[node name="MountainX4" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-0.0625, 0, -2.5478, 0, 2.1295, 0, 2.5478, 0, -0.0625, -57.0727, 0, 458.3975)
+
+[node name="MountainX5" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-2.7171, 0, 1.4549, 0, 2.5603, 0, -1.4549, 0, -2.7171, -451.198, 0, -49.8083)
+
+[node name="MountainX6" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(0.8725, 0, -2.2236, 0, 2.0777, 0, 2.2236, 0, 0.8725, -209.2527, 0, -360.4555)
+
+[node name="MountainX7" parent="Level/Mountains" instance=ExtResource("10_mountain")]
+transform = Transform3D(-1.4734, 0, 1.4044, 0, 1.9787, 0, -1.4044, 0, -1.4734, 265.6472, 0, -388.1502)
 
 [node name="Bounds" type="StaticBody3D" parent="Level"]
 
 [node name="North" type="CollisionShape3D" parent="Level/Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -64)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -285)
 shape = SubResource("Shape_wall_x")
 
 [node name="South" type="CollisionShape3D" parent="Level/Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 64)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 285)
 shape = SubResource("Shape_wall_x")
 
 [node name="West" type="CollisionShape3D" parent="Level/Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -285, 5, 0)
 shape = SubResource("Shape_wall_z")
 
 [node name="East" type="CollisionShape3D" parent="Level/Bounds"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 285, 5, 0)
 shape = SubResource("Shape_wall_z")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
@@ -325,58 +393,433 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 33)
 script = ExtResource("3_hud")
 
 [node name="S17" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -46, 0, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -92, 0, -16)
 
 [node name="S18" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 45, 0, 2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 90, 0, 4)
 
 [node name="S19" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -42, 0, 38)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -84, 0, 76)
 
 [node name="S20" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 40, 0, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 80, 0, 84)
 
 [node name="S21" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -38, 0, -42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -76, 0, -84)
 
 [node name="S22" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 36, 0, -46)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 72, 0, -92)
 
 [node name="S23" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -52, 0, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -104, 0, 40)
 
 [node name="S24" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 52, 0, -24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 104, 0, -48)
 
 [node name="S25" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -14, 0, -50)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -28, 0, -100)
 
 [node name="S26" type="Marker3D" parent="Level/PickupSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 16, 0, 52)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 32, 0, 104)
 
 [node name="B5" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -40, 0, -26)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -80, 0, -52)
 
 [node name="B6" type="Marker3D" parent="Level/BushSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 42, 0, 24)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 84, 0, 48)
 
 [node name="A4" type="Marker3D" parent="Level/ArtifactSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, -50, 0, -48)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, -100, 0, -96)
 
 [node name="A5" type="Marker3D" parent="Level/ArtifactSpots"]
-transform = Transform3D(1.0, 0, 0.0, 0, 1, 0, -0.0, 0, 1.0, 50, 0, 50)
+transform = Transform3D(1, 0, 0, 0, 1, 0, -0, 0, 1, 100, 0, 100)
 
 [node name="Rock8" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(0.6, 0, 0.8, 0, 1, 0, -0.8, 0, 0.6, -44, 0, 30)
+transform = Transform3D(0.6, 0, 0.8, 0, 1, 0, -0.8, 0, 0.6, -88, 0, 60)
 
 [node name="Rock9" parent="Level/Rocks" instance=ExtResource("9_rock_stack")]
-transform = Transform3D(-0.9, 0, 0.44, 0, 1, 0, -0.44, 0, -0.9, 48, 0, -38)
+transform = Transform3D(-0.9, 0, 0.44, 0, 1, 0, -0.44, 0, -0.9, 96, 0, -76)
 
 [node name="Rock10" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(0.2, 0, -0.98, 0, 1, 0, 0.98, 0, 0.2, 30, 0, 50)
+transform = Transform3D(0.2, 0, -0.98, 0, 1, 0, 0.98, 0, 0.2, 60, 0, 100)
 
 [node name="Rock11" parent="Level/Rocks" instance=ExtResource("6_rock")]
-transform = Transform3D(-0.5, 0, 0.87, 0, 1, 0, -0.87, 0, -0.5, -50, 0, -34)
+transform = Transform3D(-0.5, 0, 0.87, 0, 1, 0, -0.87, 0, -0.5, -100, 0, -68)
 
 [node name="Rock12" parent="Level/Rocks" instance=ExtResource("9_rock_stack")]
-transform = Transform3D(0.97, 0, 0.26, 0, 1, 0, -0.26, 0, 0.97, -26, 0, 50)
+transform = Transform3D(0.97, 0, 0.26, 0, 1, 0, -0.26, 0, 0.97, -52, 0, 100)
+
+[node name="S27" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -199.58, 0.3, 1.32)
+
+[node name="S28" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.2, 0.3, 188.64)
+
+[node name="S29" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -208.22, 0.3, -145)
+
+[node name="S30" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 148.49, 0.3, 25.05)
+
+[node name="S31" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120.8, 0.3, 140.49)
+
+[node name="S32" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 131.54, 0.3, 45.34)
+
+[node name="S33" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -136.27, 0.3, 59.84)
+
+[node name="S34" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -203.97, 0.3, 165.98)
+
+[node name="S35" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26.38, 0.3, 164.94)
+
+[node name="S36" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -151.84, 0.3, -130.21)
+
+[node name="S37" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 251.47, 0.3, 224.96)
+
+[node name="S38" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.89, 0.3, 261.82)
+
+[node name="S39" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.12, 0.3, -222.01)
+
+[node name="S40" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -83.63, 0.3, 30.1)
+
+[node name="S41" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -108.93, 0.3, -22.3)
+
+[node name="S42" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 197.27, 0.3, 106.88)
+
+[node name="S43" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40.57, 0.3, -249.04)
+
+[node name="S44" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110.49, 0.3, -71.5)
+
+[node name="S45" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.76, 0.3, -53.04)
+
+[node name="S46" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 0.3, 218.38)
+
+[node name="S47" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -126.47, 0.3, -41.94)
+
+[node name="S48" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 223.35, 0.3, -10.9)
+
+[node name="S49" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.43, 0.3, -248.7)
+
+[node name="S50" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -144.35, 0.3, -194.4)
+
+[node name="S51" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -236.38, 0.3, 107.24)
+
+[node name="S52" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 202.7, 0.3, -208.25)
+
+[node name="S53" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64.09, 0.3, -15.7)
+
+[node name="S54" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.37, 0.3, -142.04)
+
+[node name="S55" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 202.22, 0.3, 66.38)
+
+[node name="S56" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 225.04, 0.3, 255.31)
+
+[node name="S57" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.95, 0.3, -100.8)
+
+[node name="S58" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 157.1, 0.3, 1)
+
+[node name="S59" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.06, 0.3, 201.45)
+
+[node name="S60" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -121.03, 0.3, -244.65)
+
+[node name="S61" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.89, 0.3, 11.99)
+
+[node name="S62" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -125.7, 0.3, -7.56)
+
+[node name="S63" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9, 0.3, 170.91)
+
+[node name="S64" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 161.37, 0.3, 30.31)
+
+[node name="S65" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 213.41, 0.3, 173.66)
+
+[node name="S66" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -96.07, 0.3, 218.41)
+
+[node name="S67" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -210.45, 0.3, 99.21)
+
+[node name="S68" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.67, 0.3, 243.8)
+
+[node name="S69" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 244.85, 0.3, 179.44)
+
+[node name="S70" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.93, 0.3, -228.31)
+
+[node name="S71" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -211.35, 0.3, 129.72)
+
+[node name="S72" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -254.65, 0.3, -261.89)
+
+[node name="S73" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.26, 0.3, 226.46)
+
+[node name="S74" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -218.47, 0.3, 153.94)
+
+[node name="S75" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 131.97, 0.3, 239.14)
+
+[node name="S76" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.28, 0.3, 70.95)
+
+[node name="S77" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -180.91, 0.3, -97.76)
+
+[node name="S78" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.53, 0.3, 141.23)
+
+[node name="S79" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235.77, 0.3, -4.2)
+
+[node name="S80" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 115.53, 0.3, -191.33)
+
+[node name="S81" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -145.19, 0.3, 46.08)
+
+[node name="S82" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 240.14, 0.3, 197.02)
+
+[node name="S83" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 88.32, 0.3, 227.97)
+
+[node name="S84" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 148.52, 0.3, 217.47)
+
+[node name="S85" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -101.65, 0.3, -46.09)
+
+[node name="S86" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -158.93, 0.3, -254.59)
+
+[node name="S87" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -206.39, 0.3, 203.19)
+
+[node name="S88" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -235.08, 0.3, -80.16)
+
+[node name="S89" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76.82, 0.3, 141.24)
+
+[node name="S90" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -248.49, 0.3, 5.44)
+
+[node name="S91" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -91.15, 0.3, -198.4)
+
+[node name="S92" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 235.16, 0.3, 37.53)
+
+[node name="S93" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.79, 0.3, -181.36)
+
+[node name="S94" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.28, 0.3, -34.79)
+
+[node name="S95" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -85.72, 0.3, 51.47)
+
+[node name="S96" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 93.53, 0.3, -225.58)
+
+[node name="S97" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52.84, 0.3, -159.56)
+
+[node name="S98" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 220.84, 0.3, -238.3)
+
+[node name="S99" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.46, 0.3, 177.63)
+
+[node name="S100" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25.25, 0.3, 133.47)
+
+[node name="S101" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -163.21, 0.3, 110.54)
+
+[node name="S102" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 197.98, 0.3, -194.33)
+
+[node name="S103" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.69, 0.3, 149.55)
+
+[node name="S104" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.83, 0.3, 239.25)
+
+[node name="S105" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -177.96, 0.3, 180.45)
+
+[node name="S106" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45.02, 0.3, -220.78)
+
+[node name="S107" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -102.23, 0.3, -81.71)
+
+[node name="S108" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146.85, 0.3, -44.15)
+
+[node name="S109" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.93, 0.3, -91.29)
+
+[node name="S110" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.4, 0.3, -199.06)
+
+[node name="S111" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 155.42, 0.3, 155.48)
+
+[node name="S112" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 165.66, 0.3, 182.28)
+
+[node name="S113" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -140.78, 0.3, 237.73)
+
+[node name="S114" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -48.21, 0.3, 148.46)
+
+[node name="S115" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 183.13, 0.3, 89.29)
+
+[node name="S116" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 241.67, 0.3, -77.58)
+
+[node name="S117" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -179.86, 0.3, 32.49)
+
+[node name="S118" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -204.52, 0.3, 113.19)
+
+[node name="S119" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -149.64, 0.3, -107.58)
+
+[node name="S120" type="Marker3D" parent="Level/PickupSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -121.52, 0.3, 29.2)
+
+[node name="B7" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -208.84, 0.3, -123.81)
+
+[node name="B8" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 238.35, 0.3, -172.25)
+
+[node name="B9" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 96.7, 0.3, 135.78)
+
+[node name="B10" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 116.52, 0.3, -164.8)
+
+[node name="B11" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 68.17, 0.3, 3.47)
+
+[node name="B12" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -116.96, 0.3, 176.79)
+
+[node name="B13" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -125.31, 0.3, -229.05)
+
+[node name="B14" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46.3, 0.3, 208.58)
+
+[node name="B15" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -253.91, 0.3, -211.46)
+
+[node name="B16" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 146.59, 0.3, 56.2)
+
+[node name="B17" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 222.57, 0.3, -96.38)
+
+[node name="B18" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -149.01, 0.3, -19.56)
+
+[node name="B19" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.71, 0.3, 189.32)
+
+[node name="B20" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -58.14, 0.3, 234.26)
+
+[node name="B21" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75.29, 0.3, 123.34)
+
+[node name="B22" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.15, 0.3, -249.6)
+
+[node name="B23" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 102.34, 0.3, -110.27)
+
+[node name="B24" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 240.14, 0.3, 157.12)
+
+[node name="B25" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -197.91, 0.3, 140.38)
+
+[node name="B26" type="Marker3D" parent="Level/BushSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.09, 0.3, -82.54)
+
+[node name="A6" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -203, 0.3, 62.34)
+
+[node name="A7" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -200.02, 0.3, -196.14)
+
+[node name="A8" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -249.76, 0.3, -116.94)
+
+[node name="A9" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133.37, 0.3, -95.63)
+
+[node name="A10" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82.72, 0.3, -256.02)
+
+[node name="A11" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 246.38, 0.3, 93.87)
+
+[node name="A12" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 189.74, 0.3, 223.87)
+
+[node name="A13" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 212.77, 0.3, -52.89)
+
+[node name="A14" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -252.38, 0.3, -148.23)
+
+[node name="A15" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.19, 0.3, -125)
+
+[node name="A16" type="Marker3D" parent="Level/ArtifactSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -240.21, 0.3, 48.59)

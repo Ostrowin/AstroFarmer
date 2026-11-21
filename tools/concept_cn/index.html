@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Astro Farmer: CN style concepts</title>
+<style>
+  html, body { margin: 0; background: #0b0920; color: #ddd; font: 14px system-ui, sans-serif; }
+  #bar { padding: 8px; display: flex; gap: 8px; align-items: center; }
+  canvas { display: block; width: 100%; max-width: 1600px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div id="bar"><select id="sel"></select><button id="play">play</button><span id="info"></span></div>
+<canvas id="cv" width="1920" height="1080"></canvas>
+<script src="lib.js"></script>
+<script src="chars.js"></script>
+<script src="props.js"></script>
+<script src="scenes.js"></script>
+<script src="scenes2.js"></script>
+<script src="scenes3.js"></script>
+<script>
+  'use strict';
+  function sceneInfo(name) {
+    const s = SCENES[name];
+    return { frames: s.frames || 1, fps: s.fps || 12, scale: s.scale || 1, file: s.file, gifWidth: s.gifWidth, gifColors: s.gifColors, keyFrame: s.keyFrame, previewFrame: s.previewFrame };
+  }
+  function drawScene(ctx, name, frame) {
+    const s = SCENES[name];
+    const fps = s.fps || 12, frames = s.frames || 1;
+    ctx.save();
+    window.BASE_INV = ctx.getTransform().inverse();
+    window.LOOPT = s.loop === false ? 0 : frames / fps;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    setBoil(s.boil ?? 1.1, Math.floor(frame / (s.boilEvery || 2)) * 17 + 3);
+    s.draw(ctx, frame, frame / fps, frames / fps);
+    ctx.restore();
+  }
+  function renderFrame(name, frame, scale) {
+    const c = document.createElement('canvas');
+    c.width = Math.round(W * scale); c.height = Math.round(H * scale);
+    const ctx = c.getContext('2d');
+    ctx.scale(scale, scale);
+    drawScene(ctx, name, frame);
+    return c.toDataURL('image/png');
+  }
+  window.CN_READY = true;
+
+  if (!location.search.includes('render')) {
+    const sel = document.getElementById('sel'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+    for (const k of Object.keys(SCENES)) { const o = document.createElement('option'); o.value = o.textContent = k; sel.appendChild(o); }
+    let playing = false, f = 0, last = 0;
+    const show = () => { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); drawScene(ctx, sel.value, f); document.getElementById('info').textContent = `frame ${f}/${(SCENES[sel.value].frames || 1)}`; };
+    sel.onchange = () => { f = 0; show(); };
+    document.getElementById('play').onclick = () => { playing = !playing; };
+    const loop = (ts) => {
+      const s = SCENES[sel.value];
+      if (playing && ts - last > 1000 / (s.fps || 12)) { last = ts; f = (f + 1) % (s.frames || 1); show(); }
+      requestAnimationFrame(loop);
+    };
+    show(); requestAnimationFrame(loop);
+  }
+</script>
+</body>
+</html>

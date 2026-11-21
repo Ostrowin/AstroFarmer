@@ -36,6 +36,16 @@ func _puff() -> void:
 		if creature and _flat_distance(creature.global_position) <= RADIUS:
 			creature.stun(STUN_SECONDS)
 			stunned += 1
+	for node in get_tree().get_nodes_in_group("forest_creature"):
+		var fc := node as ForestCreature
+		if fc and not fc.dead and _flat_distance(fc.global_position) <= RADIUS:
+			fc.stun(STUN_SECONDS)
+			stunned += 1
+	for node in get_tree().get_nodes_in_group("hammer_cap"):
+		var hammer := node as HammerCap
+		if hammer and _flat_distance(hammer.global_position) <= RADIUS:
+			hammer.stun(STUN_SECONDS)
+			stunned += 1
 	for node in get_tree().get_nodes_in_group("critter"):
 		var critter := node as Critter
 		if critter and _flat_distance(critter.global_position) <= RADIUS:

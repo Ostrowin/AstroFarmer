@@ -40,6 +40,8 @@ var _bark: Buffer
 var _leaves: Buffer
 var _glow: Buffer
 var _leaf_color: Color
+## Poziom szczegółów: 0 pełny, 1 średni, 2 najlżejszy. Ten sam kształt (ta sama losowość), mniej trójkątów.
+var _lod := 0
 
 ## Szablony kul liści (ośmiościan podzielony 0, 1, 2 razy): wierzchołki trójkątów
 ## i numer unikalnego wierzchołka (żeby poszarpanie nie rozrywało ścian). Liczone raz.
@@ -54,7 +56,7 @@ class Buffer:
 
 
 ## Wersja generatora: zmiana kształtu drzew = podbić, żeby stara pamięć podręczna nie wróciła.
-const VERSION := 3
+const VERSION := 5
 const CACHE_DIR := "user://tree_cache"
 
 ## Materiały współdzielone między drzewami (mniej wywołań rysowania).
@@ -62,23 +64,27 @@ static var _materials: Dictionary = {}
 
 
 ## Buduje drzewo gatunku `species` z ziarna `seed`. Zwraca Node3D z siatkami.
-static func build(species: StringName, seed: int) -> Node3D:
+static func build(species: StringName, seed: int, lod := 0) -> Node3D:
 	var gen := TreeGenerator.new()
+	gen._lod = lod
 	return gen._build(species, seed)
 
 
 ## Jak build(), ale z pamięcią podręczną na dysku: to samo ziarno = to samo drzewo,
 ## więc po pierwszym uruchomieniu siatki są tylko wczytywane.
-static func build_cached(species: StringName, seed: int) -> Node3D:
+## Drzewo z pamięci podręcznej na dysku (pierwsze użycie generuje i zapisuje).
+## `near` > 0: pełna siatka do `near`, średnia do `mid`, najlżejsza (obie bez cienia) do `far`;
+## `near` = 0: tylko pełna siatka, zawsze widoczna.
+static func build_cached(species: StringName, seed: int, near := 0.0, far := 0.0, mid := 0.0) -> Node3D:
 	var path := "%s/%s_%d_v%d.res" % [CACHE_DIR, species, seed, VERSION]
+	var meshes: TreeMeshes = null
 	if FileAccess.file_exists(path):
-		var meshes := ResourceLoader.load(path) as Resource
-		if meshes is TreeMeshes:
-			return (meshes as TreeMeshes).instantiate()
-	var tree := build(species, seed)
-	DirAccess.make_dir_recursive_absolute(CACHE_DIR)
-	ResourceSaver.save(TreeMeshes.from_tree(tree), path)
-	return tree
+		meshes = ResourceLoader.load(path) as TreeMeshes
+	if meshes == null:
+		meshes = TreeMeshes.from_tree(build(species, seed), build(species, seed, 1), build(species, seed, 2))
+		DirAccess.make_dir_recursive_absolute(CACHE_DIR)
+		ResourceSaver.save(meshes, path)
+	return meshes.instantiate(near, far, mid)
 
 
 func _build(species: StringName, seed: int) -> Node3D:
@@ -236,6 +242,17 @@ func _tube(points: Array[Vector3], radii: Array[float], tool: Buffer = null, col
 			ring.append(points[i] + (normal * cos(a) + binormal * sin(a)) * radii[i] * bump)
 		rings.append(ring)
 		shades.append(color.darkened(_rng.randf_range(0.0, 0.15)) if bark else color)
+	# Wersja z daleka: co drugi wierzchołek obwodu (losowość zużyta tak samo, kształt ten sam).
+	var step := 2 if _lod > 0 and sides >= 6 else 1
+	if step > 1:
+		var thin: Array = []
+		for ring: Array[Vector3] in rings:
+			var t: Array[Vector3] = []
+			for k in range(0, sides, step):
+				t.append(ring[k])
+			thin.append(t)
+		rings = thin
+		sides = sides / step
 	for i in rings.size() - 1:
 		var r0: Array[Vector3] = rings[i]
 		var r1: Array[Vector3] = rings[i + 1]
@@ -263,6 +280,17 @@ func _blob(tool: Buffer, center: Vector3, size: Vector3, color: Color, detail :=
 	for i in unique:
 		scale[i] = 1.0 + _rng.randf_range(-jitter, jitter)
 	var dark := color.darkened(0.12)
+	if _lod > 0 and detail > 0:
+		# Wersja z daleka: kula o 1 (średni) albo 2 (najlżejszy) poziomy rzadsza; jej wierzchołki
+		# są podzbiorem gęstszej, więc biorą te same przesunięcia (losowość zużyta jak w pełnej).
+		var fine_index: Dictionary = template[3]
+		var coarse: Array = _blob_template(maxi(detail - _lod, 0))
+		corners = coarse[0]
+		var remap := PackedInt32Array()
+		remap.resize(corners.size())
+		for k in corners.size():
+			remap[k] = fine_index[corners[k].snapped(Vector3.ONE * 0.001)]
+		ids = remap
 	for t in range(0, corners.size(), 3):
 		var a := center + corners[t] * scale[ids[t]] * size
 		var b := center + corners[t + 1] * scale[ids[t + 1]] * size
@@ -299,7 +327,7 @@ static func _blob_template(detail: int) -> Array:
 				index[key] = index.size()
 			corners.append(v)
 			ids.append(index[key])
-	var template := [corners, ids, index.size()]
+	var template := [corners, ids, index.size(), index]
 	_blob_templates[detail] = template
 	return template
 

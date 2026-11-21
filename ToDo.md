@@ -13,7 +13,7 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 - [x] Scena **"jedna grządka"**: kapsuła jako postać, kamera za plecami, jedno nasiono, 3 etapy wzrostu, zbiór z efektem i dźwiękiem.
 - [x] Atrapa "drzwi wyprawy": przejście przez nie = +1 cykl = +1 etap wzrostu (test docelowej pętli cykli, bez czekania).
 - [x] Zbiór oddaje 1-2 nasiona, więc można od razu posadzić znowu.
-- [ ] Dać zagrać 1 osobie bez podpowiedzi. Zapisać jedno zdanie: czy sama posadziła drugą roślinę?
+- [x] Dać zagrać 1 osobie bez podpowiedzi (2026-11-20, kuzyn): gra się podoba, ale **za mało rzeczy do zobaczenia**. Odpowiedź: powiększamy obie mapy (baza i łąka) i zapełniamy je.
 
 ---
 
@@ -25,6 +25,8 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
 - [x] Struktura folderów: `scenes/` (+ `levels/`, `ui/`), `scripts/` (+ `autoload/`), `data/plants/`, `data/creatures/`, `art/models/`, `art/textures/`, `audio/music/`, `audio/sfx/`, `tests/`, `docs/`.
 - [x] Fizyka Jolt ustawiona w `project.godot`.
 - [x] Pipeline grafiki (2026-11-12): własne modele w Blenderze (przez Blender MCP) → eksport `.glb` do `art/models/`. Źródła `.blend` w `art/source/` (z `.gdignore`, Godot ich nie importuje). Pierwszy model: gracz (farmer w ogrodniczkach i słomianym kapeluszu, szkielet 20 kości, animacje Idle/Run/Sprint/Dash/Shoot/Jump).
+  - [x] Nowy bieg i sprint (2026-11-15, `tools/blender/player_locomotion.py`): stopy przyklejone do ziemi przy 5 i 8,5 m/s (przetaczanie z pięty na palce), podskok i skręt bioder, przeciwskręt barków, machanie rąk, głowa prosto. Eksport bez przesunięcia o 1 klatkę (pętle bez zacięcia). Porównanie: `art/source/sketches/anim_*.gif`.
+  - [x] Nowe Idle, Jump i Dash (2026-11-15, ten sam skrypt): Idle 4 s (oddech, przenoszenie ciężaru, rozglądanie się), Jump (ręce w górę przy odbiciu, w szczycie na boki, nogi do lądowania; ostatnia klatka trzymana do ziemi), Dash (wypad z rękami w tył, poza gotowa w 2. klatce, bo dash trwa 0,18 s). Stare wersje w pliku jako `*_old`. Zostaje stary Shoot (tylko góra ciała).
   - Rośliny (2026-11-12): 5 gatunków × 3 etapy w `art/source/plants.blend`, eksport do `art/models/plants/<id>.glb`, dojrzałe 1.1-1.45 m. Animacje w kodzie (`plant.gd`): kołysanie z własnym rytmem, pulsujące świecenie, oddychająca paszcza Snappera, falujący kapelusz Boomshrooma, krążące krople Mgielnika. Mutacje przemalowują materiały modelu. Tekstury i materiały można robić w TextureCraft/MaterialCraft (ArtCraft, CLI w `D:\Programy\Craft`).
 - [x] Autoload `GameState`: cykl, odkrycia, zasoby, Równowaga biomów, Uwaga planety, zapis/wczytanie JSON.
 - [x] Mapa klawiszy: WASD ruch, Spacja skok, Shift sprint, E interakcja, LPM narzędzie, Q skan, F9 następny cykl (debug).
@@ -52,9 +54,9 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
     - Każde zdarzenie ma 2-3 kandydatów po kilka wersji; gra losuje wersję i lekko zmienia wysokość. Wybór w `audio/sfx/picks.json`.
     - Nowe: kroki (trawa, grządka, bieg), klik latarki, klik i najechanie na przyciski, tła dnia i nocy dla bazy i łąki (przenikają się z zegarem).
     - Szyny głośności SFX, Ambient, Music.
-    - [ ] **Autor: przesłuchać `tests/sound_board.tscn` i wybrać kandydatów** (Use, potem Save). Moje typy są ustawione na ślepo, po nazwach i analizie plików.
+    - [x] Kandydaci dźwięków (2026-11-20, decyzja autora): gra losuje kandydata (a, b, c) przy każdym odtworzeniu, zamiast grać jednego wybranego. `picks.json` wybiera już tylko pętle tła.
     - [x] Suwaki głośności (SFX / tło / muzyka) w menu głównym (Settings) i w menu pauzy pod Esc, zapis w `user://settings.cfg` (2026-11-15). Tam też przełącznik pełnego ekranu (F11 / Alt+Enter).
-    - [ ] Wiatr jako osobna warstwa tła (brak dobrego nagrania CC0).
+    - [ ] Wiatr jako osobna warstwa tła: **autor dostarczy nagranie** (ambient z YouTube); wtedy pętla 20-40 s bez szwu pod `amb_*`.
     - [x] Muzyka menu: **„Star Rodeo”** (epicka orkiestra + country, ok. 80 s), skomponowana w SoundCraft na próbkach VSCO 2 CE (`tools/audio/star_rodeo.py`, sesja do edycji: `D:/Audio/Sessions/StarRodeo/star_rodeo.scraft`). W grze muzyka cichnie.
     - [x] Muzyka bossa na później: **„Boss Rodeo”** (electro + country, e-moll, 132 BPM, ok. 95 s): przesterowany galopujący bas, stopa na ćwierćnuty, fiddle i lead grają hoedown, w breaku „train beat” i harfa jako banjo, okrzyki robo-kowboja „yee-haw” (synteza formantowa, `tools/audio/fx_synth.py`). Skrypt: `tools/audio/boss_rodeo.py`, sesja: `D:/Audio/Sessions/BossRodeo/boss_rodeo.scraft`. Plik: `audio/music/boss_rodeo.ogg` (jeszcze nigdzie niepodpięty).
     - [x] Druga muzyka bossa: **„Rodeo Rave”** (agresywny hard rave + country, f-moll, 150 BPM, ok. 82 s; własny utwór w klimacie Little Big, nie kopia): przesterowana stopa hardstyle strojona pod akordy, przesterowany bas na offbeatach (w drugim dropie „rolling”), piszczący lead, fiddle i banjo w hoedownie, chór HEY!/HA!/HOO! strojony do f-moll, YEE-HAW przed dropami, nagły koniec. Skrypt: `tools/audio/rodeo_rave.py` (wspólne składanie: `tools/audio/sc_song.py`), sesja: `D:/Audio/Sessions/RodeoRave/rodeo_rave.scraft`. Plik: `audio/music/rodeo_rave.ogg`.
@@ -62,10 +64,10 @@ Kody w nawiasach (np. `K1`, `N2`) odnoszą się do pomysłów w [Pomysly_rozszer
     - [x] **„Hoedown Circuit”** (wyraźny elektroniczny beat + czyste country z dużą ilością banjo, E-dur, 144 BPM, ok. 93 s; inspiracja: tempo i charakter „Country Boy” Alana Jacksona, bez melodii). Krótka stopa z przerwami, klaśnięcie z werblem na 2 i 4, country „boom-chick” (kontrabas pizzicato + sub), w refrenie bas na offbeatach, banjo z modelu fizycznego (Karplus-Strong, `fx_synth.banjo_note`) w rollach Scruggsa, ostatni refren o cały ton wyżej. Wyrazistość pulsu zmierzona: akcenty na beatach +5..7 dB ponad resztę (w „Stampede” ok. +1,6). Skrypt: `tools/audio/hoedown_circuit.py`, sesja: `D:/Audio/Sessions/HoedownCircuit/hoedown_circuit.scraft`.
     - [x] **Muzyka bazy „Homestead”** (spokojna, akustyczna, bez elektroniki i perkusji; G-dur, 66 BPM, pętla 32 takty ok. 116 s bez szwu): łagodne banjo z modelu fizycznego gra palcami, cicha wiolonczela, miękkie smyczki, skrzypce z wolną melodią, harfa. Gra w bazie cicho (-12 dB) pod tłem natury; na wyprawie cichnie. Skrypt: `tools/audio/homestead.py`.
     - [x] **„Heavy Pulse”** (prawie sam rytm, 60 BPM, f-moll, ok. 100 s): krótka stopa + głęboki bas 808 (F1 ok. 44 Hz, z saturacją; nuty skrócone, żeby bas pulsował z rytmem), klaśnięcie z werblem na 2 i 4, trapowe hi-haty z przebiegami 32-kami i triolami, perkusja VSCO (wielki bęben, kongi, tumba, klawesy, kłody, kowadło), melodii prawie brak (ciemny akord-tło). Skrypt: `tools/audio/heavy_pulse.py`. Jeszcze nigdzie niepodpięty (np. rajd, napięcie, boss).
-    - [ ] Podmiana okrzyku: nagrać własne „iiihaaa” i wstawić jako `D:/Audio/Sessions/BossRodeo/fx/yeehaw.wav` (plus `_low`, `_short`), potem `python tools/audio/boss_rodeo.py`.
+    - [ ] Podmiana okrzyku (**przypominać autorowi co jakiś czas**): nagrać własne „iiihaaa” i wstawić jako `D:/Audio/Sessions/BossRodeo/fx/yeehaw.wav` (plus `_low`, `_short`), potem `python tools/audio/boss_rodeo.py`.
     - [ ] Autor: przesłuchać „Star Rodeo” i powiedzieć, co zmienić (tempo, instrumenty, długość, czy grać też w bazie).
     - [ ] Eksport gry: dodać `audio/sfx/*.json` do filtra plików nie-zasobów w ustawieniach eksportu (inaczej wybór dźwięków nie trafi do builda).
-- [ ] **Playtest M1:** dać zagrać 1 osobie i sprawdzić test etapu (wpis do `docs/playtest-m1.md`).
+- [x] **Playtest M1** (2026-11-20, kuzyn): podoba się, za mało rzeczy do zobaczenia (patrz „Teraz”).
 
 ## M2. Mini-wyprawa: czy decyzja o ewakuacji daje napięcie?
 
@@ -232,6 +234,41 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
 **Test etapu:** tester sam zauważa ślady tajemnicy i bez podpowiedzi szuka kolejnych.
 
 - [ ] Nowa scena biomu z własnym nastrojem, florą i fauną.
+  - [x] Szkic etapu 1 (2026-11-20, zaakceptowany wstępnie): [docs/Grzybowy_Las_szkic.md](docs/Grzybowy_Las_szkic.md), rendery `art/source/sketches/mushroom_*.png` + GIF pulsu grzybni. Olbrzymie Towercapy (półmrok), Bellcapy, nowe Shelfcapy na klifach (świecący spód, wspinaczka), Glowcapy, pulsująca grzybnia. Autor: nitki grzybni mają być **jeszcze cieńsze**.
+  - [x] **Las testowy w grze** (2026-11-20): na ekranie wyprawy wybór „Mushroom Forest (test)” (`scenes/levels/expedition_mushroom.tscn`, `scripts/expedition/mushroom_expedition.gd`).
+    - Teren losowany przy każdej wyprawie (`scripts/fx/forest_terrain.gd`, shader `art/materials/forest_floor.gdshader`): pagórki i grzbiety, miejscami tarasy z uskokami, 7 dołów ze stromymi ścianami i jedną rampą, kręty kanion przez całą mapę (strome ściany ok. 13 m, wejścia rampami na końcach), płaskie lądowisko. Kolizja `HeightMapShape3D`, ładowanie poniżej 1 s.
+    - Grzyby z brył wg szkicu (`scripts/fx/forest_mushrooms.gd`, MultiMesh): 110 Towercapów, 110 Bellcapów, kępki Glowcapów; trzony z kolizją. Półmrok: `DayNight.canopy` (słabsze słońce i światło otoczenia, fioletowa mgła).
+    - **Hammer Cap** w kanionie (`scripts/expedition/hammer_cap.gd`, bryły zamiast modelu): w rytmie podnosi kapelusz (spód świeci na bursztynowo) i uderza; fala trafia tylko gracza na ziemi (skok ją przeskakuje), pod kapeluszem boli mocniej. Pistolet przerywa zamach, Boomshroom ogłusza. Nie da się go zabić. Ulepszenie leży w środku kanionu.
+    - Test: `tests/test_forest.tscn` (24 sprawdzenia).
+    - [x] **Modele otoczenia i nowy Hammer Cap** (2026-11-20, uwagi autora: "mapa pusta", zdjęcia świecących grzybów, "zapomnij o low poly", "niech się wszystko porusza"):
+      - Blender: `tools/blender/forest_props.py` → `art/models/forest/*.glb`, źródło `art/source/forest_props.blend`, arkusz `art/source/sketches/forest_props_*.png`. 15 modeli: świecące zielone wachlarze (ścienne x2, naziemne), kędzierzawa rozeta, boczniaki z pomarańczowo świecącymi blaszkami, czernidłaki x2 (ciemne, świecący fioletowy brzeg), grzyb koralowy (świecące końcówki), paprocie x2 (z pastorałami), krzew z bulwami, głazy z mchem x2, kłoda z grzybami, martwy pień z piętrami boczniaków.
+      - Godot: wspólny shader `art/materials/forest_prop.gdshader` (kolor z wierzchołków, blaszki i świecenie z UV, **ruch**: kołysanie, falowanie brzegów, pulsowanie, każdy egzemplarz w swoim rytmie), loader `scripts/fx/forest_props.gd`, rozsiew `scripts/fx/forest_details.gd` (ok. 2300 sztuk: ziemia, ściany kanionu i dołów, trzony olbrzymów; MultiMesh w kawałkach 48 m, znikają za 110 m; kłody, pnie i duże głazy z kolizją). Olbrzymy: brzegi kapeluszy falują, blaszki pulsują, Glowcapy migoczą.
+      - **Hammer Cap** od nowa: korzeń wrośnięty w ścianę kanionu, trzon wychodzi ze ściany i zagina się w górę; atak: odchyla się (bursztynowe ostrzeżenie) i uderza kapeluszem w dno kanionu, fala od miejsca uderzenia.
+      - Wydajność: ok. 60 kl./s (z synchronizacją), las ładuje się ok. 1 s.
+    - [ ] Wpis Hammer Capa w bazie danych.
+  - [ ] **Etap 1 do końca** (plan: [docs/Grzybowy_Las_etap1.md](docs/Grzybowy_Las_etap1.md), szkice `art/source/sketches/stage1_*.png` z `tools/blender/stage1_sketch.py`, czekają na akceptację): reżyser przeciwników poza polem widzenia (jak Risk of Rain 2) z kokonami z grzybni, Sporebat, Spore Tick, Rotling, Rot Thornback, grzybnia, zarodniki, Shelfcapy, jaskinie, wioska Sporekinów z handlem, halucynacje, Słoneczna Polana z Rot Shepherdem (Lantern Moth, Glade Bloom), arena i The Puffking (Cluster Shroom), Spore Mask, Mushroom Log, Mycelium Fiber, Fungicide, Spore Pod na łące jako wejście do lasu.
+    - [x] **Krok 1: reżyser + kokony + Sporebat + Rotling** (2026-11-20, szkice zaakceptowane):
+      - `scripts/expedition/spawn_director.gd`: punkty 0,6/s × (1 + Przebudzenie/50), x2 w burzy; grupy kupowane za punkty (Sporebat 4/szt., 3–5; Rotling 6/szt., 2–4); spawn 25–45 m od gracza, **poza kamerą** (stożek widzenia + promień na zasłonięcie); max 12 naraz; dalej niż 90 m wracają do grzybni (połowa punktów wraca); pierwsze 20 s bez spawnu; bezpieczne strefy (`add_safe_zone`, na wioskę i Polanę); zabicie +2 Przebudzenia.
+      - `spore_cocoon.gd`: kokon z grzybni wyrasta, drży, po 1,5 s pęka (dźwięk z kierunku).
+      - `forest_creature.gd` (baza: trafienia, ogłuszenie Boomshroomem, Snapper, śmierć → **Mycelium Fiber**), `sporebat.gd` (krąży, zapowiada nurkowanie piskiem i rozbłyskiem blaszek, nurkuje 8 obrażeń, ginie od 1 strzału, ogłuszony spada), `rotling.gd` (zarażony Muncher z naroślami, biegnie 4,2 m/s, gryzie 10, 3 strzały, przy śmierci chmura zarodników).
+      - Modele: `tools/blender/forest_creatures.py` → `art/models/forest/sporebat.glb` (skrzydła machają w kodzie), `cocoon.glb`, `rot_growths.glb`, `mycelium_fiber.glb`.
+      - Test: `tests/test_forest.tscn` +12 sprawdzeń (spawn poza kamerą, kokon, ugryzienie, nurkowanie, drop, Przebudzenie, powrót do grzybni, zakup grupy).
+      - Do zrobienia przy kroku 7: wpisy w bazie danych (Sporebat, Rotling, Mycelium Fiber), zastosowanie Mycelium Fiber w warsztacie (Spore Mask w kroku 4).
+    - [x] **Krok 2: świat** (2026-11-21):
+      - Teren (`forest_terrain.gd`): losuje też arenę bossa (płaska niecka ≥ 100 m od lądowiska), 3 jaskinie (pierwsza = Grota Zarodników) z równą podłogą i 14 serc grzybni; nic nie rośnie w jaskiniach, na arenie ani przy wejściach.
+      - **Grzybnia** w shaderze ziemi (`art/materials/mycelium.gdshaderinc`, szum liczony w shaderze): cieniutkie nitki o stałej grubości w pikselach, w plamach i gęsto przy sercach; z serc co jakiś czas rozchodzi się fala światła; przy arenie nitki grubieją w sznury (droga do bossa). Nitki mogą być jeszcze cieńsze (`width_m` w `mycelium_threads`).
+      - **Zarodniki pod kapeluszami** (`forest_spores.gd`): drobne cząsteczki pod 14 najbliższymi olbrzymami, każda z innym czasem życia, gasną w miarę opadania.
+      - **Shelfcapy** (`forest_shelves.gd`, model `shelfcap.glb`): schody z półek (co 1,15 m) na ścianach kanionu i 3 dołów, z kolizją.
+      - **Jaskinie** (`forest_caves.gd`, shader `cave_wall.gdshader`): kopiec z grubą ścianą i łukowym wejściem; w środku ciemno, na ścianach plamy cieniutkiej, pulsującej grzybni, świecące grzybki, kępy grzybów, drobne zarodniki; znajdźki w głębi. **Grota Zarodników**: fioletowa, gęsta grzybnia i zarodniki, strefa `spore_fog` (halucynacje w kroku 3), najlepsze znajdźki (2x Glowmoss, Starfall Shard).
+      - Test: +12 sprawdzeń w `tests/test_forest.tscn`. Zrzuty: `art/source/sketches/forest_ingame_9..14_*.png`.
+    - [x] **Krok 3: Spore Tick, Rot Thornback, halucynacje** (2026-11-21):
+      - `spore_tick.gd` (model `spore_tick.glb`): chodzi też po stromych ścianach, z 6 m skacze na gracza (6 obrażeń + dawka zarodników), 2 strzały, przy śmierci fioletowy puff.
+      - `rot_thornback.gd`: zarażony Thornback z naroślami; z 4–14 m grzebie łapą (0,8 s) i szarżuje prosto (18 obrażeń + odrzut), potem dyszy; 7 strzałów, przy śmierci chmura zarodników, 2x Mycelium Fiber.
+      - Reżyser: nowe grupy Spore Tick (5/szt., 1–3) i Rot Thornback (14).
+      - `hallucination.gd`: ukryty licznik (mgła Groty Zarodników ok. 0,11/s, trafienie Ticka +0,25, opada 0,06/s poza mgłą; Spore Mask = ulepszenie `spore_mask` chroni). Od 0,3 obraz faluje i kolory płyną (nakładka na ekran), od 0,6 do 4 fałszywych znajdziek (fioletowe, migoczą, bez cienia, przy podniesieniu „Not real”), przy pełnym do 3 fantomów (Rotling, Tick, Rot Thornback; nie ranią, rozwiewają się po strzale). `stage` przygotowany na kolejne etapy.
+      - Grzybnia jeszcze cieńsza (poniżej piksela nitka słabnie zamiast grubieć). Przed wejściem do jaskiń płaski podjazd.
+      - Test: +18 sprawdzeń w `tests/test_forest.tscn`. Zrzuty: `forest_ingame_15..18_*.png`.
+    - [ ] Jaskinie (osobne bryły, mapa wysokości ich nie zrobi), półki Shelfcap na ścianach kanionu, grzybnia shaderem na ziemi, zarodniki pod kapeluszami.
 - [ ] Zarodniki jako warunek środowiskowy (widoczność, wzrost).
 - [ ] Grzybnia widoczna na powierzchni, pulsuje przy niskiej Równowadze (`T2`), a przy bardzo niskiej otwiera "oczka", które śledzą gracza (`W5`).
 - [ ] **Plaga grzybowa w bazie:** pojawia się dopiero po pierwszej wizycie w lesie ("przywozisz zarodniki na butach"), zaraża uprawy.
@@ -267,6 +304,12 @@ Każdy krok kończy się renderem do akceptacji. Potem grafika robiona na bież�
     - Łąka: obszar gry z ±45 m do ±64 m, grzbiet 92 m. Więcej znajdziek (15 dziennych, 7 nocnych, 26 miejsc), 6 krzewów, 5 miejsc na artefakt, więcej skał, drzew i trawy.
     - Baza: ściany z ±40 m na ±46 m, grzbiet 70 m.
     - Na zboczach rosną generowane drzewa (`TreeScatter` z `terrain` i `ring_inner`), kryształowe góry odsunięte na wzgórza i powiększone.
+- [x] **Mapy 20x większe** (2026-11-20, po playteście: "za mało rzeczy do zobaczenia"): powierzchnia ok. 20x, bok ok. 4,5x.
+    - Baza: ściany ±205 m (było ±46), płaski środek 192 m, grzbiet 250 m. Rdzeń farmy (grządki, chatka, brama, staw, warsztat, kapsuła) bez zmian, więc zapisy działają. 6 nowych stawów (woda do konewki), góry odsunięte na ok. 300 m i powiększone, 8 nowych.
+    - Łąka: ściany ±285 m (było ±64), płaski środek 272 m. Dawny układ rozciągnięty 2x (lądowisko na z=68, legowisko Thornbacka na z=-62, źródło z poziomu 2 na (-54, 0)); 120 miejsc na znajdźki (60 dziennych + 28 nocnych na wyprawę), 26 dzikich krzewów, 16 miejsc na artefakt, 41 dodatkowych stadek stworzeń po całej łące (`WILD_HERDS` w `expedition.gd`). Przebudzenie rośnie wolniej (0,25/s zamiast 0,35), do strojenia w playteście.
+    - Treść: gaje i polany z szumu (`clustering` w `TreeScatter`), nowy `PropScatter` (skały, grzyby-drzewa, latarniowce, stożki w grupach), więcej trawy, mchu i świetlików.
+    - Wydajność (60 kl./s jak przed powiększeniem): drzewa w 3 poziomach szczegółów z tego samego ziarna (`TreeGenerator` lod 0/1/2, pełne do 25 m, średnie do 55 m, najlżejsze do 120 m; dalej mgła), bez płynnego przenikania (dithering kosztował ok. 5 ms), ograniczona liczba wariantów drzew (`variants`), trawa w kawałkach 32 m rysowanych do 75 m, świetliki i zarodniki wokół gracza (`particles_around_player`), cienie słońca do 70 m, teren z indeksami i jednym kwadratem w płaskim środku, `ScatterGrid` do sprawdzania odstępów. Ładowanie 5-8 s (przy pierwszym uruchomieniu ok. 14 s, bo generuje drzewa do pamięci podręcznej).
+    - [x] **Droga do lądowiska na dużej łące** (2026-11-20, wariant B ze szkicu `art/source/sketches/beacon_B_*.png`): słup światła nad latarnią (`scripts/fx/evac_beam.gd`, widać ponad drzewami i przez mgłę, w dzień ciemniejszy turkus) + znacznik na HUD (`scripts/ui/beacon_marker.gd`): romb nad latarnią z odległością, poza ekranem strzałka przy krawędzi (za plecami z boku, omija paski i pasek narzędzi), bliżej niż 12 m znika.
 - [x] **Maszyny farmy** (pomysł autora, 2026-11-13; szkic zaakceptowany i prototyp zrobiony 2026-11-15):
   - Szkic: `art/source/sketches/machines_1..6_*.png` (źródło `art/source/machines.blend`). Modele do gry buduje `tools/blender/machines_models.py` → `art/models/machines/*.glb` + ikona `art/ui/icons/drone_dock.png`.
   - **Dron nawadniający** (`scripts/farm/watering_drone.gd`, dok `drone_dock.gd`): warsztat „Watering Drone” (3 kryształy) daje dok; slot 9 na pasku stawia go na polu siatki, E zabiera. Dron podlewa spragnione rośliny w promieniu 14 m od doku (zbiornik 6 podlań, nie rusza konewki), z pustym leci do stawu, bez pracy wraca na dok. Nasiona-zagadki (Misty Water) zostawia graczowi. Dok w zapisie jako budowla `drone_dock`.

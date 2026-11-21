@@ -17,6 +17,8 @@ var buff: Dictionary = {}
 var dropped := false
 ## Widoczne i do podniesienia tylko nocą (nocne znajdźki).
 var night_only := false
+## Fałszywa znajdźka z halucynacji: znika przy podniesieniu.
+var phantom := false
 
 ## Modele z Blendera. Brak modelu = bryły z kodu.
 const MODELS := {
@@ -30,6 +32,7 @@ const ITEM_MODELS := {
 }
 const SAMPLE_MODELS := {
 	&"glow_spores": preload("res://art/models/pickups/glowcap.glb"),
+	&"mycelium_fiber": preload("res://art/models/forest/mycelium_fiber.glb"),
 	&"starfall_shard": preload("res://art/models/pickups/starfall.glb"),
 	&"sample_glowmoss": preload("res://art/models/pickups/glowmoss.glb"),
 	&"pollen": preload("res://art/models/pickups/pollen.glb"),
@@ -56,6 +59,7 @@ func setup(entry: Dictionary) -> void:
 	buff = entry.get("buff", {})
 	dropped = entry.get("dropped", false)
 	night_only = entry.get("night_only", false)
+	phantom = entry.get("phantom", false)
 
 
 ## Opis znajdźki dla dowolnego przedmiotu z plecaka (np. wyrzuconego).
@@ -92,6 +96,8 @@ static func entry_for(id: StringName, amount := 1) -> Dictionary:
 			entry.merge({"color": Color(0.45, 0.85, 1.0), "scan": &"lumimoth", "scan_name": "Lumimoth"}, true)
 		&"moon_petal":
 			entry["color"] = Color(0.82, 0.72, 1.0)
+		&"mycelium_fiber":
+			entry["color"] = Color(0.6, 0.95, 1.0)
 	return entry
 
 

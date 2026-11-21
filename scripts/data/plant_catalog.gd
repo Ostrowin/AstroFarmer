@@ -33,6 +33,7 @@ const OTHER_ITEMS := {
 	&"glow_spores": "Glow Spores",
 	&"starfall_shard": "Starfall Shard",
 	&"lumen_dust": "Lumen Dust",
+	&"mycelium_fiber": "Mycelium Fiber",
 }
 
 

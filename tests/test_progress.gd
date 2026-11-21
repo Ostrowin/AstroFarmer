@@ -7,6 +7,7 @@ extends Node
 const TEST_SAVE := "user://test_progress_save.json"
 const EXPEDITION := preload("res://scenes/levels/expedition_meadow.tscn")
 
+const EXPEDITION_SCRIPT := preload("res://scripts/expedition/expedition.gd")
 var _failures := 0
 
 
@@ -168,7 +169,15 @@ func _test_expedition_life() -> void:
 	var critters := level.get_children().filter(func(n: Node) -> bool: return n is Critter)
 	var bugs := critters.filter(func(c: Critter) -> bool: return c.kind == Critter.Kind.POLLENBUG)
 	var chrupiki := critters.filter(func(c: Critter) -> bool: return c.kind == Critter.Kind.CHRUPIK)
-	_check(bugs.size() == 3 and chrupiki.size() == 3, "na łące: 3 Pyłkowce i stadko 3 Chrupików")
+	var want := {Critter.Kind.POLLENBUG: 0, Critter.Kind.CHRUPIK: 0}
+	for group: Array in EXPEDITION_SCRIPT.CRITTERS:
+		if want.has(group[0]):
+			want[group[0]] += int(group[2])
+	for herd: Array in EXPEDITION_SCRIPT.WILD_HERDS:
+		if want.has(herd[0]):
+			want[herd[0]] += int(herd[1]) * int(herd[2])
+	_check(bugs.size() == want[Critter.Kind.POLLENBUG] and chrupiki.size() == want[Critter.Kind.CHRUPIK],
+		"na łące: %d Pyłkowców i %d Chrupików w stadkach" % [bugs.size(), chrupiki.size()])
 	_check(level.get_children().filter(func(n: Node) -> bool: return n is MistySpring).is_empty(), "poziom 1: bez Mglistego źródła")
 	var player := expedition.get_node("Player") as Player
 	_check(is_equal_approx(player.max_health, 125.0), "Sałatka: +25 maks. Kondycji")

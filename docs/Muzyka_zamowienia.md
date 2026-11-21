@@ -15,6 +15,15 @@ Format pozycji: **nazwa** (dla jakiej funkcji gry), nastrój i styl, długość 
 - [ ] **Śpiewające rośliny** (pomysł autora, „Dalej”): Humming Corn (kukurydza nuci przy wietrze albo gdy gracz podejdzie: krótkie, nucone frazy, kilka wysokości, żeby rośliny obok siebie składały się w melodię) i Chór drzew (pieśni w klimacie rdzennych Amerykanów, nocą przy wysokiej Równowadze). Na razie tylko pomysł: zrobić, gdy funkcja wejdzie do planu.
 - [ ] **Dron nawadniający** (maszyny farmy, w grze od 2026-11-15; dziś podlewa dźwiękiem `water`, tankuje `fill`, lata bezgłośnie): cichy szum silniczka w pętli (3D, w świecie) i krótki dźwięk podlewania. Efekty.
 
+### Grzybowy Las, etap 1 (dopisane 2026-11-20, plan: `docs/Grzybowy_Las_etap1.md`)
+
+- [ ] **Tło lasu, dzień i noc** (`amb_forest_day`, `amb_forest_night`): wilgotna cisza, kapanie, skrzypienie olbrzymich grzybów jak stare statki, daleki szum; nocą rzadsze, głębsze. Pętle 30–60 s bez szwu. Podpięcie: `Sfx.set_ambience(&"forest")` w `mushroom_expedition.gd` (dziś gra tło łąki).
+- [ ] **Muzyka lasu** (wyprawa): tajemnicza, „mokra”, dużo pogłosu (marimba/kalimba, smyczki flażoletami, niskie dęte), dwie warstwy jak na łące: spokojna i napięta (Przebudzenie ≥ 50, reżyser częściej wypuszcza stworzenia). Pętla 2–3 min.
+- [ ] **Wioska Sporekinów**: ciepła, mała, „ludowa” (fujarki, drewniane perkusjonalia, nucenie), pętla 60–90 s, gra tylko w strefie wioski.
+- [ ] **Rot Shepherd** (mini-boss na Słonecznej Polanie): pasterska melodia na fujarce, która psuje się (rozstrojenie, zgnilizna), z rytmem; ok. 90 s pętla.
+- [ ] **The Puffking** (boss): sprawdzić „Boss Rodeo” / „Rodeo Rave” / „Stampede”; jeśli żaden nie pasuje, osobny utwór: ciężki, „gumowy” bas, sapanie purchawki w rytmie, faza 2 szybsza.
+- [ ] Efekty: pękający kokon z grzybni (mokre rozdarcie + szelest nitek, słyszalny z kierunku), pisk i trzepot sporonietoperzy, chrobot Spore Ticka po skale, puff purchawki (chmura zarodników), uderzenie Hammer Capa (dziś zastępczo `boom`), oddech/pomruk Rot Shepherda, „mowa” Sporekinów (krótkie, miękkie, pytające dźwięki-emocje).
+
 ## Drobne poprawki w istniejących
 
 - [ ] „Star Rodeo”: sprawdzić werbel VSCO (ma ton A#, w „Hoedown Circuit” przestrojony o +1).

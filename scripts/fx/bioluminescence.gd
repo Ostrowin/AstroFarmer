@@ -83,6 +83,15 @@ const MUSHROOM_LIGHT := 2.5
 @export var inner_radius := 0.0
 ## Strefy bez trawy i mchu: Vector3(x, z, promień).
 @export var keep_clear: Array[Vector3] = []
+## Trawa rysowana tylko do tej odległości od kamery (0 = cała mapa); dzielona na kawałki.
+@export var grass_distance := 0.0
+## Świetliki i zarodniki unoszą się w kwadracie wokół gracza zamiast nad całą mapą
+## (duże mapy: ta sama gęstość przy małej liczbie cząsteczek). 0 = nad całą mapą.
+@export var particles_around_player := 0.0
+## Światła pod grzybami gasną dalej niż ta odległość (0 = zawsze).
+@export var light_distance := 0.0
+
+const GRASS_CHUNK := 32.0
 
 var night := 0.0
 var _grass_mat: ShaderMaterial
@@ -103,8 +112,9 @@ func _ready() -> void:
 	_collect_blockers()
 	_build_grass()
 	_build_moss()
-	_particles.append(_make_particles(Color(0.85, 1.0, 0.35), fireflies, Vector3(half_extents.x, 2.0, half_extents.y), 1.2, 0.06, 6.0, Vector3.ZERO))
-	_particles.append(_make_particles(Color(0.4, 0.75, 1.0), spores, Vector3(half_extents.x, 0.5, half_extents.y), 0.4, 0.04, 10.0, Vector3(0, 0.25, 0)))
+	var area := half_extents if particles_around_player <= 0.0 else Vector2.ONE * particles_around_player
+	_particles.append(_make_particles(Color(0.85, 1.0, 0.35), fireflies, Vector3(area.x, 2.0, area.y), 1.2, 0.06, 6.0, Vector3.ZERO))
+	_particles.append(_make_particles(Color(0.4, 0.75, 1.0), spores, Vector3(area.x, 0.5, area.y), 0.4, 0.04, 10.0, Vector3(0, 0.25, 0)))
 	_light_mushrooms()
 	_build_step_pool()
 	_apply(GameState.night_amount(GameState.time_of_day))
@@ -115,6 +125,28 @@ func _process(delta: float) -> void:
 	if absf(n - night) > 0.001:
 		_apply(n)
 	_update_steps(delta)
+	if particles_around_player > 0.0 and night > 0.05:
+		var target := _follow_target()
+		if target:
+			for p in _particles:
+				p.global_position = Vector3(target.global_position.x, global_position.y, target.global_position.z)
+
+
+## Kamera (albo gracz), wokół której unoszą się świetliki.
+## Ile źdźbeł trawy ma poziom (wszystkie kawałki razem).
+func blade_count() -> int:
+	var total := 0
+	for child in get_children():
+		if child is MultiMeshInstance3D and child.name.begins_with("Grass"):
+			total += (child as MultiMeshInstance3D).multimesh.instance_count
+	return total
+
+
+func _follow_target() -> Node3D:
+	var camera := get_viewport().get_camera_3d()
+	if camera:
+		return camera
+	return get_tree().get_first_node_in_group("player") as Node3D
 
 
 func _apply(n: float) -> void:
@@ -146,20 +178,39 @@ func _build_grass() -> void:
 		var p := Vector3(_rng.randf_range(-half_extents.x, half_extents.x), 0, _rng.randf_range(-half_extents.y, half_extents.y))
 		if _free(p):
 			clumps.append(p)
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = blade
-	mm.instance_count = blades if not clumps.is_empty() else 0
-	for i in mm.instance_count:
+	if clumps.is_empty():
+		return
+	# Źdźbła pogrupowane w kawałki mapy: każdy kawałek to osobny MultiMesh, więc
+	# silnik pomija te poza kamerą albo dalej niż grass_distance.
+	var chunks := {}
+	for i in blades:
 		var c: Vector3 = clumps[i % clumps.size()]
 		var p := c + Vector3(_rng.randf_range(-0.9, 0.9), 0, _rng.randf_range(-0.9, 0.9))
 		var s := _rng.randf_range(0.6, 1.4)
-		mm.set_instance_transform(i, Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(0.8, 1.6), s)), p))
-	var grass := MultiMeshInstance3D.new()
-	grass.name = "Grass"
-	grass.multimesh = mm
-	grass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(grass)
+		var t := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(0.8, 1.6), s)), p)
+		var key := Vector2i(floori(p.x / GRASS_CHUNK), floori(p.z / GRASS_CHUNK)) if grass_distance > 0.0 else Vector2i.ZERO
+		if not chunks.has(key):
+			chunks[key] = []
+		(chunks[key] as Array).append(t)
+	for key: Vector2i in chunks:
+		var list: Array = chunks[key]
+		var origin := Vector3((key.x + 0.5) * GRASS_CHUNK, 0, (key.y + 0.5) * GRASS_CHUNK) if grass_distance > 0.0 else Vector3.ZERO
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = blade
+		mm.instance_count = list.size()
+		for i in list.size():
+			var t: Transform3D = list[i]
+			t.origin -= origin
+			mm.set_instance_transform(i, t)
+		var grass := MultiMeshInstance3D.new()
+		grass.name = "Grass_%d_%d" % [key.x, key.y]
+		grass.multimesh = mm
+		grass.position = origin
+		grass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if grass_distance > 0.0:
+			grass.visibility_range_end = grass_distance
+		add_child(grass)
 
 
 func _blade_mesh() -> ArrayMesh:
@@ -264,6 +315,10 @@ func _light_mushrooms() -> void:
 		light.light_color = Color(0.25, 0.6, 1.0)
 		light.omni_range = 6.0
 		light.position = Vector3(0, 2.8, 0)
+		if light_distance > 0.0:
+			light.distance_fade_enabled = true
+			light.distance_fade_begin = light_distance
+			light.distance_fade_length = light_distance * 0.25
 		node.add_child(light)
 		_mushroom_lights.append(light)
 		var disc := CylinderMesh.new()

@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/expedition/mushroom_expedition.gd" id="1_expedition"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_expedition.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/ui/expedition_hud.gd" id="3_hud"]
+[ext_resource type="PackedScene" path="res://art/models/buildings/evac_beacon_painted.glb" id="4_evac"]
+[ext_resource type="Script" path="res://scripts/fx/forest_terrain.gd" id="5_terrain"]
+[ext_resource type="Script" path="res://scripts/fx/forest_mushrooms.gd" id="6_mushrooms"]
+[ext_resource type="Script" path="res://scripts/fx/forest_details.gd" id="7_details"]
+[ext_resource type="Script" path="res://scripts/fx/forest_caves.gd" id="8_caves"]
+[ext_resource type="Script" path="res://scripts/fx/forest_spores.gd" id="9_spores"]
+[ext_resource type="Script" path="res://scripts/fx/forest_shelves.gd" id="10_shelves"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_forest"]
+sky_top_color = Color(0.09, 0.07, 0.17, 1)
+sky_horizon_color = Color(0.2, 0.15, 0.28, 1)
+ground_bottom_color = Color(0.08, 0.06, 0.12, 1)
+ground_horizon_color = Color(0.2, 0.15, 0.28, 1)
+
+[sub_resource type="Sky" id="Sky_forest"]
+sky_material = SubResource("SkyMaterial_forest")
+
+[sub_resource type="Environment" id="Environment_forest"]
+background_mode = 2
+sky = SubResource("Sky_forest")
+ambient_light_source = 3
+ambient_light_energy = 0.6
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.0
+fog_enabled = true
+fog_light_color = Color(0.3, 0.22, 0.45, 1)
+fog_density = 0.012
+
+[sub_resource type="CylinderShape3D" id="Shape_pad"]
+height = 0.2
+radius = 3.3
+
+[sub_resource type="BoxShape3D" id="Shape_beacon"]
+size = Vector3(0.4, 3, 0.4)
+
+[node name="Expedition" type="Node3D"]
+script = ExtResource("1_expedition")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_forest")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8192, -0.4699, 0.329, 0, 0.5736, 0.8192, -0.5736, -0.6711, 0.4699, 0, 10, 0)
+light_color = Color(0.85, 0.82, 1, 1)
+light_energy = 0.9
+shadow_enabled = true
+directional_shadow_max_distance = 70.0
+
+[node name="Level" type="Node3D" parent="."]
+
+[node name="Terrain" type="Node3D" parent="Level"]
+script = ExtResource("5_terrain")
+
+[node name="Mushrooms" type="Node3D" parent="Level"]
+script = ExtResource("6_mushrooms")
+terrain_path = NodePath("../Terrain")
+
+[node name="Details" type="Node3D" parent="Level"]
+script = ExtResource("7_details")
+terrain_path = NodePath("../Terrain")
+mushrooms_path = NodePath("../Mushrooms")
+
+[node name="Caves" type="Node3D" parent="Level"]
+script = ExtResource("8_caves")
+terrain_path = NodePath("../Terrain")
+
+[node name="Spores" type="Node3D" parent="Level"]
+script = ExtResource("9_spores")
+mushrooms_path = NodePath("../Mushrooms")
+
+[node name="Shelves" type="Node3D" parent="Level"]
+script = ExtResource("10_shelves")
+terrain_path = NodePath("../Terrain")
+
+[node name="EvacBeacon" type="StaticBody3D" parent="Level" groups=["evac"]]
+
+[node name="Model" parent="Level/EvacBeacon" instance=ExtResource("4_evac")]
+
+[node name="PadCollision" type="CollisionShape3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("Shape_pad")
+
+[node name="BeaconCollision" type="CollisionShape3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 1.7, -1.4)
+shape = SubResource("Shape_beacon")
+
+[node name="BeaconLight" type="OmniLight3D" parent="Level/EvacBeacon"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 3.5, -1.4)
+light_color = Color(0.3, 0.95, 1, 1)
+light_energy = 2.0
+omni_range = 8.0
+
+[node name="PlayerSpawn" type="Marker3D" parent="Level"]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, 100)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")

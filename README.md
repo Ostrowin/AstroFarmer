@@ -10,6 +10,9 @@ Roguelite TPP o farmerze-odkrywcy na nieprzyjaznej, obcej planecie. Godot 4.7, G
 - [astro_farmer_rozszerzona_baza_wiedzy.md](astro_farmer_rozszerzona_baza_wiedzy.md): baza wiedzy
 - [docs/Muzyka_generowanie.md](docs/Muzyka_generowanie.md): jak powstaje muzyka (SoundCraft + VSCO 2 CE), pułapki, pomiary, katalog utworów
 - [docs/Muzyka_zamowienia.md](docs/Muzyka_zamowienia.md): czego gra potrzebuje od czatu muzycznego (muzyka i sample)
+- [docs/Biomy_brainstorm.md](docs/Biomy_brainstorm.md): burza mózgów, 15 biomów po 3 poziomy i co w nich odblokować (laboratorium, broń, drony, pojazdy, surowce); tylko pomysły
+- [docs/Potwory_i_rosliny_brainstorm.md](docs/Potwory_i_rosliny_brainstorm.md): burza mózgów, 309 pomysłów (stworzenia, rośliny, towarzysze, chwasty): część 1 (wrogowie, plemiona, pułapki, zapylacze, owoce-wzmocnienia) i część 2 (stwory z fantastyki i sci-fi: obcy przyjaciele, horror, kolosy, roje, maszyny, wierzchowce), część 3 (obce wersje prawdziwych zwierząt i roślin), część 4 (towarzysze, przyjaciele z pokonanych bossów, pasożyty i chwasty na farmie) z indeksem biomów; tylko pomysły
+- [docs/Biomy_etapy.md](docs/Biomy_etapy.md): „Kroniki Elysium-7”, opis każdego z 45 etapów jak z książki fantasy: dwa kontrastowe mini-biomy na etap (losowane na wyprawę) i rzadkie mini-biomy specjalne (Wiszące Góry, podwodne miasto Gurglingów), z mini-bossami, zalążek bossa (coraz więcej faz), finał z planetą jako 46. bossem, kręgi biomów; tylko pomysły
 
 ## Uruchomienie
 
@@ -51,6 +54,12 @@ Otwórz `project.godot` w Godot 4.7 i naciśnij F5 (gra startuje od menu: Contin
 
 ```bash
 "D:/Programy/Godot/Godot_v4.7.2-stable_win64_console.exe" --headless --path . res://tests/test_settings.tscn
+```
+
+Animacje farmera Idle, Run, Sprint, Jump i Dash (proceduralne; stopy w biegu bez ślizgania przy prędkościach z `player.gd`) liczy skrypt Blendera; zapisuje `art/source/player.blend` i eksportuje `art/models/player.glb` (stare wersje zostają w pliku jako `*_old`):
+
+```bash
+"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b art/source/player.blend -P tools/blender/player_locomotion.py
 ```
 
 Modele maszyn farmy (dron, dok, traktor) i ikonę drona buduje skrypt Blendera:

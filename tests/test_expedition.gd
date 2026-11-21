@@ -7,6 +7,7 @@ extends Node
 const EXPEDITION := preload("res://scenes/levels/expedition_meadow.tscn")
 const TEST_SAVE := "user://test_expedition_save.json"
 
+const EXPEDITION_SCRIPT := preload("res://scripts/expedition/expedition.gd")
 var _failures := 0
 
 
@@ -29,20 +30,34 @@ func _run() -> void:
 	var night_pickups := level.get_children().filter(func(n: Node) -> bool: return n is Pickup and (n as Pickup).night_only)
 	var bushes := level.get_children().filter(func(n: Node) -> bool: return n is WildBush)
 	var creatures := level.get_children().filter(func(n: Node) -> bool: return n is Creature)
-	_check(pickups.size() == 16, "15 znajdziek + 1 ulepszenie (jest %d)" % pickups.size())
-	_check(night_pickups.size() == 7, "7 nocnych znajdziek (jest %d)" % night_pickups.size())
-	_check(bushes.size() == 6, "6 dzikich krzewów")
+	_check(pickups.size() == EXPEDITION_SCRIPT.PICKUP_COUNT + 1, "%d znajdziek + 1 ulepszenie (jest %d)" % [EXPEDITION_SCRIPT.PICKUP_COUNT, pickups.size()])
+	_check(night_pickups.size() == EXPEDITION_SCRIPT.NIGHT_PICKUP_COUNT, "%d nocnych znajdziek (jest %d)" % [EXPEDITION_SCRIPT.NIGHT_PICKUP_COUNT, night_pickups.size()])
+	_check(bushes.size() == level.get_node("BushSpots").get_child_count() and bushes.size() >= 20, "dzikie krzewy na każdym miejscu (jest %d)" % bushes.size())
 	_check(creatures.size() == 1, "1 drapieżnik")
 
 	# Teren: wzgórza wokół płaskiego środka, środek ma zwykłą podłogę.
 	var hills := level.get_node("Hills") as TerrainRing
 	_check(hills.height_at(0, 0) == 0.0 and hills.height_at(50, -50) == 0.0, "środek łąki płaski")
-	_check(hills.height_at(0, -92) > 8.0, "grzbiet wzgórz wyraźnie wyżej")
+	_check(hills.height_at(0, -hills.ridge) > 8.0, "grzbiet wzgórz wyraźnie wyżej")
+	_check(hills.flat_half > 250.0, "łąka powiększona (płaski środek do %d m)" % int(hills.flat_half))
 	var space: PhysicsDirectSpaceState3D = (exp1 as Node3D).get_world_3d().direct_space_state
 	var hit_mid: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(10, 30, 0), Vector3(10, -5, 0)))
 	_check(not hit_mid.is_empty() and (hit_mid["collider"] as Node).name == "Ground", "na środku promień trafia w podłogę")
-	var hit_slope: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(0, 60, -70), Vector3(0, -5, -70)))
+	var slope_z := -(hills.flat_half + hills.collision_extent) * 0.5
+	var hit_slope: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(0, 60, slope_z), Vector3(0, -5, slope_z)))
 	_check(not hit_slope.is_empty() and (hit_slope["collider"] as Node).is_in_group("terrain") and hit_slope["position"].y > 0.5, "zbocze ma kolizję")
+	# Droga do lądowiska: słup światła nad latarnią i znacznik na HUD.
+	var beacon := level.get_node("EvacBeacon") as Node3D
+	_check(beacon.get_node_or_null("EvacBeam") is EvacBeam, "nad latarnią świeci słup światła")
+	var marker := (exp1.get_node("HUD") as ExpeditionHud).beacon_marker
+	var walker := exp1.get_node("Player") as Player
+	_check(marker != null and marker.mode() == "hidden", "przy latarni znacznik schowany")
+	var start_pos := walker.global_position
+	walker.global_position = beacon.global_position + Vector3(120, 0, -90)
+	await _frames(2)
+	_check(marker.mode() != "hidden" and absf(marker.distance() - 150.0) < 1.0, "z daleka znacznik pokazuje %d m" % int(marker.distance()))
+	walker.global_position = start_pos
+	await _frames(1)
 	var creature := creatures[0] as Creature
 	_check(creature.state == Creature.State.SLEEP, "drapieżnik śpi przy Przebudzeniu < 50")
 

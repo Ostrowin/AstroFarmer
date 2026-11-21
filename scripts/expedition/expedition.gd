@@ -8,36 +8,46 @@ extends Node3D
 
 signal finished(report: Dictionary)
 
-const AWAKENING_PER_SECOND := 0.35
+## Mapa po powiększeniu (2026-11-20) jest ok. 20x większa, więc Przebudzenie rośnie wolniej (było 0.35).
+const AWAKENING_PER_SECOND := 0.25
 const STORM_SECONDS := 90.0
 const STORM_DAMAGE_PER_SECOND := 1.0
 ## Zabicie drapieżnika budzi planetę.
 const KILL_AWAKENING := 8.0
 const EVAC_SECONDS := 5.0
 const EVAC_RADIUS := 4.5
-const PICKUP_COUNT := 15
+const PICKUP_COUNT := 60
 ## Poziom 2: więcej znajdziek, Przebudzenie od 10, Mgliste źródło i Mgielnik.
-const LEVEL2_EXTRA_PICKUPS := 2
+const LEVEL2_EXTRA_PICKUPS := 8
 const LEVEL2_START_AWAKENING := 10.0
-const SPRING_POSITION := Vector3(-27, 0, 0)
-const MISTBLOOM_POSITION := Vector3(-24, 0, -7)
-## Stadka małych stworzeń: [rodzaj, środek, liczba].
+const SPRING_POSITION := Vector3(-54, 0, 0)
+const MISTBLOOM_POSITION := Vector3(-48, 0, -14)
+## Stadka małych stworzeń blisko lądowiska: [rodzaj, środek, liczba].
 const CRITTERS := [
-	[Critter.Kind.POLLENBUG, Vector3(-9, 0, 16), 1],
-	[Critter.Kind.POLLENBUG, Vector3(-18, 0, -12), 1],
-	[Critter.Kind.POLLENBUG, Vector3(20, 0, -4), 1],
-	[Critter.Kind.CHRUPIK, Vector3(15, 0, 8), 3],
+	[Critter.Kind.POLLENBUG, Vector3(-18, 0, 32), 1],
+	[Critter.Kind.POLLENBUG, Vector3(-36, 0, -24), 1],
+	[Critter.Kind.POLLENBUG, Vector3(40, 0, -8), 1],
+	[Critter.Kind.CHRUPIK, Vector3(28, 0, 12), 3],  # tuż przy krzewie B2 (24, 8): objadają go, gdy łąka się budzi
 	# Nocne: widoczne tylko po zmroku.
-	[Critter.Kind.LUMIMOTH, Vector3(-10, 0, 12), 2],
-	[Critter.Kind.LUMIMOTH, Vector3(14, 0, -10), 2],
-	[Critter.Kind.LUMIMOTH, Vector3(-20, 0, -14), 1],
-	[Critter.Kind.DRIFTER, Vector3(8, 0, 22), 1],
-	[Critter.Kind.DRIFTER, Vector3(-22, 0, 6), 1],
-	[Critter.Kind.DRIFTER, Vector3(20, 0, -22), 1],
+	[Critter.Kind.LUMIMOTH, Vector3(-20, 0, 24), 2],
+	[Critter.Kind.LUMIMOTH, Vector3(28, 0, -20), 2],
+	[Critter.Kind.LUMIMOTH, Vector3(-40, 0, -28), 1],
+	[Critter.Kind.DRIFTER, Vector3(16, 0, 44), 1],
+	[Critter.Kind.DRIFTER, Vector3(-44, 0, 12), 1],
+	[Critter.Kind.DRIFTER, Vector3(40, 0, -44), 1],
 ]
+## Dalsze stadka rozsiane po całej łące (stały układ): [rodzaj, ile stadek, sztuk w stadku].
+const WILD_HERDS := [
+	[Critter.Kind.POLLENBUG, 14, 2],
+	[Critter.Kind.CHRUPIK, 7, 3],
+	[Critter.Kind.LUMIMOTH, 12, 2],
+	[Critter.Kind.DRIFTER, 8, 1],
+]
+## Połowa boku obszaru, po którym rozsiewamy stadka (ściany łąki stoją na ±285 m).
+const HERD_HALF := 250.0
 
 ## Nocne znajdźki: leżą na łące cały czas, ale widać je i można je podnieść tylko nocą.
-const NIGHT_PICKUP_COUNT := 7
+const NIGHT_PICKUP_COUNT := 28
 const NIGHT_LOOT := [
 	{"item": &"seed_moonpetal", "weight": 2.0},
 	{"item": &"glow_spores", "weight": 3.0},
@@ -110,6 +120,12 @@ func _ready() -> void:
 	_inventory.drop_requested.connect(func(id: StringName, amount: int) -> void: interaction.drop_item(id, amount))
 	_hud.bind(interaction)
 	_hud.set_player(_player)
+	# Droga powrotna na dużej łące: słup światła nad latarnią + znacznik na HUD.
+	var beam := EvacBeam.new()
+	beam.name = "EvacBeam"
+	beam.position = Vector3(-2.4, 3.5, -1.4)  # nad lampą latarni
+	_beacon.add_child(beam)
+	_hud.track_beacon(_beacon, _player)
 	_player.died.connect(func() -> void: _finish(false, "You were knocked out."))
 	run.threshold_reached.connect(_on_threshold)
 	run.changed.connect(_hud.refresh)
@@ -194,13 +210,30 @@ func _spawn_world() -> void:
 	creature.killed.connect(_on_creature_killed)
 	_level.add_child(creature)
 
-	for group: Array in CRITTERS:
+	for group: Array in _critter_groups():
 		for i in int(group[2]):
 			var critter := Critter.new()
 			critter.kind = group[0]
 			critter.home = group[1]
 			critter.position = group[1] + Vector3(i * 1.2, 0.5, i * 0.7)
 			_level.add_child(critter)
+
+
+## Stadka przy lądowisku + rozsiane po łące (ziarno stałe, więc ta sama mapa za każdym razem).
+func _critter_groups() -> Array:
+	var groups: Array = CRITTERS.duplicate()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	var evac := ($Level/EvacBeacon as Node3D).position
+	for herd: Array in WILD_HERDS:
+		for i in int(herd[1]):
+			var home := Vector3.ZERO
+			for attempt in 20:
+				home = Vector3(rng.randf_range(-HERD_HALF, HERD_HALF), 0, rng.randf_range(-HERD_HALF, HERD_HALF))
+				if Vector2(home.x - evac.x, home.z - evac.z).length() > 40.0:
+					break
+			groups.append([herd[0], home, herd[2]])
+	return groups
 
 
 ## Poziom 2: mgła, Mgliste źródło, nasiono Mgielnika i dodatkowe znajdźki.

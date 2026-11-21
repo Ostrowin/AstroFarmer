@@ -46,6 +46,18 @@ func _physics_process(delta: float) -> void:
 			_done = true
 			get_tree().create_timer(TRAP_SECONDS).timeout.connect(_wilt)
 			return
+	# Stworzenia Grzybowego Lasu (Rotling; latające Sporebaty łapie tylko, gdy leżą na ziemi).
+	for node in get_tree().get_nodes_in_group("forest_creature"):
+		var fc := node as ForestCreature
+		if fc == null or fc.dead:
+			continue
+		var off := fc.global_position - global_position
+		if Vector2(off.x, off.z).length() < RADIUS and absf(off.y) < 1.5 and fc.trap(TRAP_SECONDS):
+			GameState.learn(&"snapper", "trap")
+			_close_jaws()
+			_done = true
+			get_tree().create_timer(TRAP_SECONDS).timeout.connect(_wilt)
+			return
 
 
 func _close_jaws() -> void:

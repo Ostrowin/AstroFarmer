@@ -9,6 +9,9 @@ var _awake_label: Label
 var _alert: Label
 var _offhand_panel: PanelContainer
 var _offhand_label: Label
+## Znacznik latarni ewakuacyjnej (romb nad nią albo strzałka przy krawędzi ekranu).
+var beacon_marker: BeaconMarker
+var _overlay_shown := true
 
 
 func _ready() -> void:
@@ -73,6 +76,27 @@ func set_player(player: Player) -> void:
 	track_player(player)
 	player.health_changed.connect(_on_health_changed)
 	_on_health_changed(player.health, player.max_health)
+
+
+## Pokazuje drogę do latarni ewakuacyjnej (znacznik / strzałka z odległością).
+func track_beacon(beacon: Node3D, player: Node3D) -> void:
+	beacon_marker = BeaconMarker.new()
+	beacon_marker.name = "BeaconMarker"
+	beacon_marker.target = beacon
+	beacon_marker.player = player
+	_root.add_child(beacon_marker)
+	_root.move_child(beacon_marker, 0)  # pod kartami HUD
+
+
+func _process(delta: float) -> void:
+	super(delta)
+	if beacon_marker:
+		beacon_marker.visible = _overlay_shown and not modal and _fade.modulate.a < 0.01
+
+
+func show_overlay(show: bool) -> void:
+	super(show)
+	_overlay_shown = show
 
 
 func set_awakening(value: float) -> void:

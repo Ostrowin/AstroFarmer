@@ -5,6 +5,7 @@ extends Node3D
 ## → zbierasz, bronisz się, ulepszasz w warsztacie → znowu w drogę.
 
 const EXPEDITION_SCENE := "res://scenes/levels/expedition_meadow.tscn"
+const MUSHROOM_SCENE := "res://scenes/levels/expedition_mushroom.tscn"
 ## „Homestead”: spokojne banjo i smyczki, cicho pod dźwiękami natury (tools/audio/homestead.py).
 const BASE_MUSIC := "res://audio/music/homestead.ogg"
 const BASE_MUSIC_DB := -12.0
@@ -166,6 +167,10 @@ func _depart(loadout: Dictionary, options: Dictionary = {}) -> void:
 	GameState.start_run(loadout, options)
 	_save()
 	_player.capture_mouse()
+	if options.get("biome", &"meadow") == &"mushroom":
+		await _hud.fade_out("Mushroom Forest")
+		get_tree().change_scene_to_file(MUSHROOM_SCENE)
+		return
 	await _hud.fade_out("Wild Meadow%s" % (" II" if GameState.run.level >= 2 else ""))
 	get_tree().change_scene_to_file(EXPEDITION_SCENE)
 

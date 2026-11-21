@@ -3,7 +3,7 @@ extends PanelContainer
 ## Okno przygotowania wyprawy: poziom łąki, wyposażenie z magazynu (zajmuje plecak)
 ## i danie z kuchni ekspedycyjnej (jedno, zjadane przy wyjściu).
 
-## options: {"level": int, "meal": StringName}
+## options: {"level": int, "meal": StringName, "biome": StringName (&"meadow" / &"mushroom")}
 signal depart(loadout: Dictionary, options: Dictionary)
 signal rest
 signal cancelled
@@ -19,6 +19,9 @@ var _count_labels: Dictionary = {}
 var _space_label: Label
 var _planet_label: Label
 var _level := 1
+## Dokąd: łąka albo Grzybowy Las (na razie wersja testowa, bez odblokowania).
+var _biome: StringName = &"meadow"
+var _biome_buttons: Dictionary = {}
 var _meal: StringName = &""
 var _level_buttons: Array[Button] = []
 var _meal_buttons: Dictionary = {}
@@ -40,6 +43,15 @@ func _ready() -> void:
 	add_child(box)
 
 	box.add_child(_label("Expedition", 28))
+	var biome_row := HBoxContainer.new()
+	biome_row.add_theme_constant_override("separation", 10)
+	biome_row.add_child(_label("Place", 18))
+	for biome: Array in [[&"meadow", "Wild Meadow"], [&"mushroom", "Mushroom Forest (test)"]]:
+		var biome_button := _button(biome[1], _set_biome.bind(biome[0]), 16)
+		biome_button.toggle_mode = true
+		biome_row.add_child(biome_button)
+		_biome_buttons[biome[0]] = biome_button
+	box.add_child(biome_row)
 	var level_row := HBoxContainer.new()
 	level_row.add_theme_constant_override("separation", 10)
 	level_row.add_child(_label("Level", 18))
@@ -143,7 +155,13 @@ func _change(id: StringName, delta: int) -> void:
 
 
 func _on_depart() -> void:
-	depart.emit(_counts.duplicate(), {"level": _level, "meal": _meal if _meal_available(_meal) else &""})
+	depart.emit(_counts.duplicate(), {"level": 1 if _biome == &"mushroom" else _level,
+		"meal": _meal if _meal_available(_meal) else &"", "biome": _biome})
+
+
+func _set_biome(biome: StringName) -> void:
+	_biome = biome
+	_refresh()
 
 
 func _set_level(level: int) -> void:
@@ -178,11 +196,16 @@ func _used() -> int:
 
 
 func _refresh() -> void:
+	for id in _biome_buttons:
+		(_biome_buttons[id] as Button).set_pressed_no_signal(id == _biome)
+	var forest := _biome == &"mushroom"
 	for i in _level_buttons.size():
 		var level := i + 1
-		_level_buttons[i].set_pressed_no_signal(level == _level)
-		_level_buttons[i].disabled = level > GameState.max_level()
-	if GameState.max_level() < 2:
+		_level_buttons[i].set_pressed_no_signal(level == (1 if forest else _level))
+		_level_buttons[i].disabled = forest or level > GameState.max_level()
+	if forest:
+		_level_label.text = "Test: random terrain · pits · canyon with Hammer Caps"
+	elif GameState.max_level() < 2:
 		_level_label.text = "Level II: %d/%d database entries" % [
 			Codex.discovered_count(GameState.research, 1), Codex.LEVEL2_REQUIRED]
 	else:

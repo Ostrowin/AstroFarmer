@@ -72,6 +72,10 @@ const NIGHT_AMBIENT := Color(0.004, 0.005, 0.01)
 var drive_clock := true
 ## Mgła poziomu 2 (0..1).
 var mist := 0.0
+## Sufit z kapeluszy (Grzybowy Las): 0 = otwarte niebo, 1 = wieczny półmrok
+## (słabsze słońce i światło otoczenia, gęstsza fioletowa mgła).
+var canopy := 0.0
+const CANOPY_FOG := Color(0.2, 0.15, 0.32)
 
 var _env: Environment
 var _sun: DirectionalLight3D
@@ -163,17 +167,19 @@ func apply(t: float) -> void:
 	_sky_mat.set_shader_parameter("ground_color", Vector3(ground.r, ground.g, ground.b))
 	_sky_mat.set_shader_parameter("stars", night * (1.0 - wm * 0.8))
 	_sky_mat.set_shader_parameter("sun_disc", 1.0 - night)
+	if canopy > 0.0:
+		fog_color = fog_color.lerp(CANOPY_FOG * bright, canopy * 0.85)
 	_env.fog_light_color = fog_color
-	_env.fog_density = lerpf(p["fog_density"], w["fog_density"], wm) + mist * 0.008
+	_env.fog_density = lerpf(p["fog_density"], w["fog_density"], wm) + mist * 0.008 + canopy * 0.008
 	# Niebo jako źródło światła otoczenia rozjaśnia scenę nawet przy małej sile,
 	# więc nocą przechodzimy na prawie czarny kolor otoczenia.
 	_env.ambient_light_sky_contribution = 1.0 - night
 	_env.ambient_light_color = NIGHT_AMBIENT
-	_env.ambient_light_energy = p["ambient"]
+	_env.ambient_light_energy = p["ambient"] * lerpf(1.0, 0.5, canopy)
 	_env.glow_intensity = p["glow"]
 	var light: Color = (p["light"] as Color).lerp(w["light"], wm * (1.0 - night))
 	_sun.light_color = light
-	_sun.light_energy = p["energy"] * lerpf(1.0, w["scale"], wm)
+	_sun.light_energy = p["energy"] * lerpf(1.0, w["scale"], wm) * lerpf(1.0, 0.3, canopy)
 	_sun.basis = Basis.looking_at(-_light_dir(t, night))
 
 
